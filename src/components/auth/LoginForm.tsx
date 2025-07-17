@@ -1,0 +1,97 @@
+"use client";
+
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LoginFormInputs, loginSchema } from "@/schemas/auth.schema";
+import { generateAccessToken, loginUser } from "@/services/auth.api";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+
+export default function LoginForm() {
+  const router = useRouter();
+  const [serverError, setServerError] = useState<string>("");
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormInputs) => {
+    setServerError("");
+
+    try {
+      const res = await loginUser(data);
+      const payload = {
+        user_id: res.user_id,
+        user_type: res?.user_role,
+      };
+      const response = await generateAccessToken(payload);
+      if (response.success) {
+        toast.success("Login successful!");
+        if (res?.user_role === "nurse") {
+          return router.push("/dashboard/nurse");
+        } else if (res?.user_role === "receptionist") {
+          return router.push("/dashboard/receptionist");
+        } else {
+          return toast.warning("User role not available");
+        }
+      }
+    } catch (error) {
+      setServerError("Something went wrong. Please try again.");
+    }
+  };
+
+  return (
+    <Card className="w-full max-w-sm shadow-lg">
+      <CardHeader>
+        <CardTitle className="text-center text-2xl font-bold">
+          Nurse Login
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              {...register("email")}
+              aria-invalid={!!errors.email}
+            />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              {...register("password")}
+              aria-invalid={!!errors.password}
+            />
+            {errors.password && (
+              <p className="text-sm text-red-500">{errors.password.message}</p>
+            )}
+          </div>
+
+          {serverError && <p className="text-sm text-red-500">{serverError}</p>}
+
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Logging in..." : "Log In"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+}
