@@ -12,8 +12,11 @@ import { LoginFormInputs, loginSchema } from "@/schemas/auth.schema";
 import { generateAccessToken, loginUser } from "@/services/auth.api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useDispatch } from "react-redux";
+import { storeLoginDetails } from "@/store/slices/authSlice";
 
 export default function LoginForm() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const [serverError, setServerError] = useState<string>("");
 
@@ -35,15 +38,22 @@ export default function LoginForm() {
         user_type: res?.user_role,
       };
       const response = await generateAccessToken(payload);
-      if (response.success) {
-        toast.success("Login successful!");
-        if (res?.user_role === "nurse") {
-          return router.push("/dashboard/nurse");
-        } else if (res?.user_role === "receptionist") {
-          return router.push("/dashboard/receptionist");
-        } else {
-          return toast.warning("User role not available");
-        }
+      toast.success("Login successful!");
+
+      dispatch(
+        storeLoginDetails({
+          user_id: res.user_id,
+          user_role: res?.user_role,
+          access_token: response.access_token,
+        })
+      );
+
+      if (res?.user_role === "nurse") {
+        return router.push("/dashboard/nurse");
+      } else if (res?.user_role === "receptionist") {
+        return router.push("/dashboard/receptionist");
+      } else {
+        return toast.warning("User role not available");
       }
     } catch (error) {
       setServerError("Something went wrong. Please try again.");

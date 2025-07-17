@@ -21,7 +21,7 @@ export const loginUser = async (data: LoginFormInputs) => {
 
 export const generateAccessToken = async (data: generateAccessTokenPayload) => {
   try {
-    const response = await api.post("auth/login", data);
+    const response = await api.post("auth/token", data);
 
     return response.data;
   } catch (error: any) {
