@@ -114,7 +114,7 @@ const NurseScanQr: React.FC = () => {
 
           <Button
             onClick={() => {
-              router.push("/nurse/questionnaire");
+              router.push("/dashboard/nurse/questionnaire");
             }}
             className="w-44"
           >
