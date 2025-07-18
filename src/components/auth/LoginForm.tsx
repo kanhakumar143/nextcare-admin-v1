@@ -63,9 +63,7 @@ export default function LoginForm() {
   return (
     <Card className="w-full max-w-sm shadow-lg">
       <CardHeader>
-        <CardTitle className="text-center text-2xl font-bold">
-          Nurse Login
-        </CardTitle>
+        <CardTitle className="text-center text-2xl font-bold">Login</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -74,6 +72,7 @@ export default function LoginForm() {
             <Input
               id="email"
               type="email"
+              placeholder="Enter your email"
               {...register("email")}
               aria-invalid={!!errors.email}
             />
@@ -87,6 +86,7 @@ export default function LoginForm() {
             <Input
               id="password"
               type="password"
+              placeholder="Enter your password"
               {...register("password")}
               aria-invalid={!!errors.password}
             />

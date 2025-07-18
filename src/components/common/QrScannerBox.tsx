@@ -79,7 +79,7 @@ const QrScannerBox: React.FC<QrScannerBoxProps> = ({
 
       <video
         ref={videoRef}
-        className={`border-2 border-blue-300 rounded-lg shadow-md ${
+        className={`border-2 border-gray-300 rounded-lg shadow-md ${
           scanning ? "block" : "hidden"
         }`}
         style={{ width, height }}

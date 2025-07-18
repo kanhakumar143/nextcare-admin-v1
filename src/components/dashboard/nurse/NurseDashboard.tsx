@@ -1,13 +1,9 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { QrCode } from "lucide-react";
-import { useRouter } from "next/navigation";
 import CreateItem from "../CardItem";
 
-export default function ReceptionPortal() {
-  const router = useRouter();
-
+export default function NurseDashboard() {
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -20,8 +16,8 @@ export default function ReceptionPortal() {
           <CreateItem
             icon={<QrCode />}
             header="Scan QR Code"
-            subText="Scan patient QR codes to access records"
-            link="/dashboard/receptionist/check-in"
+            subText="Scan patient QR codes to access details"
+            link="/dashboard/nurse/check-in"
           />
         </div>
       </div>
