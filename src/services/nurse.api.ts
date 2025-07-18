@@ -3,7 +3,7 @@ import { BulkVitalsPayload } from "@/types/nurse.types";
 
 export const fetchVitals = async () => {
   try {
-    const { data } = await axios.get(`vital_definition/`);
+    const { data } = await api.get(`vital_definition/`);
 
     return data;
   } catch (error: any) {

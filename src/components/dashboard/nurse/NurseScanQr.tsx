@@ -42,22 +42,21 @@ const NurseScanQr: React.FC = () => {
   };
 
   return (
-    <div className="px-4 pt-3 pb-20 flex flex-col items-center gap-4 bg-white">
-      <CardContent className="space-y-4">
-        <h1 className="text-2xl font-bold text-center text-primary">
-          Scan QR Code to Proceed
-        </h1>
-        <p className="text-center text-[14px] sm:text-base text-gray-600">
-          Click the button below to scan a patient&apos;s QR code.
-        </p>
+    <div className="px-4 mt-6 flex flex-col items-center gap-4 bg-white">
+      {!qrDtls && (
+        <CardContent className="space-y-2">
+          <h1 className="text-2xl font-bold text-center text-primary">
+            Scan QR Code to Proceed
+          </h1>
 
-        <QrScannerBox
-          onScanSuccess={(token: string) => {
-            handleScan(token);
-          }}
-          buttonLabel="Scan QR"
-        />
-      </CardContent>
+          <QrScannerBox
+            onScanSuccess={(token: string) => {
+              handleScan(token);
+            }}
+            buttonLabel="Scan QR"
+          />
+        </CardContent>
+      )}
 
       {invalidCode && <p className="text-red-500 font-medium">{invalidCode}</p>}
 
@@ -117,13 +116,15 @@ const NurseScanQr: React.FC = () => {
             onClick={() => {
               router.push("/nurse/questionnaire");
             }}
+            className="w-44"
           >
             Fill-Up Questionnaires
           </Button>
           <Button
             onClick={() => {
-              router.push("/nurse/capture-details");
+              router.push("/dashboard/nurse/capture-details");
             }}
+            className="w-44"
           >
             Capture Vitals
           </Button>

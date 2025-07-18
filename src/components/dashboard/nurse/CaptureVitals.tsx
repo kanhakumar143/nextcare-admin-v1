@@ -90,9 +90,9 @@ const CaptureVitals = () => {
       const response = await submitBulkVitals(payload);
 
       console.log("Vitals submitted:", response);
-      dispatch(setQrDetails(null));
+      // dispatch(setQrDetails(null));
       toast.success("General vitals captured successfully.");
-      router.push("/nurse/check-in");
+      router.push("/dashboard/nurse/check-in");
     } catch (err) {
       console.error("Error submitting vitals:", err);
       toast.error("Getting error when submit general vitals");
