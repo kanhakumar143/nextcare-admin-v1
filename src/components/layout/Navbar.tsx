@@ -9,7 +9,7 @@ import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
 
-const Navbar = ({ deviceType }: { deviceType: string }) => {
+const Navbar = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { userId } = useAuthInfo();

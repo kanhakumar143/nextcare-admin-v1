@@ -66,6 +66,10 @@ const QrScannerBox: React.FC<QrScannerBoxProps> = ({
 
   return (
     <div className={`flex flex-col items-center gap-3 ${className}`}>
+      <p className="text-xs text-muted-foreground text-center mt-2 px-10">
+        Ensure you have the patient's valid QR code ready. Avoid reflections or
+        low lighting.
+      </p>
       <Button onClick={startScanner} disabled={scanning}>
         {scanning ? (
           <>

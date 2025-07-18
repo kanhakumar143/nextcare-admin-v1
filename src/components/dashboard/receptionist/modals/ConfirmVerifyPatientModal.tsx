@@ -73,7 +73,7 @@ export default function ConfirmVerifyPatientModal() {
       });
 
       dispatch(setDecodedDetails(response.data));
-      router.push("/dashboard/receptionist");
+      router.push("/dashboard/receptionist/check-in");
     } catch {
       toast.error("Couldn’t fetch details!");
     }
@@ -106,7 +106,7 @@ export default function ConfirmVerifyPatientModal() {
           </p>
         </div>
 
-        <DialogFooter className="mt-6 flex flex-col sm:flex-row sm:justify-between gap-2">
+        <DialogFooter className="mt-6 flex flex-col sm:flex-row sm:justify-end gap-2">
           <Button
             variant="outline"
             onClick={() => dispatch(setVerifiedPatientModal(false))}

@@ -29,7 +29,7 @@ const VerifyPatientDetails = () => {
 
       {patientDetails && (
         <>
-          <Card className="w-full max-w-md mx-auto rounded-xl border border-orange-200 shadow py-4 bg-white mb-20">
+          <Card className="w-full max-w-md mx-auto rounded-xl shadow py-4 mb-20">
             <CardContent className="space-y-4">
               {/* Header */}
               <div className="text-left">

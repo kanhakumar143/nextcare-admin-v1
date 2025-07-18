@@ -115,6 +115,13 @@ const NurseScanQr: React.FC = () => {
 
           <Button
             onClick={() => {
+              router.push("/nurse/questionnaire");
+            }}
+          >
+            Fill-Up Questionnaires
+          </Button>
+          <Button
+            onClick={() => {
               router.push("/nurse/capture-details");
             }}
           >

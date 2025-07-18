@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
@@ -25,12 +25,14 @@ const ScannedPatientDetails = () => {
   const { patientDetails } = useSelector(
     (state: RootState) => state.receptionistData
   );
+  const [loading, setLoading] = useState<boolean>(false);
 
   const handleConfirmCheckin = async () => {
     const payload = {
       appointment_id: patientDetails?.appointment.id || "",
       user_id: patientDetails?.patient.user_id || "",
     };
+    setLoading(true);
     try {
       const response = await checkInPatient(payload);
       dispatch(setCheckinSuccessModal(true));
@@ -39,6 +41,8 @@ const ScannedPatientDetails = () => {
       console.log(response);
     } catch {
       toast.error("Something went wrong! Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -72,7 +76,7 @@ const ScannedPatientDetails = () => {
       )}
 
       {patientDetails && (
-        <Card className="w-full max-w-md mx-auto rounded-xl border border-orange-200 shadow py-4 bg-white mb-20">
+        <Card className="w-full max-w-md mx-auto rounded-xl shadow py-4 bg-white">
           <CardContent className="space-y-2">
             <div className="text-left">
               <h2 className="text-md font-semibold text-gray-800">
@@ -148,20 +152,19 @@ const ScannedPatientDetails = () => {
               {patientDetails.patient.patient_profile.verifications[0]
                 .verification_status !== "verified" ? (
                 <Button
-                  variant="outline"
                   className="w-full border-primary border-2"
                   onClick={() => {
                     router.push("/dashboard/receptionist/verify-patient");
                   }}
                 >
-                  Verify Identity
+                  Verify Patient
                 </Button>
               ) : (
                 <Button
                   onClick={handleConfirmCheckin}
                   className="w-full bg-green-500 hover:bg-green-400 text-white font-semibold"
                 >
-                  Check-in
+                  {loading ? "Checking In..." : "Confirm Check-In"}
                 </Button>
               )}
             </div>

@@ -8,7 +8,7 @@ import {
 } from "@/store/slices/receptionistSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { AlertCircleIcon } from "lucide-react";
+import { AlertCircleIcon, AlertTriangle } from "lucide-react";
 import QrScannerBox from "@/components/common/QrScannerBox";
 import ScannedPatientDetails from "./ScanedPatientDetails";
 import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
@@ -44,52 +44,51 @@ const ScanPatientQr: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-start p-6 gap-6 min-h-screen bg-gray-50">
-      {/* Page Heading */}
+    <div className="flex flex-col items-center justify-start p-6 gap-6 ">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold text-primary">
           Patient QR Code Check-In
         </h1>
       </div>
 
-      {/* Scanner Component */}
-      <div className="w-full max-w-md">
-        <QrScannerBox
-          onScanSuccess={(token) => handleQrDetailsData(token)}
-          buttonLabel="Start QR Scan"
-        />
-        <p className="text-xs text-muted-foreground text-center mt-2 px-10">
-          Ensure you have the patient's valid QR code ready. Avoid reflections
-          or low lighting.
-        </p>
-      </div>
+      {!patientDetails && (
+        <div className="w-full max-w-md">
+          <QrScannerBox
+            onScanSuccess={(token) => handleQrDetailsData(token)}
+            buttonLabel="Start QR Scan"
+          />
+        </div>
+      )}
 
-      {/* Error Message */}
       {invalidCode && (
-        <Alert variant="destructive" className="max-w-2xl">
+        <Alert
+          variant="destructive"
+          className="max-w-2xl border border-red-200"
+        >
           <AlertCircleIcon />
           <AlertTitle>{invalidCode}</AlertTitle>
         </Alert>
       )}
 
-      {/* Scanned Patient Details */}
       {patientDetails && !invalidCode && (
         <div className="w-full max-w-md">
           <ScannedPatientDetails />
-          <p className="text-sm text-muted-foreground mt-2 text-center">
-            Please verify the patient's identity before confirming the check-in.
-          </p>
+          {patientDetails.patient.patient_profile.verifications[0]
+            .verification_status !== "verified" && (
+            <div className="mt-2 flex items-center justify-center">
+              <div className="flex items-start gap-3 rounded-md border border-yellow-300 bg-yellow-50 px-4 py-3 text-yellow-800 w-full max-w-md">
+                <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <p className="text-sm">
+                  Please verify the patient's identity before confirming the
+                  check-in.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Confirm Modal for Checked-In */}
       <ConfirmCheckedInModal />
-
-      {/* Footer Hint */}
-      <div className="mt-auto text-xs text-gray-400 text-center max-w-md">
-        If you face repeated scanning issues, try refreshing the page or consult
-        a system admin.
-      </div>
     </div>
   );
 };

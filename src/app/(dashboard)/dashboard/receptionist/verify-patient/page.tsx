@@ -8,8 +8,8 @@ export const metadata: Metadata = {
 
 export default function Blogs() {
   return (
-    <div>
+    <>
       <VerifyPatientDetails />
-    </div>
+    </>
   );
 }

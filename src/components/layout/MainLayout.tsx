@@ -1,29 +1,24 @@
-import { headers } from "next/headers";
-import { getServerDeviceType } from "@/lib/server-device";
+"use client";
 import Navbar from "./Navbar";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
-export default async function MainLayout({
+export default function MainLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const deviceType = await getServerDeviceType();
-  const headersList = await headers();
-  const pathname = headersList.get("referer");
-  const isDashboardRoute = pathname?.includes("/");
+  const path = usePathname();
 
   return (
     <>
-      {isDashboardRoute && <Navbar deviceType={deviceType} />}
+      {path !== "/" && <Navbar />}
 
       <div className="flex flex-col min-h-screen relative bg-gradient-to-br bg-white">
         <div className="absolute inset-0 z-0 backdrop-blur-3xl bg-white/30" />
 
         <main
-          className={`relative z-10 flex-1 md:px-16 px-0 sm:px-8 ${
-            deviceType === "mobile" ? "mt-18 py-0" : "mt-14 py-10"
-          }`}
+          className={`relative z-10 flex-1 md:px-16 px-0 sm:px-8 mt-18 py-0 md:mt-14 md:py-10`}
         >
           {children}
         </main>
