@@ -7,13 +7,6 @@ export const metadata: Metadata = {
     "Manage appointments, patients, and reception tasks in the admin dashboard.",
 };
 
-interface PatientConsultPageProps {
-  params: { patient_name: string };
-}
-
-export default function PatientConsultPage({
-  params,
-}: PatientConsultPageProps) {
-  const { patient_name } = params;
-  return <PatientConsultation patientName={patient_name} />;
+export default function PatientConsultPage() {
+  return <PatientConsultation />;
 }

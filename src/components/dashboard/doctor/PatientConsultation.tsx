@@ -28,11 +28,7 @@ import { useDispatch } from "react-redux";
 import { setConfirmConsultationModal } from "@/store/slices/doctorSlice";
 import { useRouter } from "next/navigation";
 
-export default function PatientConsultation({
-  patientName,
-}: {
-  patientName: string;
-}) {
+export default function PatientConsultation() {
   const [summary, setSummary] = useState("");
   const router = useRouter();
   // Sample Data

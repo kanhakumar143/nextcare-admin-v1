@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ResponsiveContainer,
@@ -32,7 +32,6 @@ const appointmentData = [
 export default function AdminDashboard() {
   return (
     <div className="flex n w-full overflow-y-hidden">
-      
       <main className="flex-1 p-3 space-y-10  ">
         {/* Summary Boxes */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
