@@ -3,7 +3,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { QrCode } from "lucide-react";
 import { useRouter } from "next/navigation";
-import CreateItem from "../CardItem";
+import DashboardCards from "@/components/common/DashboardCards";
 
 export default function ReceptionPortal() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export default function ReceptionPortal() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-9">
-          <CreateItem
+          <DashboardCards
             icon={<QrCode />}
             header="Scan QR Code"
             subText="Scan patient QR codes to access records"
