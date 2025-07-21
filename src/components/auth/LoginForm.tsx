@@ -54,9 +54,11 @@ export default function LoginForm() {
         return router.push("/dashboard/receptionist");
       } else if(res?.user_role === "admin") {
         return router.push("/dashboard/admin");
-      }else
-         return toast.warning("User role not available");
-      
+      } else if (res?.user_role === "doctor") {
+        return router.push("/dashboard/doctor");
+      } else {
+        return toast.warning("User role not available");
+      }
     } catch (error) {
       setServerError("Something went wrong. Please try again.");
     }

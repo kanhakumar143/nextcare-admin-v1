@@ -1,7 +1,7 @@
 "use client";
 
+import DashboardCards from "@/components/common/DashboardCards";
 import { QrCode } from "lucide-react";
-import CreateItem from "../CardItem";
 
 export default function NurseDashboard() {
   return (
@@ -13,7 +13,7 @@ export default function NurseDashboard() {
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 px-9">
-          <CreateItem
+          <DashboardCards
             icon={<QrCode />}
             header="Scan QR Code"
             subText="Scan patient QR codes to access details"
