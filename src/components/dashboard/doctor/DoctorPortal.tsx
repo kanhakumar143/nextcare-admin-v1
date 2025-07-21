@@ -187,8 +187,6 @@ const DoctorPortal = () => {
   const todayPatients = patientsData.patients.filter(
     (patient) => patient.date === today
   );
-  const nextPatient =
-    todayPatients.find((patient) => patient.status === "scheduled") || null;
 
   const handlePatientInfo = (patient: Patient) => {
     setSelectedPatient(patient);
@@ -200,7 +198,11 @@ const DoctorPortal = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="border-b border-border pb-4 flex gap-3 items-center">
-          <Button size={"icon"} variant={"ghost"} onClick={() => router.back()}>
+          <Button
+            size={"icon"}
+            variant={"ghost"}
+            onClick={() => router.push("/dashboard/doctor")}
+          >
             <ArrowLeft />
           </Button>
           <div>
@@ -226,6 +228,7 @@ const DoctorPortal = () => {
             />
           </CardContent>
         </Card>
+        <div></div>
       </div>
     </div>
   );

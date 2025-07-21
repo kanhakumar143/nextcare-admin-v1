@@ -89,7 +89,7 @@ const PatientQueueTable = ({
           ))}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-center w-full py-5">
+      <div className="flex items-center justify-center w-full py-3">
         {patients.length > 6 && (
           <Button
             className="text-sky-600"
