@@ -57,7 +57,7 @@ const AdminSideBar = () => {
       name: "Services",
       icon: Layers,
       children: [
-        { href: "/admin/services", name: "Services", icon: LayoutDashboard },
+        { href: "/dashboard/admin/services", name: "Services", icon: LayoutDashboard },
         { href: "/admin/symptoms", name: "Symptoms", icon: Stethoscope },
         { href: "/admin/questionary", name: "Questionary",icon: FileQuestionMark },
       ],
