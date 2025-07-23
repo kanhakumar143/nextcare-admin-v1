@@ -9,6 +9,7 @@ export const useAuthInfo = () => {
     user_id: reduxUserId,
     access_token: reduxAccessToken,
     user_role: reduxRole,
+    org_id: reduxOrgId,
   } = useSelector((state: RootState) => state.auth.userLoginDetails);
 
   const userId = reduxUserId
@@ -20,10 +21,14 @@ export const useAuthInfo = () => {
   const role = reduxRole
     ? reduxRole
     : (getLocalStorage("role") as string | null);
+  const orgId = reduxOrgId
+    ? reduxOrgId
+    : (getLocalStorage("org_id") as string | null);
 
   return {
     userId,
     role,
     accessToken,
+    orgId,
   };
 };
