@@ -7,6 +7,8 @@ import {
   Layers,
   BriefcaseMedical,
   Users,
+  LocationEdit,
+  FileQuestionMark
 } from "lucide-react";
 
 type Route = {
@@ -32,6 +34,11 @@ const AdminSideBar = () => {
       icon: UserCircle,
     },
     {
+      href: "/dashboard/admin/location-management",
+      name: "Location Management",
+      icon: LocationEdit,
+    },
+    {
       href: "/admin/doctors",
       name: "Doctor Management",
       icon: Stethoscope,
@@ -52,7 +59,7 @@ const AdminSideBar = () => {
       children: [
         { href: "/admin/services", name: "Services", icon: LayoutDashboard },
         { href: "/admin/symptoms", name: "Symptoms", icon: Stethoscope },
-        { href: "/admin/questionary", name: "Questionary" },
+        { href: "/admin/questionary", name: "Questionary",icon: FileQuestionMark },
       ],
     },
   ];

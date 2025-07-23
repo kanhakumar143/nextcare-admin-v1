@@ -1,5 +1,4 @@
 import AdminSideBar from "@/components/dashboard/admin/AdminSideBar";
-import { AppSidebar } from "@/components/layout/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({
@@ -7,11 +6,14 @@ export default function AdminLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <SidebarProvider>
-      <div className="flex">
-        <div className="w-1/8">
+      <div className="flex flex-col md:flex-row w-full min-h-screen">
+        {/* Sidebar */}
+        <div className="w-full md:w-1/6 ">
           <AdminSideBar />
         </div>
-        <div className="flex-1 md:p-10 max-h-[90vh] ml-4 overflow-y-auto ">
+
+        {/* Main content area */}
+        <div className="w-full md:w-4/4 pl-2 overflow-y-auto">
           {children}
         </div>
       </div>
