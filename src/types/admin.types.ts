@@ -1,4 +1,6 @@
-
+export interface adminSliceInitialStates {
+  isLocationAddModal: boolean;
+}
 
 export type Location = {
   id?: string;
