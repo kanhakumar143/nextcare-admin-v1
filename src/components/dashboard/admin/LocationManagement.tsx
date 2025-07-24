@@ -229,7 +229,7 @@ const EnhancedLocationForm = ({ onSubmit, onCancel }) => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="active">Active </SelectItem>
                         <SelectItem value="inactive">Inactive</SelectItem>
                         <SelectItem value="suspended">Suspended</SelectItem>
                       </SelectContent>
