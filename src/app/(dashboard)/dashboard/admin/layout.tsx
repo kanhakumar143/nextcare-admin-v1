@@ -1,4 +1,5 @@
-import { AppSidebar } from "@/components/dashboard/admin/Sidebar";
+import AdminSideBar from "@/components/dashboard/admin/AdminSideBar";
+import { AppSidebar } from "@/components/layout/Sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
 export default function AdminLayout({
@@ -7,8 +8,8 @@ export default function AdminLayout({
   return (
     <SidebarProvider>
       <div className="flex">
-        <div className=" w-1/8 ">
-          <AppSidebar />
+        <div className="w-1/8">
+          <AdminSideBar />
         </div>
         <div className="flex-1 md:p-10 max-h-[90vh] ml-4 overflow-y-auto ">
           {children}
