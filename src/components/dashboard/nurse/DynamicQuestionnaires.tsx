@@ -86,13 +86,12 @@ export default function DynamicQuestionnaires() {
   };
 
   const handleCheckbox = (id: string, option: string) => {
-    const current = answers[id] || [];
-    handleChange(
-      id,
-      current.includes(option)
-        ? current.filter((v: string) => v !== option)
-        : [...current, option]
-    );
+    const current = answers[id] || "";
+    const currentArray = current ? current.split(", ") : [];
+    const newArray = currentArray.includes(option)
+      ? currentArray.filter((v: string) => v !== option)
+      : [...currentArray, option];
+    handleChange(id, newArray.join(", "));
   };
 
   const renderQuestionInput = (question: Question) => {
@@ -196,7 +195,9 @@ export default function DynamicQuestionnaires() {
                 <Checkbox
                   className="border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                   id={`${questionId}-${option.value}`}
-                  checked={(answers[questionId] || []).includes(option.value)}
+                  checked={(answers[questionId] || "")
+                    .split(", ")
+                    .includes(option.value)}
                   onCheckedChange={() =>
                     handleCheckbox(questionId, option.value)
                   }
@@ -450,9 +451,6 @@ export default function DynamicQuestionnaires() {
             answeredQuestions={
               Object.keys(answers).filter((key) => {
                 const answer = answers[key];
-                if (Array.isArray(answer)) {
-                  return answer.length > 0;
-                }
                 return answer !== "" && answer !== null && answer !== undefined;
               }).length
             }
