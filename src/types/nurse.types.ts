@@ -11,7 +11,7 @@ export interface VitalInput {
 export interface BulkVitalsPayload {
   patient_id: string;
   appointment_id: string;
-  recorded_by_id: string | null;
+  recorded_by_id?: string | null;
   vitals: VitalInput[];
 }
 

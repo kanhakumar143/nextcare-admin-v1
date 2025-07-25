@@ -30,12 +30,12 @@ const DoctorCalendar = ({ patients }: PatientCalendarProps) => {
   const router = useRouter();
 
   const getSelectedDatePatients = () => {
-    if (!selectedDate) return [];
+    if (!selectedDate) return patients;
     const dateString = format(selectedDate, "yyyy-MM-dd");
     return patients.filter((patient) => patient.date === dateString);
   };
 
-  const selectedPatients = getSelectedDatePatients();
+  const selectedPatients = patients;
 
   return (
     <>

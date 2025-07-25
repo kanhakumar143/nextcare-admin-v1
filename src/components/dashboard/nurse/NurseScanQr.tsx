@@ -12,6 +12,7 @@ import moment from "moment";
 import { setQrDetails } from "@/store/slices/nurseSlice";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 import { Badge } from "@/components/ui/badge";
+import { Check } from "lucide-react";
 
 const NurseScanQr: React.FC = () => {
   const router = useRouter();
@@ -19,6 +20,7 @@ const NurseScanQr: React.FC = () => {
   const { userId } = useAuthInfo();
   const { qrDtls } = useSelector((state: RootState) => state.nurse);
   const [invalidCode, setInvalidCode] = useState<string | null>(null);
+  const { nurseStepCompleted } = useSelector((state: RootState) => state.nurse);
 
   const handleScan = async (token: string) => {
     setInvalidCode(null);
@@ -112,22 +114,41 @@ const NurseScanQr: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Button
-            onClick={() => {
-              router.push("/dashboard/nurse/questionnaire");
-            }}
-            className="w-44"
-          >
-            Fill-Up Questionnaires
-          </Button>
-          <Button
-            onClick={() => {
-              router.push("/dashboard/nurse/capture-details");
-            }}
-            className="w-44"
-          >
-            Capture Vitals
-          </Button>
+          {nurseStepCompleted.step1 && nurseStepCompleted.step2 ? (
+            <>
+              <Button
+                onClick={() => {
+                  dispatch(setQrDetails(null));
+                }}
+                className="w-44"
+              >
+                Go to next
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                onClick={() => {
+                  router.push("/dashboard/nurse/questionnaire");
+                }}
+                className="w-44"
+                disabled={nurseStepCompleted.step1}
+              >
+                {nurseStepCompleted.step1 && <Check />}
+                Fill-Up Questionnaires
+              </Button>
+              <Button
+                onClick={() => {
+                  router.push("/dashboard/nurse/capture-details");
+                }}
+                className="w-44"
+                disabled={nurseStepCompleted.step2}
+              >
+                {nurseStepCompleted.step2 && <Check />}
+                Capture Vitals
+              </Button>
+            </>
+          )}
         </>
       )}
     </div>

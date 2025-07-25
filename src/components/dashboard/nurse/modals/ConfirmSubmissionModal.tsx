@@ -58,9 +58,9 @@ export default function ConfirmSubmissionModal({
                   {totalQuestions}
                 </div>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
-                <div className="text-green-600 font-medium">Answered</div>
-                <div className="text-2xl font-bold text-green-700">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <div className="text-black font-medium">Answered</div>
+                <div className="text-2xl font-bold text-black">
                   {answeredQuestions}
                 </div>
               </div>
@@ -102,7 +102,7 @@ export default function ConfirmSubmissionModal({
             )}
 
             {/* Success message for completed questionnaire */}
-            {unansweredQuestions === 0 && (
+            {/* {unansweredQuestions === 0 && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center space-x-2">
                   <div className="text-green-600">✅</div>
@@ -111,7 +111,7 @@ export default function ConfirmSubmissionModal({
                   </div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           <Separator />
