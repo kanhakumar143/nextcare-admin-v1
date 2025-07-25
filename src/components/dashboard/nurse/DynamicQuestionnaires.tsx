@@ -10,8 +10,16 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
-import { fetchAllQuestionnairesByTenantServiceId } from "@/services/nurse.api";
+import {
+  fetchAllQuestionnairesByTenantServiceId,
+  submitQuestionariesAnswersBulk,
+} from "@/services/nurse.api";
 import ConfirmSubmissionModal from "./modals/ConfirmSubmissionModal";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "sonner";
+import { AppDispatch } from "@/store";
+import { setNurseStepCompleted } from "@/store/slices/nurseSlice";
 
 // Define types for the API response
 interface QuestionOption {
@@ -51,6 +59,8 @@ export default function DynamicQuestionnaires() {
   const [loading, setLoading] = useState(true);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
+  const dispatch: AppDispatch = useDispatch();
+  const { qrDtls } = useSelector((state: any) => state.nurse);
 
   const tenantServiceId = "d3b70733-c73b-47d8-8fda-deb238d64653";
 
@@ -58,7 +68,7 @@ export default function DynamicQuestionnaires() {
     const fetchQuestions = async () => {
       try {
         const response = await fetchAllQuestionnairesByTenantServiceId(
-          tenantServiceId
+          qrDtls.appointment.service_id
         );
         setQuestions(response.data || []);
       } catch (error) {
@@ -247,32 +257,42 @@ export default function DynamicQuestionnaires() {
 
   const handleSubmit = () => {
     const result: {
-      questionId: string;
-      question: string;
+      questionary_id: string;
+      appointment_id: string;
       answer: any;
-      title: string;
-      type: string;
+      note: {
+        submitted_by: string;
+      };
     }[] = [];
 
     questions.forEach((question) => {
       result.push({
-        questionId: question.id,
-        question: question.question,
+        questionary_id: question.id,
+        appointment_id: qrDtls.appointment.id,
         answer: answers[question.id] || "",
-        title: question.title,
-        type: question.type,
+        note: {
+          submitted_by: "patient",
+        },
       });
     });
 
-    console.log("=== QUESTIONNAIRE SUBMISSION ===");
     console.log("All Answers (Formatted):", result);
-    console.log("Raw Answers Object:", answers);
-    console.log("Total Questions:", questions.length);
-    console.log("Answered Questions:", Object.keys(answers).length);
-    console.log("===============================");
+    // console.log("Raw Answers Object:", answers);
+    // console.log("Total Questions:", questions.length);
+    // console.log("Answered Questions:", Object.keys(answers).length);
+    handleConfirmAnswerSubmit(result);
+  };
 
-    // Navigate to next page
-    router.push("/dashboard/nurse/check-in");
+  const handleConfirmAnswerSubmit = async (payload: any) => {
+    try {
+      const response = await submitQuestionariesAnswersBulk(payload);
+      console.log("Submission Response:", response);
+      router.push("/dashboard/nurse/check-in");
+      dispatch(setNurseStepCompleted({ step1: true }));
+      toast.success("Questionnaire submitted successfully.");
+    } catch (error) {
+      console.error("Error submitting answers:", error);
+    }
   };
 
   const handleSubmitClick = () => {
@@ -291,7 +311,7 @@ export default function DynamicQuestionnaires() {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-500 mx-auto"></div>
           <div className="text-lg text-gray-600">Loading questions...</div>
         </div>
       </div>
@@ -400,7 +420,15 @@ export default function DynamicQuestionnaires() {
                   size="lg"
                 >
                   Submit Questionnaire
-                  <span className="ml-2">→</span>
+                  <ArrowRight />
+                </Button>
+                <Button
+                  onClick={() => router.back()}
+                  variant={"outline"}
+                  className="w-full max-w-md py-3 text-md font-medium"
+                  size="lg"
+                >
+                  Back
                 </Button>
                 <div className="text-center text-sm text-gray-500">
                   <p>

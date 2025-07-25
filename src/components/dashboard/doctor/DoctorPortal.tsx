@@ -66,7 +66,7 @@ const DoctorPortal = () => {
           </CardHeader>
           <CardContent>
             <PatientQueueTable
-              patients={todayPatients}
+              patients={patientsData.patients}
               onPatientInfo={handlePatientInfo}
             />
           </CardContent>
