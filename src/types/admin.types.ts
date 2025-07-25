@@ -56,3 +56,8 @@ export type AddLocationResponse = {
   organization_id: string;
   location_id: string;
 };
+
+export type AddServicePayload = {
+  tenant_id: string;
+  name: string;
+}

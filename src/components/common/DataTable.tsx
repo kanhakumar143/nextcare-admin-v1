@@ -26,8 +26,8 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 type DataTableProps<TData extends RowData> = {
