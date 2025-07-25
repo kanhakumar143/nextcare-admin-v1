@@ -8,12 +8,12 @@ export default function AdminLayout({
     <SidebarProvider>
       <div className="flex flex-col md:flex-row w-full min-h-screen">
         {/* Sidebar */}
-        <div className="w-full md:w-1/6 ">
+        <div className="md:w-0 ">
           <AdminSideBar />
         </div>
 
         {/* Main content area */}
-        <div className="w-full md:w-4/4 pl-2 overflow-y-auto">{children}</div>
+        <div className="w-full  overflow-y-auto">{children}</div>
       </div>
     </SidebarProvider>
   );

@@ -64,3 +64,33 @@ export const addService = async (payload: AddServicePayload) => {
     throw new Error("Unexpected error occurred.");
   }
 }
+
+
+export const updateService = async (
+  serviceId: string,
+  payload: AddServicePayload
+) => {
+  try {
+    const res = await api.put(`tenant-service/${serviceId}`, payload);
+    return res.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.message || "Failed to update service");
+    }
+    throw new Error("Unexpected error");
+  }
+};
+
+export const deleteService = async (serviceId: string) => {
+  try {
+    const response = await api.delete(`tenant-service/${serviceId}`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to delete service";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+

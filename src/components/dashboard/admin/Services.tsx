@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import moment from "moment";
-import { Plus } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,13 +18,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/common/DataTable";
-import { addService, getServices } from "@/services/admin.api";
+import { addService, getServices, deleteService, updateService } from "@/services/admin.api";
 import { AddServicePayload } from "@/types/admin.types";
 
 const postSchema = z.object({
-  // tenant_id: z.string().min(1, "Tenant ID is required"),
   name: z.string().min(3, "Name must be at least 3 characters"),
 });
+
 const tenant_id = "fdff6c62-2ed2-4a32-afcd-276dbbb7ba8f";
 type PostSchema = z.infer<typeof postSchema>;
 
@@ -42,20 +42,18 @@ type Service = {
   };
 };
 
-interface ServicesProps {
-  onServiceAdded?: () => void;
-}
-
-export default function Services({ onServiceAdded }: ServicesProps) {
+export default function Services() {
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
   const [filterValue, setFilterValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editServiceId, setEditServiceId] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<PostSchema>({
     resolver: zodResolver(postSchema),
@@ -74,33 +72,53 @@ export default function Services({ onServiceAdded }: ServicesProps) {
     fetchServices();
   }, []);
 
-const onSubmit = async (data: PostSchema) => {
-  setIsSubmitting(true);
-  try {
-    const payload: AddServicePayload = {
-      tenant_id,
-      name: data.name,
-    };
-    await addService(payload);
-    await fetchServices();
-    if (onServiceAdded) onServiceAdded();
-    reset();
-    setOpen(false);
-  } catch (error) {
-    console.error("Failed to add service:", error);
-  } finally { 
-    setIsSubmitting(false);
-  }
-};
+  const onSubmit = async (data: PostSchema) => {
+    setIsSubmitting(true);
+    try {
+      const payload: AddServicePayload = {
+        tenant_id,
+        name: data.name,
+      };
+
+      if (editServiceId) {
+        await updateService(editServiceId, payload);
+      } else {
+        await addService(payload);
+      }
+
+      await fetchServices();
+      reset();
+      setEditServiceId(null);
+      setOpen(false);
+    } catch (error) {
+      console.error("Save failed:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleEdit = (service: Service) => {
+    setEditServiceId(service.id);
+    setValue("name", service.name);
+    setOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this service?")) return;
+    try {
+      await deleteService(id);
+      await fetchServices();
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  };
 
   const columns: ColumnDef<Service>[] = [
     { accessorKey: "name", header: "Service Name" },
     {
       header: "Available Days",
-      accessorFn: (row: any) => {
-        const date = row.schedule?.planning_start;
-        return moment(date).format("YYYY-MM-DD");
-      },
+      accessorFn: (row: any) =>
+        moment(row.schedule?.planning_start).format("YYYY-MM-DD"),
     },
     {
       header: "Available Time",
@@ -116,17 +134,34 @@ const onSubmit = async (data: PostSchema) => {
       cell: ({ getValue }) => {
         const status = getValue() as string;
         const label = status === "true" ? "Inactive" : "Active";
-        // const color = status === "true"
-        //   ? "bg-red-100 text-red-800"
-        //   : "bg-green-100 text-green-800";
-
         return <Badge>{label}</Badge>;
       },
+    },
+    {
+      header: "Actions",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="icon"
+            onClick={() => handleEdit(row.original)}
+          >
+            <Pencil className="w-4 h-4" />
+          </Button>
+          <Button
+            variant="destructive"
+            size="icon"
+            onClick={() => handleDelete(row.original.id)}
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
+      ),
     },
   ];
 
   return (
-    <div className="p-2 space-y-4">
+    <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <Input
           placeholder="Filter by Service Name..."
@@ -135,37 +170,38 @@ const onSubmit = async (data: PostSchema) => {
           className="max-w-sm"
         />
 
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(val) => {
+          setOpen(val);
+          if (!val) {
+            reset();
+            setEditServiceId(null);
+          }
+        }}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="w-4 h-4 mr-1" /> Add Service
+              <Plus className="w-4 h-4 mr-1" />
+              Add Service
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Service</DialogTitle>
+              <DialogTitle>{editServiceId ? "Edit Service" : "Add New Service"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {/* <div>
-                <Input
-                  placeholder="Tenant ID"
-                  {...register("tenant_id")}
-                />
-                {errors.tenant_id && (
-                  <p className="text-sm text-red-600">{errors.tenant_id.message}</p>
-                )}
-              </div> */}
               <div>
-                <Input
-                  placeholder="Service Name"
-                  {...register("name")}
-                />
+                <Input placeholder="Service Name" {...register("name")} />
                 {errors.name && (
                   <p className="text-sm text-red-600">{errors.name.message}</p>
                 )}
               </div>
               <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? "Saving..." : "Save Service"}
+                {isSubmitting
+                  ? editServiceId
+                    ? "Updating..."
+                    : "Saving..."
+                  : editServiceId
+                  ? "Update Service"
+                  : "Save Service"}
               </Button>
             </form>
           </DialogContent>
