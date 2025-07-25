@@ -49,7 +49,7 @@ export function AppSidebar({
   const isActive = (path: string) => pathname === path;
 
   return (
-    <Sidebar className="pt-[5rem]" >
+    <Sidebar className="pt-[4.5rem] border-r border-border">
       <SidebarHeader></SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

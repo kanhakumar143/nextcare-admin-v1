@@ -13,9 +13,7 @@ export default function AdminLayout({
         </div>
 
         {/* Main content area */}
-        <div className="w-full md:w-4/4 pl-2 overflow-y-auto">
-          {children}
-        </div>
+        <div className="w-full md:w-4/4 pl-2 overflow-y-auto">{children}</div>
       </div>
     </SidebarProvider>
   );
