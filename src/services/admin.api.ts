@@ -1,10 +1,11 @@
-// services/admin.api.ts
 
-import axios from "axios";
+
+import { api, axios } from "@/lib/axios";
 import {
   CreateLocationPayload,
   AddLocationResponse,
   Location,
+  AddServicePayload,
 } from "@/types/admin.types";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -36,3 +37,30 @@ export const addLocation = async (
   const res = await axios.post(`${baseUrl}org-location/`, payload, headers);
   return res.data?.data;
 };
+
+
+export const getServices = async () => {
+  try{
+    const {data} = await api.get(`tenant-service/tenant/fdff6c62-2ed2-4a32-afcd-276dbbb7ba8f`);
+    return data;
+  }catch(error: any){
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch services";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const addService = async (payload: AddServicePayload) => {
+  try{
+    const response = await api.post(`tenant-service/`, payload);
+    return response.data;
+  }catch(error: any){
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to add service";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+}

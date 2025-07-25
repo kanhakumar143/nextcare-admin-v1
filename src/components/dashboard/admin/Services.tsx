@@ -1,7 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import moment from "moment";
+import { Plus } from "lucide-react";
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,80 +17,119 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "@/components/common/DataTable";
+import { addService, getServices } from "@/services/admin.api";
+import { AddServicePayload } from "@/types/admin.types";
+
+const postSchema = z.object({
+  // tenant_id: z.string().min(1, "Tenant ID is required"),
+  name: z.string().min(3, "Name must be at least 3 characters"),
+});
+const tenant_id = "fdff6c62-2ed2-4a32-afcd-276dbbb7ba8f";
+type PostSchema = z.infer<typeof postSchema>;
 
 type Service = {
   id: string;
-  serviceName: string;
-  department: string;
-  doctor: string;
+  name: string;
+  availableTime: string;
   availableDays: string;
   timings: string;
   status: string;
+  active: string;
+  schedule: {
+    planning_start: string;
+    planning_end: string;
+  };
 };
 
-export default function Services() {
+interface ServicesProps {
+  onServiceAdded?: () => void;
+}
+
+export default function Services({ onServiceAdded }: ServicesProps) {
   const [open, setOpen] = useState(false);
   const [services, setServices] = useState<Service[]>([]);
-  const [formData, setFormData] = useState<Omit<Service, "id">>({
-    serviceName: "",
-    department: "",
-    doctor: "",
-    availableDays: "",
-    timings: "",
-    status: "",
-  });
   const [filterValue, setFilterValue] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch locations once
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<PostSchema>({
+    resolver: zodResolver(postSchema),
+  });
+
+  const fetchServices = async () => {
+    try {
+      const data = await getServices();
+      setServices(data);
+    } catch (error) {
+      console.error("Failed to fetch services:", error);
+    }
+  };
+
   useEffect(() => {
-    axios
-      .get<Service[]>("https://687f9ff2efe65e52008a6f5c.mockapi.io/Services")
-      .then((res) => setServices(res.data))
-      .catch(console.error);
+    fetchServices();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleAddLocation = () => {
-    axios
-      .post<Service>(
-        "https://687f9ff2efe65e52008a6f5c.mockapi.io/Services",
-        formData
-      )
-      .then((res) => setServices((prev) => [...prev, res.data]))
-      .catch(console.error);
-    setFormData({
-      serviceName: "",
-      department: "",
-      doctor: "",
-      availableDays: "",
-      timings: "",
-      status: "",
-    });
+const onSubmit = async (data: PostSchema) => {
+  setIsSubmitting(true);
+  try {
+    const payload: AddServicePayload = {
+      tenant_id,
+      name: data.name,
+    };
+    await addService(payload);
+    await fetchServices();
+    if (onServiceAdded) onServiceAdded();
+    reset();
     setOpen(false);
-  };
+  } catch (error) {
+    console.error("Failed to add service:", error);
+  } finally { 
+    setIsSubmitting(false);
+  }
+};
 
   const columns: ColumnDef<Service>[] = [
-    { accessorKey: "serviceName", header: "Service Name" },
-    { accessorKey: "department", header: "Department" },
-    { accessorKey: "doctor", header: "Doctor" },
-    { accessorKey: "availableDays", header: "Available Days" },
-    { accessorKey: "timings", header: "Timings" },
-    { accessorKey: "status", header: "Status" },
+    { accessorKey: "name", header: "Service Name" },
+    {
+      header: "Available Days",
+      accessorFn: (row: any) => {
+        const date = row.schedule?.planning_start;
+        return moment(date).format("YYYY-MM-DD");
+      },
+    },
+    {
+      header: "Available Time",
+      accessorFn: (row: any) => {
+        const start = row.schedule?.planning_start;
+        const end = row.schedule?.planning_end;
+        return `${moment(start).format("hh:mm A")} - ${moment(end).format("hh:mm A")}`;
+      },
+    },
+    {
+      header: "Status",
+      accessorFn: (row: any) => row.active,
+      cell: ({ getValue }) => {
+        const status = getValue() as string;
+        const label = status === "true" ? "Inactive" : "Active";
+        // const color = status === "true"
+        //   ? "bg-red-100 text-red-800"
+        //   : "bg-green-100 text-green-800";
+
+        return <Badge>{label}</Badge>;
+      },
+    },
   ];
 
-  return (  
+  return (
     <div className="p-2 space-y-4">
-      
       <div className="flex items-center justify-between">
         <Input
-          placeholder="Filter by Department..."
+          placeholder="Filter by Service Name..."
           value={filterValue}
           onChange={(e) => setFilterValue(e.target.value)}
           className="max-w-sm"
@@ -93,25 +138,36 @@ export default function Services() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
-              <Plus className="w-4 h-4 " /> Add Service
+              <Plus className="w-4 h-4 mr-1" /> Add Service
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add New Service</DialogTitle>
             </DialogHeader>
-            <div className="space-y-3">
-              {Object.keys(formData).map((key) => (
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              {/* <div>
                 <Input
-                  key={key}
-                  name={key}
-                  placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
-                  value={(formData as any)[key]}
-                  onChange={handleChange}
+                  placeholder="Tenant ID"
+                  {...register("tenant_id")}
                 />
-              ))}
-              <Button onClick={handleAddLocation}>Save</Button>
-            </div>
+                {errors.tenant_id && (
+                  <p className="text-sm text-red-600">{errors.tenant_id.message}</p>
+                )}
+              </div> */}
+              <div>
+                <Input
+                  placeholder="Service Name"
+                  {...register("name")}
+                />
+                {errors.name && (
+                  <p className="text-sm text-red-600">{errors.name.message}</p>
+                )}
+              </div>
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting ? "Saving..." : "Save Service"}
+              </Button>
+            </form>
           </DialogContent>
         </Dialog>
       </div>
@@ -119,7 +175,7 @@ export default function Services() {
       <DataTable
         columns={columns}
         data={services}
-        filterColumn="department"
+        filterColumn="name"
         externalFilterValue={filterValue}
       />
     </div>
