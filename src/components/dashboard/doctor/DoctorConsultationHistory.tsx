@@ -114,7 +114,7 @@ export default function DoctorConsultationHistory() {
         {filteredHistory.map((patient) => (
           <Card
             key={patient.id}
-            className="transition hover:shadow-md border border-muted bg-background rounded-xl"
+            className="transition hover:shadow-md border border-muted bg-gray-100 rounded-xl"
           >
             <CardHeader className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
               <div className="flex items-center gap-4">

@@ -33,7 +33,13 @@ const PatientQueueTable = ({
   patients,
   onPatientInfo,
 }: PatientQueueTableProps) => {
-  const [maxList, setMaxList] = useState<number>(6);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const pageSize = 5;
+  const totalPages = Math.ceil(patients.length / pageSize);
+  const paginatedPatients = patients.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
 
   return (
     <div className="border border-border rounded-lg bg-card">
@@ -51,10 +57,10 @@ const PatientQueueTable = ({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {patients.slice(0, maxList).map((patient, index) => (
+          {paginatedPatients.map((patient, index) => (
             <TableRow key={patient.id + index} className="border-border">
               <TableCell className="text-foreground px-5">
-                {index + 1}
+                {(currentPage - 1) * pageSize + index + 1}
               </TableCell>
               <TableCell className="font-medium text-foreground">
                 {patient.name}
@@ -89,18 +95,19 @@ const PatientQueueTable = ({
           ))}
         </TableBody>
       </Table>
-      <div className="flex items-center justify-center w-full py-3">
-        {patients.length > 6 && (
+      <div className="flex items-center justify-start w-full py-3 gap-2 px-4">
+        <p className="text-sm text-gray-600">Pages</p>
+        {Array.from({ length: totalPages }, (_, i) => (
           <Button
-            className="text-sky-600"
-            variant="link"
-            onClick={() =>
-              setMaxList((prev) => (prev === 6 ? patients.length : 6))
-            }
+            key={i}
+            variant={currentPage === i + 1 ? "secondary" : "ghost"}
+            size="sm"
+            onClick={() => setCurrentPage(i + 1)}
+            className={currentPage === i + 1 ? "font-bold" : ""}
           >
-            {maxList === 6 ? "See all" : "See less"}
+            {i + 1}
           </Button>
-        )}
+        ))}
       </div>
     </div>
   );

@@ -23,7 +23,7 @@ interface PatientCalendarProps {
   patients: Patient[];
 }
 
-const PatientCalendar = ({ patients }: PatientCalendarProps) => {
+const DoctorCalendar = ({ patients }: PatientCalendarProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(
     new Date()
   );
@@ -40,9 +40,9 @@ const PatientCalendar = ({ patients }: PatientCalendarProps) => {
   return (
     <>
       <div className="py-8 flex items-center gap-3">
-        <Button size={"icon"} variant={"ghost"} onClick={() => router.back()}>
+        {/* <Button size={"icon"} variant={"ghost"} onClick={() => router.back()}>
           <ArrowLeft />
-        </Button>
+        </Button> */}
         <h2 className="text-3xl font-bold">Patient Management</h2>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-6">
@@ -73,7 +73,7 @@ const PatientCalendar = ({ patients }: PatientCalendarProps) => {
                 No appointments for this date
               </p>
             ) : (
-              <div className="space-y-3  max-h-[45vh] overflow-y-auto">
+              <div className="space-y-3  max-h-[38vh] overflow-y-auto">
                 {selectedPatients.map((patient) => (
                   <div
                     key={patient.id}
@@ -119,4 +119,4 @@ const PatientCalendar = ({ patients }: PatientCalendarProps) => {
   );
 };
 
-export default PatientCalendar;
+export default DoctorCalendar;
