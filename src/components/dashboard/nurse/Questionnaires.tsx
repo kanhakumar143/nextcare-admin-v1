@@ -233,7 +233,7 @@ const sections = [
     ],
   },
 ];
-
+ 
 export default function GeneralMedicineForm() {
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const router = useRouter();

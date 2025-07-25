@@ -14,3 +14,12 @@ export interface BulkVitalsPayload {
   recorded_by_id: string | null;
   vitals: VitalInput[];
 }
+
+export interface AnswerQuestionnairePayload {
+  appointment_id: string;
+  questionary_id: string;
+  answer: string;
+  note: {
+    submitted_by: string;
+  };
+}
