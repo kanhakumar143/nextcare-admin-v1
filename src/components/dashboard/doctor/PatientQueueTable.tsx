@@ -18,25 +18,26 @@ interface Patient {
   slotEnd: string;
   concern: string;
   date: string;
-  status: string;
   phone: string;
   age: number;
   bloodGroup: string;
+
+  status?: string;
+  service_category: {
+    text: string;
+  }[];
 }
 
 interface PatientQueueTableProps {
-  patients: Patient[];
+  data: Patient[];
   onPatientInfo: (patient: Patient) => void;
 }
 
-const PatientQueueTable = ({
-  patients,
-  onPatientInfo,
-}: PatientQueueTableProps) => {
+const PatientQueueTable = ({ data, onPatientInfo }: PatientQueueTableProps) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const pageSize = 5;
-  const totalPages = Math.ceil(patients.length / pageSize);
-  const paginatedPatients = patients.slice(
+  const totalPages = Math.ceil(data.length / pageSize);
+  const paginatedPatients = data.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -47,11 +48,10 @@ const PatientQueueTable = ({
         <TableHeader>
           <TableRow className="border-border">
             <TableHead className="text-muted-foreground">Serial No.</TableHead>
-            <TableHead className="text-muted-foreground">
+            {/* <TableHead className="text-muted-foreground">
               Patient Name
-            </TableHead>
-            <TableHead className="text-muted-foreground">Time Slot</TableHead>
-            <TableHead className="text-muted-foreground">Concern</TableHead>
+            </TableHead> */}
+            <TableHead className="text-muted-foreground">Service</TableHead>
             <TableHead className="text-muted-foreground">Status</TableHead>
             <TableHead className="text-muted-foreground">Action</TableHead>
           </TableRow>
@@ -62,15 +62,13 @@ const PatientQueueTable = ({
               <TableCell className="text-foreground px-5">
                 {(currentPage - 1) * pageSize + index + 1}
               </TableCell>
-              <TableCell className="font-medium text-foreground">
+              {/* <TableCell className="font-medium text-foreground">
                 {patient.name}
-              </TableCell>
+              </TableCell> */}
               <TableCell className="text-foreground">
-                {patient.slotStart} - {patient.slotEnd}
+                {patient.service_category[0]?.text}
               </TableCell>
-              <TableCell className="text-foreground">
-                {patient.concern}
-              </TableCell>
+
               <TableCell>
                 <Badge
                   variant={

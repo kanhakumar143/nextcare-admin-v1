@@ -202,7 +202,7 @@ const CaptureVitals = () => {
     const payload = {
       patient_id: qrDtls?.patient.patient_profile.id || "",
       appointment_id: qrDtls?.appointment.id || "",
-      // recorded_by_id: "fd14345f-f9dc-45a1-9abb-1ab57d845ea1",
+      recorded_by_id: "f2f2921d-dde9-4e20-ab4c-846011e2c255",
       vitals: vitalsPayload,
     };
 
