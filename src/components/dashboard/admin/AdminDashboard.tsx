@@ -31,9 +31,8 @@ const appointmentData = [
 
 export default function AdminDashboard() {
   return (
-    <div className="flex  w-full overflow-y-hidden">
-      <main className="flex-1 p-3 space-y-10  ">
-        {/* Summary Boxes */}
+    <div className="flex w-full overflow-y-hidden">
+      <div className="flex-1 p-3 space-y-10  ">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className=" rounded-xl p-4 shadow-sm">
             <h2 className="text-sm ">Total Patients</h2>
@@ -53,7 +52,6 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        {/* Charts */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Patient Chart (Line Chart) */}
           <div className=" p-4 rounded-xl shadow-sm">
@@ -101,7 +99,7 @@ export default function AdminDashboard() {
             </ResponsiveContainer>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }
