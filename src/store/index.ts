@@ -3,6 +3,7 @@ import authReducer from "./slices/authSlice";
 import receptionistReducer from "./slices/receptionistSlice";
 import nurseSlice from "./slices/nurseSlice";
 import doctorSlice from "./slices/doctorSlice";
+import adminSlice from "./slices/adminSlice";
 
 const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ const store = configureStore({
     receptionistData: receptionistReducer,
     nurse: nurseSlice,
     doctor: doctorSlice,
+    admin: adminSlice,
   },
 });
 export type RootState = ReturnType<typeof store.getState>;

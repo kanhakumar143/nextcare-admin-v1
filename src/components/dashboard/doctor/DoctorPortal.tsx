@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import PatientQueueTable from "./PatientQueueTable";
 import { format } from "date-fns";
@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import patientsData from "../../../mock/mockData.json";
+import { getAssignedAppointments } from "@/services/doctor.api";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 interface Patient {
   id: string;
@@ -24,16 +26,32 @@ interface Patient {
 
 const DoctorPortal = () => {
   const router = useRouter();
+  const { accessToken, userId } = useAuthInfo();
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
+  const [assignedAppointments, setAssignedAppointments] = useState([]);
+
+  useEffect(() => {
+    GetAssignedAppointments("");
+  }, []);
+
+  const GetAssignedAppointments = async (practitioner_id: string | null) => {
+    try {
+      const response = await getAssignedAppointments(practitioner_id);
+      setAssignedAppointments(response?.data);
+    } catch (error) {
+      console.error("Error fetching assigned appointments:", error);
+      return [];
+    }
+  };
 
   const today = format(new Date(), "yyyy-MM-dd");
   const todayPatients = patientsData.patients.filter(
     (patient) => patient.date === today
   );
 
-  const handlePatientInfo = (patient: Patient) => {
+  const handlePatientInfo = (patient: any) => {
     setSelectedPatient(patient);
-    router.push(`/dashboard/doctor/consultation/${patient.name}`);
+    router.push(`/dashboard/doctor/consultation/${patient.id}`);
   };
 
   return (
@@ -66,7 +84,7 @@ const DoctorPortal = () => {
           </CardHeader>
           <CardContent>
             <PatientQueueTable
-              patients={patientsData.patients}
+              data={assignedAppointments}
               onPatientInfo={handlePatientInfo}
             />
           </CardContent>

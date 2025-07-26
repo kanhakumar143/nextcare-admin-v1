@@ -45,6 +45,7 @@ export default function LoginForm() {
           user_id: res.user_id,
           user_role: res?.user_role,
           access_token: response.access_token,
+          org_id: res?.org_id,
         })
       );
 
@@ -52,7 +53,7 @@ export default function LoginForm() {
         return router.push("/dashboard/nurse");
       } else if (res?.user_role === "receptionist") {
         return router.push("/dashboard/receptionist");
-      } else if(res?.user_role === "admin") {
+      } else if (res?.user_role === "admin") {
         return router.push("/dashboard/admin");
       } else if (res?.user_role === "doctor") {
         return router.push("/dashboard/doctor");

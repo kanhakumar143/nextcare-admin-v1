@@ -1,13 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -22,66 +16,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, HeartPlus, HeartPulse, Thermometer } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
 import { useDispatch } from "react-redux";
 import { setConfirmConsultationModal } from "@/store/slices/doctorSlice";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
+import { AppointmentDetails } from "@/types/doctor.types";
 
 export default function PatientConsultation() {
+  const dispatch = useDispatch();
+  const { patient_name } = useParams();
   const [summary, setSummary] = useState("");
+  const [apptDtls, setApptDtls] = useState<AppointmentDetails | null>(null);
   const router = useRouter();
-  // Sample Data
+
+  useEffect(() => {
+    if (patient_name) {
+      GetAssignedAppointmentDtlsById(patient_name);
+    }
+  }, []);
+
+  const GetAssignedAppointmentDtlsById = async (
+    appointment_id: string | string[]
+  ) => {
+    try {
+      const response = await getAssignedAppointmentDtlsById(appointment_id);
+      console.log("response======", response);
+      setApptDtls(response);
+    } catch (error) {
+      console.error("Error fetching appointment details:", error);
+      throw error;
+    }
+  };
+
   const patient = {
     name: "Kanha Kumar Khatua",
     age: 32,
     gender: "Male",
     contact: "+91 8473927374",
-    vitals: [
-      { label: "Blood Pressure", value: "120/80 mmHg", icon: <HeartPlus /> },
-      { label: "Heart Rate", value: "75 bpm", icon: <HeartPulse /> },
-      { label: "Temperature", value: "98.6°F", icon: <Thermometer /> },
-    ],
-    questions: [
-      "Have you experienced any fever recently?",
-      "Are you currently on any medication?",
-      "Do you have a history of allergies?",
-      "Are you experiencing any pain or discomfort?",
-      "Have you had any recent travel history?",
-      "Are you suffering from fatigue or weakness?",
-      "Do you have a history of chronic illnesses (e.g., diabetes, hypertension)?",
-      "Have you noticed any changes in appetite or weight?",
-      "Are you experiencing any difficulty breathing or chest pain?",
-      "Have you had regular bowel movements?",
-      "Do you consume alcohol or tobacco products regularly?",
-      "Have you experienced any sleep disturbances?",
-      "Are you suffering from fatigue or weakness?",
-      "Do you have a history of chronic illnesses (e.g., diabetes, hypertension)?",
-      "Have you noticed any changes in appetite or weight?",
-      "Are you experiencing any difficulty breathing or chest pain?",
-      "Have you had regular bowel movements?",
-    ],
-    answers: [
-      "Yes, mild fever for 2 days",
-      "No",
-      "Yes, allergic to penicillin",
-      "Yes, mild abdominal pain",
-      "Yes, returned from Delhi 3 days ago",
-      "Yes, feeling unusually tired",
-      "Yes, diagnosed with diabetes 2 years ago",
-      "Yes, lost 3 kg over the past month",
-      "No, breathing is normal",
-      "Yes, regular and normal",
-      "Occasionally consume alcohol, non-smoker",
-      "Yes, difficulty falling asleep recently",
-      "Yes, diagnosed with diabetes 2 years ago",
-      "Yes, lost 3 kg over the past month",
-      "No, breathing is normal",
-      "Yes, regular and normal",
-      "No, breathing is normal",
-    ],
   };
-  const dispatch = useDispatch();
 
   const handleConfirmConsultationCheck = () => {
     dispatch(setConfirmConsultationModal(true));
@@ -90,7 +64,6 @@ export default function PatientConsultation() {
   return (
     <>
       <div className="mx-6 my-3 py-2 border-b-2">
-        {/* <h2 className="text-2xl font-bold">Consultation Details</h2> */}
         <Button
           variant={"ghost"}
           className="mb-4"
@@ -131,17 +104,18 @@ export default function PatientConsultation() {
         <div className="mx-6 flex items-center gap-4 py-5">
           <Label className="text-md font-medium">General Vitals : </Label>
           <div className="flex gap-7 items-center">
-            {patient.vitals.map((vital, i) => (
-              <div key={i} className="flex gap-1 items-center">
-                <span className="p-2 rounded-2xl">{vital.icon}</span>
-                <span className="text-sm text-muted-foreground">
-                  {vital.label}
-                </span>
-                <span className="text-base font-semibold text-foreground">
-                  {vital.value}
-                </span>
-              </div>
-            ))}
+            {apptDtls &&
+              apptDtls?.vital_observations &&
+              apptDtls?.vital_observations?.map((vital: any, i: number) => (
+                <div key={i} className="flex gap-1 items-center">
+                  <span className="text-sm text-muted-foreground">
+                    {vital.vital_definition?.name}
+                  </span>
+                  <span className="text-base font-semibold text-foreground">
+                    {vital.value?.value}
+                  </span>
+                </div>
+              ))}
           </div>
         </div>
         <div className="mx-5">
@@ -172,23 +146,23 @@ export default function PatientConsultation() {
             <CardContent>
               <ScrollArea className="pb-6 pr-4 h-[52vh]">
                 <div className="space-y-3 text-sm">
-                  {patient.questions.map((q, i) => (
-                    <div key={i}>
-                      <p className="font-medium text-foreground">
-                        Q{i + 1}: {q}
-                      </p>
-                      <p className="pl-3 text-muted-foreground">
-                        A : {patient.answers[i]}
-                      </p>
-                    </div>
-                  ))}
+                  {apptDtls &&
+                    apptDtls.pre_qa.map((q: any, i: number) => (
+                      <div key={i}>
+                        <p className="font-medium text-foreground">
+                          Q{i + 1}: {q?.questionary?.question}
+                        </p>
+                        <p className="pl-3 text-muted-foreground">
+                          A : {q.answer || ""}
+                        </p>
+                      </div>
+                    ))}
                 </div>
               </ScrollArea>
             </CardContent>
           </Card>
         </div>
 
-        {/* Right Side */}
         <div className="w-full lg:w-8/12 space-y-4">
           <div>
             <DoctorMedicineLabEntry />
@@ -209,9 +183,6 @@ export default function PatientConsultation() {
                 onChange={(e) => setSummary(e.target.value)}
               />
             </div>
-            {/* <div className="px-6 flex justify-end">
-              <Button className="px-10">Save</Button>
-            </div> */}
           </div>
         </div>
       </div>
