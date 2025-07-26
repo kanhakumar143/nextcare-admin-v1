@@ -33,7 +33,7 @@ export default function PatientConsultation() {
 
   useEffect(() => {
     if (patient_name) {
-      GetAssignedAppointmentDtlsById("2cffb572-50a5-499c-8c5d-5d0a566ba20b");
+      GetAssignedAppointmentDtlsById(patient_name);
     }
   }, []);
 
