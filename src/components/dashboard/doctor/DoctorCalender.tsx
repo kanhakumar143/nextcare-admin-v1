@@ -67,13 +67,13 @@ const DoctorCalendar = ({ patients }: PatientCalendarProps) => {
               {selectedDate ? format(selectedDate, "PPP") : "Select a date"}
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          {/* <CardContent>
             {selectedPatients.length === 0 ? (
               <p className="text-muted-foreground">
                 No appointments for this date
               </p>
             ) : (
-              <div className="space-y-3  max-h-[38vh] overflow-y-auto">
+              <div className="space-y-3 max-h-[38vh] overflow-y-auto">
                 {selectedPatients.map((patient) => (
                   <div
                     key={patient.id}
@@ -112,7 +112,7 @@ const DoctorCalendar = ({ patients }: PatientCalendarProps) => {
                 ))}
               </div>
             )}
-          </CardContent>
+          </CardContent> */}
         </Card>
       </div>
     </>

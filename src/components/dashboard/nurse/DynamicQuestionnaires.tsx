@@ -15,43 +15,13 @@ import {
   submitQuestionariesAnswersBulk,
 } from "@/services/nurse.api";
 import ConfirmSubmissionModal from "./modals/ConfirmSubmissionModal";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
 import { AppDispatch } from "@/store";
 import { setNurseStepCompleted } from "@/store/slices/nurseSlice";
-
-// Define types for the API response
-interface QuestionOption {
-  label: string;
-  value: string;
-}
-
-interface Question {
-  id: string;
-  title: string;
-  question: string;
-  type:
-    | "multi_select"
-    | "multiple_choice"
-    | "radio"
-    | "text"
-    | "textarea"
-    | "yes_no"
-    | "number"
-    | "date"
-    | "time"
-    | "datetime";
-  options: QuestionOption[];
-  note?: string;
-  tenant_service_id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-interface ApiResponse {
-  data: Question[];
-}
+import { Question, SubmitQuestionPayload } from "@/types/nurse.types";
+import { Slider } from "@/components/ui/slider";
 
 export default function DynamicQuestionnaires() {
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -129,6 +99,25 @@ export default function DynamicQuestionnaires() {
             placeholder="Enter a number..."
             step="any"
           />
+        );
+
+      case "slider":
+        return (
+          <div className="space-y-4">
+            <Slider
+              value={[parseInt(answers[questionId]) || 5]}
+              onValueChange={(value) =>
+                handleChange(questionId, value[0].toString())
+              }
+              max={10}
+              step={1}
+              className="w-[60%]"
+            />
+            <div className="text-sm text-gray-600">
+              Current value:{" "}
+              <span className="font-medium">{answers[questionId] || "5"}</span>
+            </div>
+          </div>
         );
 
       case "yes_no":
@@ -257,14 +246,7 @@ export default function DynamicQuestionnaires() {
   };
 
   const handleSubmit = () => {
-    const result: {
-      questionary_id: string;
-      appointment_id: string;
-      answer: any;
-      note: {
-        submitted_by: string;
-      };
-    }[] = [];
+    const result: SubmitQuestionPayload[] = [];
 
     questions.forEach((question) => {
       result.push({
@@ -278,9 +260,6 @@ export default function DynamicQuestionnaires() {
     });
 
     console.log("All Answers (Formatted):", result);
-    // console.log("Raw Answers Object:", answers);
-    // console.log("Total Questions:", questions.length);
-    // console.log("Answered Questions:", Object.keys(answers).length);
     handleConfirmAnswerSubmit(result);
   };
 
@@ -346,7 +325,6 @@ export default function DynamicQuestionnaires() {
           {questions.length === 0 ? (
             <div className="text-center py-12">
               <div className="space-y-3">
-                <div className="text-gray-400 text-5xl">📋</div>
                 <p className="text-gray-500 text-lg">
                   No questions available at the moment.
                 </p>

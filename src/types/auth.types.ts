@@ -1,3 +1,5 @@
+import { string } from "zod";
+
 export interface generateAccessTokenPayload {
   user_id: string | null;
   user_type: string | null;
@@ -10,6 +12,7 @@ export interface authSliceInitialState {
 export interface userLoginTypes {
   user_id: string | null;
   user_role: string | null;
+  practitioner_id?: string | null;
   access_token: string | null;
   org_id?: string | null;
 }

@@ -52,36 +52,20 @@ const DoctorDashboard = () => {
   const router = useRouter();
   const today = format(new Date(), "yyyy-MM-dd");
 
-  const todayPatients = patientsData.patients.filter(
-    (patient) => patient.date === today
-  );
-  const handlePatientInfo = (patient: Patient) => {
-    router.push(`/dashboard/doctor/consultation/${patient.name}`);
-  };
+  // const todayPatients = patientsData.patients.filter(
+  //   (patient) => patient.date === today
+  // );
+  // const handlePatientInfo = (patient: Patient) => {
+  //   router.push(`/dashboard/doctor/consultation/${patient.name}`);
+  // };
   return (
     <div className="px-24">
       <div className="border-b-2 mx-9 py-5">
         <h1 className="text-4xl font-bold">Dashboard</h1>
       </div>
       <div className="mx-10">
-        {/* <h3 className="text-2xl font-bold py-6">Upcoming Appointments</h3>
-        <PatientQueueTable
-          patients={todayPatients}
-          onPatientInfo={handlePatientInfo}
-        /> */}
         <DoctorCalendar patients={patientsData.patients} />
       </div>
-      {/* <div className="grid grid-cols-3 gap-4 p-8">
-        {DashboardCardsForDoctors.map((details, index) => (
-          <DashboardCards
-            header={details.cardName}
-            subText={details.description}
-            icon={details.icon}
-            link={details.href}
-            key={index}
-          />
-        ))}
-      </div> */}
     </div>
   );
 };

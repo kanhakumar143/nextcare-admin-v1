@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import PatientQueueTable from "./PatientQueueTable";
+import { DataTable } from "@/components/common/DataTable";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,49 +10,80 @@ import { ArrowLeft } from "lucide-react";
 import patientsData from "../../../mock/mockData.json";
 import { getAssignedAppointments } from "@/services/doctor.api";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
-
-interface Patient {
-  id: string;
-  name: string;
-  slotStart: string;
-  slotEnd: string;
-  concern: string;
-  date: string;
-  status: string;
-  phone: string;
-  age: number;
-  bloodGroup: string;
-}
+import { ColumnDef } from "@tanstack/react-table";
+import { Badge } from "@/components/ui/badge";
+import { ArrowRight } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/store";
+import {
+  fetchAssignedAppointments,
+  setSinglePatientDetails,
+} from "@/store/slices/doctorSlice";
+import { PatientInfo } from "@/types/doctor.types";
 
 const DoctorPortal = () => {
   const router = useRouter();
-  const { accessToken, userId } = useAuthInfo();
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
-  const [assignedAppointments, setAssignedAppointments] = useState([]);
+  const dispatch: AppDispatch = useDispatch();
+  const { practitionerId } = useAuthInfo();
+  const { patientQueueList } = useSelector((state: RootState) => state.doctor);
+  const handlePatientInfo = (patient: PatientInfo) => {
+    dispatch(setSinglePatientDetails(patient));
+    router.push(`/dashboard/doctor/consultation/${patient.id}`);
+  };
+
+  const columns: ColumnDef<PatientInfo>[] = [
+    {
+      header: "Serial No.",
+      cell: ({ row }) => {
+        return <div className="px-5">{row.index + 1}</div>;
+      },
+    },
+    {
+      header: "Service",
+      accessorFn: (row) => row.service_category[0]?.text || "",
+      cell: ({ getValue }) => <div>{getValue() as string}</div>,
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ getValue }) => (
+        <Badge
+          variant={getValue() === "scheduled" ? "secondary" : "outline"}
+          className="bg-secondary text-secondary-foreground"
+        >
+          {getValue() as string}
+        </Badge>
+      ),
+    },
+    {
+      header: "Action",
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handlePatientInfo(row.original)}
+          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      ),
+    },
+  ];
 
   useEffect(() => {
-    GetAssignedAppointments("");
-  }, []);
-
-  const GetAssignedAppointments = async (practitioner_id: string | null) => {
-    try {
-      const response = await getAssignedAppointments(practitioner_id);
-      setAssignedAppointments(response?.data);
-    } catch (error) {
-      console.error("Error fetching assigned appointments:", error);
-      return [];
+    console.log(
+      "Fetching assigned appointments for practitioner:",
+      patientQueueList
+    );
+    if (!patientQueueList || patientQueueList.length === 0) {
+      dispatch(fetchAssignedAppointments(practitionerId));
     }
-  };
+  }, []);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const todayPatients = patientsData.patients.filter(
     (patient) => patient.date === today
   );
-
-  const handlePatientInfo = (patient: any) => {
-    setSelectedPatient(patient);
-    router.push(`/dashboard/doctor/consultation/${patient.id}`);
-  };
 
   return (
     <div className=" bg-background p-6">
@@ -83,10 +114,7 @@ const DoctorPortal = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <PatientQueueTable
-              data={assignedAppointments}
-              onPatientInfo={handlePatientInfo}
-            />
+            <DataTable columns={columns} data={patientQueueList} />
           </CardContent>
         </Card>
         <div></div>

@@ -18,24 +18,34 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
-import { useDispatch } from "react-redux";
-import { setConfirmConsultationModal } from "@/store/slices/doctorSlice";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setConfirmConsultationModal,
+  setConsultationData,
+  clearConsultationOrders,
+} from "@/store/slices/doctorSlice";
+import { RootState } from "@/store";
 import { useParams, useRouter } from "next/navigation";
 import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
-import { AppointmentDetails } from "@/types/doctor.types";
+import { AppointmentDetails, ConsultationData } from "@/types/doctor.types";
+import { toast } from "sonner";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
-  const { patient_name } = useParams();
+  const { singlePatientDetails } = useSelector(
+    (state: RootState) => state.doctor
+  );
+  const { apt_id } = useParams();
   const [summary, setSummary] = useState("");
   const [apptDtls, setApptDtls] = useState<AppointmentDetails | null>(null);
+  const [consultationStatus, setConsultationStatus] = useState("");
   const router = useRouter();
 
   useEffect(() => {
-    if (patient_name) {
-      GetAssignedAppointmentDtlsById(patient_name);
-    }
-  }, []);
+    dispatch(clearConsultationOrders());
+
+    GetAssignedAppointmentDtlsById(singlePatientDetails?.id);
+  }, [singlePatientDetails, dispatch]);
 
   const GetAssignedAppointmentDtlsById = async (
     appointment_id: string | string[]
@@ -58,6 +68,13 @@ export default function PatientConsultation() {
   };
 
   const handleConfirmConsultationCheck = () => {
+    if (!summary.trim()) {
+      toast.error(
+        "Please provide a consultation summary before completing the consultation."
+      );
+      return;
+    }
+
     dispatch(setConfirmConsultationModal(true));
   };
 
@@ -73,9 +90,9 @@ export default function PatientConsultation() {
         </Button>
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <Label className="text-md font-light">Name :</Label>
+            <Label className="text-md font-light">Appointment ID :</Label>
             <p className="text-xl font-semibold text-foreground px-4">
-              {patient.name}
+              {apptDtls?.appointment_display_id}
             </p>
           </div>
           <div className="flex  gap-5">
@@ -119,15 +136,18 @@ export default function PatientConsultation() {
           </div>
         </div>
         <div className="mx-5">
-          <Select>
+          <Select
+            value={consultationStatus}
+            onValueChange={setConsultationStatus}
+          >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Consultation status" />
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
                 <SelectLabel>Status</SelectLabel>
-                <SelectItem value="apple">Follow Up</SelectItem>
-                <SelectItem value="banana">Clinic</SelectItem>
+                <SelectItem value="followup">Follow Up</SelectItem>
+                <SelectItem value="clinic">Clinic</SelectItem>
               </SelectGroup>
             </SelectContent>
           </Select>
