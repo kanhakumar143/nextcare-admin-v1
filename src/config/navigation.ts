@@ -12,6 +12,9 @@ import {
   QrCode,
   ClipboardList,
   FileText,
+  FileQuestionMark,
+  MapPinPlus,
+  Ribbon,
 } from "lucide-react";
 
 export type Route = {
@@ -38,7 +41,12 @@ export const adminRoutes: Route[] = [
     icon: UserCircle,
   },
   {
-    href: "/admin/doctors",
+    href: "/dashboard/admin/location-management",
+    name: "Location Management",
+    icon: MapPinPlus,
+  },
+  {
+    href: "/dashboard/admin/doctor-management",
     name: "Doctor Management",
     icon: Stethoscope,
   },
@@ -56,9 +64,11 @@ export const adminRoutes: Route[] = [
     name: "Services",
     icon: Layers,
     children: [
-      { href: "/admin/services", name: "Services", icon: LayoutDashboard },
-      { href: "/admin/symptoms", name: "Symptoms", icon: Stethoscope },
-      { href: "/admin/questionary", name: "Questionary" },
+      { href: "/dashboard/admin/services", name: "Services", icon: LayoutDashboard },
+      // { href: "/dashboard/admin/LocationManagement", name: "Location Management", icon: LayoutDashboard },
+      
+      { href: "/dashboard/admin/symptoms", name: "Symptoms", icon: Ribbon },
+      { href: "/admin/questionary", name: "Questionary", icon: FileQuestionMark },
     ],
   },
 ];

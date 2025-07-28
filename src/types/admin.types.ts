@@ -63,3 +63,87 @@ export type AddServicePayload = {
   tenant_id: string;
   name: string;
 }
+
+
+export type AddDoctorPayload = {
+  user: {
+    tenant_id: string;
+    name: string;
+    email: string;
+    hashed_password: string;
+    user_role: string;
+    phone?: string;
+  };
+  practitioner: {
+    identifiers: {
+      system: string;
+      value: string;
+    }[];
+    name: {
+      prefix?: string[];
+      given: string[];
+      family: string;
+    };
+    telecom?: {
+      system: string;
+      value: string;
+      use: string;
+    }[];
+    gender: string;
+    birth_date: string; 
+    qualification: {
+      degree: string;
+      institution: string;
+      year: string;
+    }[];
+    license_details: {
+      number: string;
+      issued_by: string;
+      expiry: string;
+    };
+    profile_picture_url: string;
+    license_url: string;
+    is_active: boolean;
+  };
+  role: {
+    tenant_id: string;
+    code: {
+      coding: {
+        system: string;
+        code: string;
+        display: string;
+      }[];
+      text: string;
+    }[];
+    specialty: {
+      text: string;
+    }[];
+    location: {
+      reference: string;
+      display: string;
+    }[];
+    healthcare_service: {
+      reference: string;
+      display: string;
+    }[];
+    period: {
+      start: string;
+      end: string;
+    };
+    availability: {
+      daysOfWeek: string[];
+      availableTime: {
+        start: string;
+        end: string;
+      }[];
+    }[];
+    not_available: {
+      description: string;
+      during: {
+        start: string;
+        end: string;
+      };
+    }[];
+  };
+};
+

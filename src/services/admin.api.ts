@@ -6,6 +6,7 @@ import {
   AddLocationResponse,
   Location,
   AddServicePayload,
+  AddDoctorPayload,
 } from "@/types/admin.types";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -94,3 +95,15 @@ export const deleteService = async (serviceId: string) => {
   }
 };
 
+export const addDoctor = async (payload: AddDoctorPayload) => {
+  try{
+    const response = await api.post(`practitioner/`, payload);
+    return response.data;
+  }catch(error: any){
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to add doctor";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+}
