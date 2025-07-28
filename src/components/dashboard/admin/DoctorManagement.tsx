@@ -1,8 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -17,26 +16,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/common/DataTable";
-import { AddDoctorPayload } from '@/types/admin.types';
-import { addDoctor } from '@/services/admin.api';
-import FormModal from '../../common/FormModal';
+import { AddDoctorPayload } from "@/types/admin.types";
+import { addDoctor } from "@/services/admin.api";
+import FormModal from "../../common/FormModal";
 
-
-
-
-
-
-export default function DoctorManagement (){
-
+export default function DoctorManagement() {
   const [open, setOpen] = useState(false);
   const [filterValue, setFilterValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editDoctorId, setEditDoctorId] = useState<string | null>(null);
 
-
-    return (
-        <div className="p-4 space-y-4">
-            <div className="flex items-center justify-between">
+  return (
+    <div className="p-4 space-y-4">
+      <div className="flex items-center justify-between">
         <Input
           placeholder="Filter by Doctor Name..."
           value={filterValue}
@@ -44,13 +36,16 @@ export default function DoctorManagement (){
           className="max-w-sm"
         />
 
-        <Dialog open={open} onOpenChange={(val) => {
-          setOpen(val);
-          if (!val) {
-            // reset();
-            setEditDoctorId(null);
-          }
-        }}>
+        <Dialog
+          open={open}
+          onOpenChange={(val) => {
+            setOpen(val);
+            if (!val) {
+              // reset();
+              setEditDoctorId(null);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-1" />
@@ -59,30 +54,31 @@ export default function DoctorManagement (){
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>{editDoctorId ? "Edit Doctor" : "Add New Doctor"}</DialogTitle>
+              <DialogTitle>
+                {editDoctorId ? "Edit Doctor" : "Add New Doctor"}
+              </DialogTitle>
             </DialogHeader>
-           
+
             <FormModal
-                open={open}
-                onOpenChange={(val) => {
-                  setOpen(val);
-                  if (!val) {
-                    // reset();
-                    setEditDoctorId(null);
-                  }
-                }}
-              />
+              open={open}
+              onOpenChange={(val) => {
+                setOpen(val);
+                if (!val) {
+                  // reset();
+                  setEditDoctorId(null);
+                }
+              }}
+            />
           </DialogContent>
         </Dialog>
       </div>
 
-            {/* <DataTable
+      {/* <DataTable
             // columns={columns}
             data={doctors}
             // filterColumn='practitioner.name.given'
             externalFilterValue={filterValue}
             /> */}
-
-        </div>
-    )
+    </div>
+  );
 }
