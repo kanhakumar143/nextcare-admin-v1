@@ -62,8 +62,7 @@ export type AddLocationResponse = {
 export type AddServicePayload = {
   tenant_id: string;
   name: string;
-}
-
+};
 
 export type AddDoctorPayload = {
   user: {
@@ -90,7 +89,7 @@ export type AddDoctorPayload = {
       use: string;
     }[];
     gender: string;
-    birth_date: string; 
+    birth_date: string;
     qualification: {
       degree: string;
       institution: string;
@@ -147,3 +146,23 @@ export type AddDoctorPayload = {
   };
 };
 
+export interface DoctorData {
+  practitioner_display_id: null | string;
+  is_active: boolean;
+  gender: string | null;
+  birth_date: string | null;
+  license_url: string | null;
+  profile_picture_url: string | null;
+  user: {
+    is_active: boolean;
+    name: string;
+    email?: string;
+    phone?: string | null;
+    user_role?: string;
+  };
+  license_details: {
+    issued_by?: string | null;
+    number?: string | null;
+    expiry?: string | null;
+  };
+}

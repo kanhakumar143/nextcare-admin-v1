@@ -18,14 +18,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/common/DataTable";
-import { addService, getServices, deleteService, updateService } from "@/services/admin.api";
+import {
+  addService,
+  getServices,
+  deleteService,
+  updateService,
+} from "@/services/admin.api";
 import { AddServicePayload } from "@/types/admin.types";
 
 const postSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
 });
 
-const tenant_id = "fdff6c62-2ed2-4a32-afcd-276dbbb7ba8f";
+const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 type PostSchema = z.infer<typeof postSchema>;
 
 type Service = {
@@ -125,7 +130,9 @@ export default function Services() {
       accessorFn: (row: any) => {
         const start = row.schedule?.planning_start;
         const end = row.schedule?.planning_end;
-        return `${moment(start).format("hh:mm A")} - ${moment(end).format("hh:mm A")}`;
+        return `${moment(start).format("hh:mm A")} - ${moment(end).format(
+          "hh:mm A"
+        )}`;
       },
     },
     {
@@ -170,13 +177,16 @@ export default function Services() {
           className="max-w-sm"
         />
 
-        <Dialog open={open} onOpenChange={(val) => {
-          setOpen(val);
-          if (!val) {
-            reset();
-            setEditServiceId(null);
-          }
-        }}>
+        <Dialog
+          open={open}
+          onOpenChange={(val) => {
+            setOpen(val);
+            if (!val) {
+              reset();
+              setEditServiceId(null);
+            }
+          }}
+        >
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-1" />
@@ -185,7 +195,9 @@ export default function Services() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>{editServiceId ? "Edit Service" : "Add New Service"}</DialogTitle>
+              <DialogTitle>
+                {editServiceId ? "Edit Service" : "Add New Service"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>

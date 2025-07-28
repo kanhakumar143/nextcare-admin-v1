@@ -1,5 +1,3 @@
-
-
 import { api, axios } from "@/lib/axios";
 import {
   CreateLocationPayload,
@@ -39,12 +37,13 @@ export const addLocation = async (
   return res.data?.data;
 };
 
-
 export const getServices = async () => {
-  try{
-    const {data} = await api.get(`tenant-service/tenant/fdff6c62-2ed2-4a32-afcd-276dbbb7ba8f`);
+  try {
+    const { data } = await api.get(
+      `tenant-service/tenant/4896d272-e201-4dce-9048-f93b1e3ca49f`
+    );
     return data;
-  }catch(error: any){
+  } catch (error: any) {
     if (axios.isAxiosError(error)) {
       const message = error?.message || "Failed to fetch services";
       throw new Error(message);
@@ -54,18 +53,17 @@ export const getServices = async () => {
 };
 
 export const addService = async (payload: AddServicePayload) => {
-  try{
+  try {
     const response = await api.post(`tenant-service/`, payload);
     return response.data;
-  }catch(error: any){
+  } catch (error: any) {
     if (axios.isAxiosError(error)) {
       const message = error?.message || "Failed to add service";
       throw new Error(message);
     }
     throw new Error("Unexpected error occurred.");
   }
-}
-
+};
 
 export const updateService = async (
   serviceId: string,
@@ -96,14 +94,29 @@ export const deleteService = async (serviceId: string) => {
 };
 
 export const addDoctor = async (payload: AddDoctorPayload) => {
-  try{
+  try {
     const response = await api.post(`practitioner/`, payload);
     return response.data;
-  }catch(error: any){
+  } catch (error: any) {
     if (axios.isAxiosError(error)) {
       const message = error?.message || "Failed to add doctor";
       throw new Error(message);
     }
     throw new Error("Unexpected error occurred.");
   }
-}
+};
+
+export const getPractitionerByRole = async () => {
+  try {
+    const { data } = await api.get(
+      `practitioner/by-tenant-role?tenant_id=4896d272-e201-4dce-9048-f93b1e3ca49f&role=doctor`
+    );
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch practitioner";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
