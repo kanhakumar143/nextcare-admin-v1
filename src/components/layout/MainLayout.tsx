@@ -24,14 +24,11 @@ export default function MainLayout({
           <div className="flex flex-col min-h-screen w-full relative bg-gradient-to-br bg-white">
             <div className="absolute inset-0 z-0 backdrop-blur-3xl bg-white/30" />
 
-            {/* Main Content Area */}
             <div className="flex flex-1 relative z-10">
-              {/* Sidebar */}
               <div className="flex-shrink-0">
                 <DynamicSidebar />
               </div>
 
-              {/* Content */}
               <main className="flex-1 md:px-8 px-4 mt-18 py-0 md:mt-14 md:py-10">
                 {children}
               </main>
