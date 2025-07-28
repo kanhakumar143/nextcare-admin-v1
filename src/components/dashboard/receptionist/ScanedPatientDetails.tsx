@@ -17,10 +17,12 @@ import moment from "moment";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { checkInPatient } from "@/services/receptionist.api";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 const ScannedPatientDetails = () => {
   const dispatch = useDispatch();
   const router = useRouter();
+  const { userId } = useAuthInfo();
 
   const { patientDetails } = useSelector(
     (state: RootState) => state.receptionistData
@@ -31,6 +33,8 @@ const ScannedPatientDetails = () => {
     const payload = {
       appointment_id: patientDetails?.appointment.id || "",
       user_id: patientDetails?.patient.user_id || "",
+      patient_id: patientDetails?.appointment.patient_id || "",
+      practitioner_user_id: userId,
     };
     setLoading(true);
     try {

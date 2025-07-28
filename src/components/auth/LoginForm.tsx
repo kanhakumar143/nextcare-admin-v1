@@ -14,9 +14,11 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { storeLoginDetails } from "@/store/slices/authSlice";
+import { fetchAssignedAppointments } from "@/store/slices/doctorSlice";
+import { AppDispatch } from "@/store";
 
 export default function LoginForm() {
-  const dispatch = useDispatch();
+  const dispatch: AppDispatch = useDispatch();
   const router = useRouter();
   const [serverError, setServerError] = useState<string>("");
 
@@ -30,7 +32,7 @@ export default function LoginForm() {
 
   const onSubmit = async (data: LoginFormInputs) => {
     setServerError("");
-
+    console.log("Login data:", data);
     try {
       const res = await loginUser(data);
       const payload = {
@@ -46,9 +48,10 @@ export default function LoginForm() {
           user_role: res?.user_role,
           access_token: response.access_token,
           org_id: res?.org_id,
+          practitioner_id: res?.practitioner_id,
         })
       );
-
+      console.log("Login response:", res.user_id);
       if (res?.user_role === "nurse") {
         return router.push("/dashboard/nurse");
       } else if (res?.user_role === "receptionist") {

@@ -23,3 +23,40 @@ export interface AnswerQuestionnairePayload {
     submitted_by: string;
   };
 }
+
+interface QuestionOption {
+  label: string;
+  value: string;
+}
+
+export interface Question {
+  id: string;
+  title: string;
+  question: string;
+  type:
+    | "multi_select"
+    | "multiple_choice"
+    | "radio"
+    | "slider"
+    | "text"
+    | "textarea"
+    | "yes_no"
+    | "number"
+    | "date"
+    | "time"
+    | "datetime";
+  options: QuestionOption[];
+  note?: string;
+  tenant_service_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubmitQuestionPayload {
+  questionary_id: string;
+  appointment_id: string;
+  answer: any;
+  note: {
+    submitted_by: string;
+  };
+}
