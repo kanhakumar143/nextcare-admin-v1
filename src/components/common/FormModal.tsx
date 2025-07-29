@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useState } from "react";
+import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
 import { Plus, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,6 +20,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -31,33 +32,36 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { AddDoctorPayload } from '@/types/admin.types';
-import { addDoctor } from '@/services/admin.api';
+import { AddDoctorPayload } from "@/types/admin.types";
+import { addDoctor } from "@/services/admin.api";
 
 const doctorFormSchema = z.object({
   // User Info
   tenant_id: z.string().min(1, "Tenant ID is required"),
   name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email"),
-  phone: z.string().optional(),
-  hashed_password: z.string().min(6, "Password must be at least 6 characters"),
-  
+  phone: z.string().min(10, "Phone number is required"),
+  // hashed_password: z.string().min(6, "Password must be at least 6 characters"),
+
   // Practitioner Info
-  identifier_system: z.string().url("Must be a valid URL"),
-  identifier_value: z.string().min(1, "Identifier value is required"),
+  identifier_system: z.string().url("Must be a valid URL").optional(),
+  identifier_value: z
+    .string()
+    .min(1, "Identifier value is required")
+    .optional(),
   prefix: z.string().optional(),
-  given_name: z.string().min(1, "Given name is required"),
-  family_name: z.string().min(1, "Family name is required"),
-  telecom_phone: z.string().min(10, "Phone number is required"),
-  telecom_email: z.string().email("Work email is required"),
-  gender: z.enum(["male", "female", "other", "unknown"]),
-  birth_date: z.string().min(1, "Birth date is required"),
-  
+  given_name: z.string().min(1, "Given name is required").optional(),
+  family_name: z.string().min(1, "Family name is required").optional(),
+  telecom_phone: z.string().min(10, "Phone number is required").optional(),
+  telecom_email: z.string().email("Work email is required").optional(),
+  gender: z.enum(["male", "female", "other", "unknown"]).optional(),
+  birth_date: z.string().min(1, "Birth date is required").optional(),
+
   // Qualification
   degree: z.string().min(1, "Degree is required"),
   institution: z.string().min(1, "Institution is required"),
   graduation_year: z.string().regex(/^\d{4}$/, "Year must be YYYY format"),
-  
+
   // License
   license_number: z.string().min(1, "License number is required"),
   license_issued_by: z.string().min(1, "Issuing authority is required"),
@@ -65,27 +69,43 @@ const doctorFormSchema = z.object({
   profile_picture_url: z.string().url("Must be a valid URL"),
   license_url: z.string().url("Must be a valid URL"),
   is_active: z.boolean(),
-  
+
   // Role Info
-  role_code_system: z.string().url("Must be a valid URL"),
-  role_code: z.string().min(1, "Role code is required"),
-  role_display: z.string().min(1, "Role display is required"),
-  role_text: z.string().min(1, "Role text is required"),
-  specialty: z.string().min(1, "Specialty is required"),
-  location_reference: z.string().min(1, "Location reference is required"),
-  location_display: z.string().min(1, "Location display is required"),
-  healthcare_service_reference: z.string().min(1, "Healthcare service reference is required"),
-  healthcare_service_display: z.string().min(1, "Healthcare service display is required"),
-  period_start: z.string().min(1, "Period start is required"),
-  period_end: z.string().min(1, "Period end is required"),
-  
+  role_code_system: z.string().url("Must be a valid URL").optional(),
+  role_code: z.string().min(1, "Role code is required").optional(),
+  role_display: z.string().min(1, "Role display is required").optional(),
+  role_text: z.string().min(1, "Role text is required").optional(),
+  specialty: z.string().min(1, "Specialty is required").optional(),
+  location_reference: z
+    .string()
+    .min(1, "Location reference is required")
+    .optional(),
+  location_display: z
+    .string()
+    .min(1, "Location display is required")
+    .optional(),
+  healthcare_service_reference: z
+    .string()
+    .min(1, "Healthcare service reference is required")
+    .optional(),
+  healthcare_service_display: z
+    .string()
+    .min(1, "Healthcare service display is required")
+    .optional(),
+  period_start: z.string().min(1, "Period start is required").optional(),
+  period_end: z.string().min(1, "Period end is required").optional(),
+
   // Availability
   availability_days: z.array(z.string()).min(1, "Select at least one day"),
-  available_times: z.array(z.object({
-    start: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:MM format"),
-    end: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:MM format"),
-  })).min(1, "Add at least one time slot"),
-  
+  available_times: z
+    .array(
+      z.object({
+        start: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:MM format"),
+        end: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:MM format"),
+      })
+    )
+    .min(1, "Add at least one time slot"),
+
   // Not Available (Optional)
   not_available_description: z.string().optional(),
   not_available_start: z.string().optional(),
@@ -97,6 +117,7 @@ type DoctorFormData = z.infer<typeof doctorFormSchema>;
 interface DoctorFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSubmit1: (formData: any) => Promise<void>;
   editDoctorId?: string | null;
   onSuccess?: () => void;
 }
@@ -111,11 +132,12 @@ const daysOfWeek = [
   { value: "sun", label: "Sunday" },
 ];
 
-export default function FormModal({ 
-  open, 
-  onOpenChange, 
+export default function FormModal({
+  open,
+  onOpenChange,
   editDoctorId = null,
-  onSuccess 
+  onSuccess,
+  onSubmit1,
 }: DoctorFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -124,16 +146,22 @@ export default function FormModal({
     defaultValues: {
       tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
       is_active: true,
-      availability_days: [],
+
       available_times: [{ start: "09:00", end: "17:00" }],
-      role_code_system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
+      role_code_system:
+        "http://terminology.hl7.org/CodeSystem/practitioner-role",
       role_code: "doctor",
       role_display: "Doctor",
       role_text: "Doctor",
+      availability_days: ["mon", "tue", "wed", "thu", "fri"],
     },
   });
 
-  const { fields: timeFields, append: appendTime, remove: removeTime } = useFieldArray({
+  const {
+    fields: timeFields,
+    append: appendTime,
+    remove: removeTime,
+  } = useFieldArray({
     control: form.control,
     name: "available_times",
   });
@@ -147,35 +175,35 @@ export default function FormModal({
           name: data.name,
           email: data.email,
           phone: data.phone,
-          hashed_password: data.hashed_password,
+          // hashed_password: data.hashed_password,
           user_role: "doctor",
         },
         practitioner: {
           identifiers: [
             {
-              system: data.identifier_system,
-              value: data.identifier_value,
+              system: data.identifier_system ?? "",
+              value: data.identifier_value ?? "",
             },
           ],
           name: {
             prefix: data.prefix ? [data.prefix] : [],
-            given: [data.given_name],
-            family: data.family_name,
+            given: [data.given_name ?? ""],
+            family: data.family_name ?? "",
           },
           telecom: [
             {
               system: "phone",
-              value: data.telecom_phone,
+              value: data.telecom_phone ?? "",
               use: "mobile",
             },
             {
               system: "email",
-              value: data.telecom_email,
+              value: data.telecom_email ?? "",
               use: "work",
             },
           ],
-          gender: data.gender,
-          birth_date: data.birth_date,
+          gender: data.gender ?? "",
+          birth_date: data.birth_date ?? "",
           qualification: [
             {
               degree: data.degree,
@@ -198,34 +226,34 @@ export default function FormModal({
             {
               coding: [
                 {
-                  system: data.role_code_system,
-                  code: data.role_code,
-                  display: data.role_display,
+                  system: data.role_code_system ?? "",
+                  code: data.role_code ?? "",
+                  display: data.role_display ?? "",
                 },
               ],
-              text: data.role_text,
+              text: data.role_text ?? "",
             },
           ],
           specialty: [
             {
-              text: data.specialty,
+              text: data.specialty ?? "",
             },
           ],
           location: [
             {
-              reference: data.location_reference,
-              display: data.location_display,
+              reference: data.location_reference ?? "",
+              display: data.location_display ?? "",
             },
           ],
           healthcare_service: [
             {
-              reference: data.healthcare_service_reference,
-              display: data.healthcare_service_display,
+              reference: data.healthcare_service_reference ?? "",
+              display: data.healthcare_service_display ?? "",
             },
           ],
           period: {
-            start: data.period_start,
-            end: data.period_end,
+            start: data.period_start ?? "",
+            end: data.period_end ?? "",
           },
           availability: [
             {
@@ -233,19 +261,22 @@ export default function FormModal({
               availableTime: data.available_times,
             },
           ],
-          not_available: data.not_available_description ? [
-            {
-              description: data.not_available_description,
-              during: {
-                start: data.not_available_start || "",
-                end: data.not_available_end || "",
-              },
-            },
-          ] : [],
+          not_available: data.not_available_description
+            ? [
+                {
+                  description: data.not_available_description,
+                  during: {
+                    start: data.not_available_start || "",
+                    end: data.not_available_end || "",
+                  },
+                },
+              ]
+            : [],
         },
       };
-
-      await addDoctor(payload);
+      console.log(payload);
+      onSubmit1(payload);
+      // await addDoctor(payload);
       console.log("Doctor added successfully!");
       onOpenChange(false);
       form.reset();
@@ -266,27 +297,34 @@ export default function FormModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[60vw] max-w-none max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {editDoctorId ? "Edit Doctor" : "Add New Doctor"}
           </DialogTitle>
         </DialogHeader>
-        
+
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.error("Form validation errors:", errors);
+            })}
+            className="space-y-6 "
+          >
             {/* User Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">User Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4 ">
+              <div className="flex  justify-between">
                 <FormField
                   control={form.control}
                   name="tenant_id"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tenant ID</FormLabel>
+                      <FormLabel className=" text-blue-800 px-3 py- rounded-md   font-semibold inline-block">
+                        Tenant ID : {field.value}
+                      </FormLabel>
+
                       <FormControl>
-                        <Input placeholder="Enter tenant ID" {...field} />
+                        {/* <Input placeholder="Enter tenant ID" {...field} /> */}
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -294,10 +332,31 @@ export default function FormModal({
                 />
                 <FormField
                   control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex mr-5  ">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Active Status</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-3 items-center gap-4">
+                <FormField
+                  control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Full Name</FormLabel>
+                      <FormLabel>
+                        Full Name <span className="text-red-500">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter full name" {...field} />
                       </FormControl>
@@ -310,9 +369,15 @@ export default function FormModal({
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>
+                        Email <span className="text-red-500">*</span>{" "}
+                      </FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="Enter email" {...field} />
+                        <Input
+                          type="email"
+                          placeholder="Enter email"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -323,7 +388,9 @@ export default function FormModal({
                   name="phone"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone</FormLabel>
+                      <FormLabel>
+                        Phone <span className="text-red-500">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Enter phone number" {...field} />
                       </FormControl>
@@ -332,6 +399,49 @@ export default function FormModal({
                   )}
                 />
                 <FormField
+                  control={form.control}
+                  name="gender"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Gender <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select gender" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="unknown">Unknown</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="birth_date"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Birth Date <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                {/* <FormField
                   control={form.control}
                   name="hashed_password"
                   render={({ field }) => (
@@ -343,14 +453,377 @@ export default function FormModal({
                       <FormMessage />
                     </FormItem>
                   )}
+                /> */}
+              </div>
+            </div>
+
+            {/* License Details Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">License Details</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="license_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        License Number <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="MCI-20231234" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
+                <FormField
+                  control={form.control}
+                  name="license_issued_by"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Issued By <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="MCI" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="license_expiry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        License Expiry <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="profile_picture_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Profile Picture URL{" "}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://your-cdn.com/images/profile.jpg"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="license_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        License Document URL{" "}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="https://your-cdn.com/licenses/license.pdf"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Qualification Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Qualification </h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="degree"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Degree <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="MBBS" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="institution"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Institution<span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="AIIMS Delhi" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="graduation_year"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Graduation Year <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="2008" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Role Information Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Role & Specialty</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="specialty"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Specialty</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Internal Medicine" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location_reference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location Reference</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Location/1" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="location_display"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Location Display</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="NextCare Health Center, Bengaluru"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="healthcare_service_reference"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Healthcare Service Reference</FormLabel>
+                      <FormControl>
+                        <Input placeholder="HealthcareService/1" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="healthcare_service_display"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Healthcare Service Display</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Outpatient Services" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Period Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Employment Period</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="period_start"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Start Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="period_end"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Availability Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Availability</h3>
+
+              <FormField
+                control={form.control}
+                name="availability_days"
+                render={() => (
+                  <FormItem>
+                    <FormLabel>Available Days</FormLabel>
+                    <div className="grid grid-cols-4 gap-2">
+                      {daysOfWeek.map((day) => (
+                        <FormField
+                          key={day.value}
+                          control={form.control}
+                          name="availability_days"
+                          render={({ field }) => {
+                            return (
+                              <FormItem
+                                key={day.value}
+                                className="flex flex-row items-start space-x-3 space-y-0"
+                              >
+                                <FormControl>
+                                  <Checkbox
+                                    checked={field.value?.includes(day.value)}
+                                    onCheckedChange={(checked) => {
+                                      return checked
+                                        ? field.onChange([
+                                            ...field.value,
+                                            day.value,
+                                          ])
+                                        : field.onChange(
+                                            field.value?.filter(
+                                              (value) => value !== day.value
+                                            )
+                                          );
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormLabel className="text-sm font-normal">
+                                  {day.label}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          }}
+                        />
+                      ))}
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="space-y-2 ">
+                <Label>Available Time Slots</Label>
+                {timeFields.map((field, index) => (
+                  <div key={field.id} className="grid grid-cols-2 items-center">
+                    <div className="flex items-center gap-2">
+                      <FormField
+                        control={form.control}
+                        name={`available_times.${index}.start`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input type="time" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <span className="text-sm text-gray-500">to</span>
+                      <FormField
+                        control={form.control}
+                        name={`available_times.${index}.end`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input type="time" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeTime(index)}
+                        disabled={timeFields.length === 1}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    <div className=" ">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          appendTime({ start: "09:00", end: "17:00" })
+                        }
+                      >
+                        <Plus className="w-4 h-4 " />
+                        Add Time Slot
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Practitioner Information Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Practitioner Information</h3>
-              <div className="grid grid-cols-2 gap-4">
+              <h3 className="text-lg font-semibold">
+                Practitioner Information
+              </h3>
+              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={form.control}
                   name="identifier_system"
@@ -358,7 +831,10 @@ export default function FormModal({
                     <FormItem>
                       <FormLabel>Identifier System URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://medicalcouncil.org/license" {...field} />
+                        <Input
+                          placeholder="https://medicalcouncil.org/license"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -436,396 +912,50 @@ export default function FormModal({
                     <FormItem>
                       <FormLabel>Work Email</FormLabel>
                       <FormControl>
-                        <Input type="email" placeholder="work@example.com" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="gender"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Gender</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select gender" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
-                          <SelectItem value="unknown">Unknown</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="birth_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Birth Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Qualification Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Qualification</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="degree"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Degree</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MBBS" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="institution"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Institution</FormLabel>
-                      <FormControl>
-                        <Input placeholder="AIIMS Delhi" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="graduation_year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Graduation Year</FormLabel>
-                      <FormControl>
-                        <Input placeholder="2008" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* License Details Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">License Details</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="license_number"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>License Number</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MCI-20231234" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="license_issued_by"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Issued By</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MCI" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="license_expiry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>License Expiry</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="profile_picture_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profile Picture URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://your-cdn.com/images/profile.jpg" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="license_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>License Document URL</FormLabel>
-                      <FormControl>
-                        <Input placeholder="https://your-cdn.com/licenses/license.pdf" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="is_active"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
+                        <Input
+                          type="email"
+                          placeholder="work@example.com"
+                          {...field}
                         />
                       </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>Active Status</FormLabel>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Role Information Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Role & Specialty</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="specialty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Specialty</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Internal Medicine" {...field} />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="location_reference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location Reference</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Location/1" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location_display"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location Display</FormLabel>
-                      <FormControl>
-                        <Input placeholder="NextCare Health Center, Bengaluru" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="healthcare_service_reference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Healthcare Service Reference</FormLabel>
-                      <FormControl>
-                        <Input placeholder="HealthcareService/1" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="healthcare_service_display"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Healthcare Service Display</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Outpatient Services" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Period Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Employment Period</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="period_start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="period_end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Availability Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Availability</h3>
-              
-              <FormField
-                control={form.control}
-                name="availability_days"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Available Days</FormLabel>
-                    <div className="grid grid-cols-4 gap-2">
-                      {daysOfWeek.map((day) => (
-                        <FormField
-                          key={day.value}
-                          control={form.control}
-                          name="availability_days"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={day.value}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(day.value)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([...field.value, day.value])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== day.value
-                                            )
-                                          )
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-sm font-normal">
-                                  {day.label}
-                                </FormLabel>
-                              </FormItem>
-                            )
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-2">
-                <Label>Available Time Slots</Label>
-                {timeFields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
-                    <FormField
-                      control={form.control}
-                      name={`available_times.${index}.start`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <span className="text-sm text-gray-500">to</span>
-                    <FormField
-                      control={form.control}
-                      name={`available_times.${index}.end`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input type="time" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeTime(index)}
-                      disabled={timeFields.length === 1}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => appendTime({ start: "09:00", end: "17:00" })}
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add Time Slot
-                </Button>
               </div>
             </div>
 
             {/* Not Available Section (Optional) */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Not Available (Optional)</h3>
+              <h3 className="text-lg font-semibold">Not Available</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="not_available_start"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Not Available From</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="not_available_end"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Not Available Until</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
@@ -834,65 +964,38 @@ export default function FormModal({
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea 
-                          placeholder="On leave, Conference, etc." 
-                          {...field} 
+                        <Textarea
+                          placeholder="On leave, Conference, etc."
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="not_available_start"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Not Available From</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="not_available_end"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Not Available Until</FormLabel>
-                        <FormControl>
-                          <Input type="date" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
             </div>
 
             {/* Submit Button */}
-            <div className="flex justify-end space-x-2 pt-4">
+            <DialogFooter className="sticky bottom-0 w-full mx-auto bg-white border-t border-gray-200  flex justify-between px-4 py-3">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
+                className="w-1/2 mr-2"
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting} className="w-1/2 ">
                 {isSubmitting
                   ? editDoctorId
                     ? "Updating..."
                     : "Adding..."
                   : editDoctorId
                   ? "Update Doctor"
-                  : "Add Doctor"}
+                  : "Enroll Doctor"}
               </Button>
-            </div>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

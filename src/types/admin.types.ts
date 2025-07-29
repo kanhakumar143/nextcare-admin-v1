@@ -69,7 +69,7 @@ export type AddDoctorPayload = {
     tenant_id: string;
     name: string;
     email: string;
-    hashed_password: string;
+    hashed_password?: string;
     user_role: string;
     phone?: string;
   };

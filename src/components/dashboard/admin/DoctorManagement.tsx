@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/common/DataTable";
 import { DoctorData } from "@/types/admin.types";
-import { getPractitionerByRole } from "@/services/admin.api";
+import { addDoctor, getPractitionerByRole } from "@/services/admin.api";
 import FormModal from "../../common/FormModal";
+import { toast } from "sonner";
 
 type ExtendedDoctorData = DoctorData & { name: string };
 
@@ -41,6 +42,32 @@ export default function DoctorManagement() {
   useEffect(() => {
     fetchPractitionerByRole();
   }, []);
+
+    const handleAddDoctor = async (formData: any) => {
+      console.log(formData);
+      
+    try {
+      await addDoctor(formData);
+      await fetchPractitionerByRole(); // Refresh table
+      setOpen(false); // Close modal
+      // toast({ title: "Doctor added successfully." });
+    } catch (error) {
+      console.error("Error adding doctor:", error);
+      // toast({ title: "Failed to add doctor.", variant: "destructive" });
+    }
+  };
+  
+
+  // const handleAddDoctor = async (formData: any) => {
+  //   try {
+  //     await addDoctor(formData);
+  //     await fetchPractitionerByRole(); // Refresh table
+  //     setOpen(false); // Close modal
+  //   } catch (error) {
+  //     console.error("Error adding doctor:", error);
+  //     // optionally show toast here
+  //   }
+  // };
 
   const columns: ColumnDef<ExtendedDoctorData>[] = [
     {
@@ -104,6 +131,8 @@ export default function DoctorManagement() {
             </DialogHeader>
 
             <FormModal
+            onSubmit1={handleAddDoctor}
+              editDoctorId={editDoctorId}
               open={open}
               onOpenChange={(val) => {
                 setOpen(val);

@@ -193,7 +193,7 @@ export default function Services() {
               Add Service
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md py-4">
             <DialogHeader>
               <DialogTitle>
                 {editServiceId ? "Edit Service" : "Add New Service"}
