@@ -26,6 +26,7 @@ export interface doctorSliceInitialStates {
   patientQueueListError: string | null;
   consultationData: ConsultationData | null;
   labTests: LabTest[];
+  patientAppointmentHistory: any[];
   medicines: Medication[];
   visitNote: VisitNote;
 }
