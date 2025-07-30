@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
+  getEprescriptionDetails,
   submitVisitSummary,
   updateAppointmentStatus,
 } from "@/services/doctor.api";
@@ -30,6 +31,7 @@ export default function ConfirmConsultationModal({}: {}) {
   const {
     confirmConsultationModalVisible,
     singlePatientDetails,
+    visitNote,
     labTests,
     medicines,
   } = useSelector((state: RootState) => state.doctor);
@@ -39,7 +41,7 @@ export default function ConfirmConsultationModal({}: {}) {
   const router = useRouter();
   const handleConfirm = () => {
     handleAddVisitSummary();
-    setLoading(true);
+    // setLoading(true);
   };
   const handleCancel = () => {
     dispatch(setConfirmConsultationModal(false));
@@ -59,26 +61,25 @@ export default function ConfirmConsultationModal({}: {}) {
           "general consultation"
         }`,
       },
-      medication: {
-        name: medicines[0]?.medicineName,
-        form: "tablet",
-        route: "oral",
-        frequency: medicines[0]?.dosage,
-        strength: medicines[0]?.composition,
-        duration: medicines[0]?.days,
-        timing: {
-          morning: true,
-          afternoon: false,
-          evening: false,
-          night: true,
-        },
-        dosage_instruction: medicines[0]?.instructions,
-        note: {
-          info: "Avoid alcohol while on medication",
-        },
+      medication: medicines,
+      visit_note: {
+        summary: visitNote.summary,
+        follow_up: visitNote.follow_up,
+      },
+      visit_care_plan: {
+        plan_type: visitNote.visit_care_plan.plan_type,
+        goal: visitNote.visit_care_plan.goal,
+        detail: visitNote.visit_care_plan.detail,
+      },
+      visit_assessment: {
+        description: visitNote.visit_assessment.description,
+        severity: visitNote.visit_assessment.severity,
       },
     };
     console.log("Visit Summary Payload:", payload);
+    router.push(
+      `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
+    );
     try {
       const response = await submitVisitSummary(payload);
       handleUpdateApptStatus();
@@ -95,8 +96,8 @@ export default function ConfirmConsultationModal({}: {}) {
         id: singlePatientDetails?.id || "",
         status: "fulfilled",
       });
-      toast.success("Consultation completed");
-      router.push("/dashboard/doctor/portal");
+
+      getPrescriptionDetails();
       dispatch(setConfirmConsultationModal(false));
       dispatch(fetchAssignedAppointments(practitionerId));
     } catch (error) {
@@ -104,6 +105,17 @@ export default function ConfirmConsultationModal({}: {}) {
       toast.error("Failed to update appointment status. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getPrescriptionDetails = () => {
+    try {
+      const response = getEprescriptionDetails(singlePatientDetails?.id);
+      console.log("Prescription Details:", response);
+      toast.success("Consultation completed");
+      router.push("/dashboard/doctor/portal");
+    } catch (error) {
+      console.error("Error fetching prescription details:", error);
     }
   };
 
