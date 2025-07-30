@@ -7,7 +7,6 @@ import {
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAssignedAppointments } from "@/services/doctor.api";
 
-// Async thunk for fetching assigned appointments
 export const fetchAssignedAppointments = createAsyncThunk(
   "doctor/fetchAssignedAppointments",
   async (practitioner_id: string | null, { rejectWithValue }) => {
@@ -24,6 +23,7 @@ export const fetchAssignedAppointments = createAsyncThunk(
 const initialState: doctorSliceInitialStates = {
   confirmConsultationModalVisible: false,
   patientQueueList: [],
+  patientAppointmentHistory: [],
   patientQueueListLoading: false,
   patientQueueListError: null,
   singlePatientDetails: null,
@@ -73,7 +73,10 @@ const doctorSlice = createSlice({
       })
       .addCase(fetchAssignedAppointments.fulfilled, (state, action) => {
         state.patientQueueListLoading = false;
-        state.patientQueueList = action.payload || [];
+        state.patientQueueList = action.payload?.upcoming_consultation || [];
+        state.patientAppointmentHistory =
+          action.payload?.past_consultation || [];
+
         state.patientQueueListError = null;
       })
       .addCase(fetchAssignedAppointments.rejected, (state, action) => {

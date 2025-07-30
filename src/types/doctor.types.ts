@@ -7,6 +7,7 @@ export interface doctorSliceInitialStates {
   consultationData: ConsultationData | null;
   labTests: LabTest[];
   medicines: Medicine[];
+  patientAppointmentHistory: any[];
 }
 
 interface VitalObservation {

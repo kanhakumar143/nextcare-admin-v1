@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/common/DataTable";
-import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import patientsData from "../../../mock/mockData.json";
-import { getAssignedAppointments } from "@/services/doctor.api";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
@@ -71,19 +69,10 @@ const DoctorPortal = () => {
   ];
 
   useEffect(() => {
-    console.log(
-      "Fetching assigned appointments for practitioner:",
-      patientQueueList
-    );
     if (!patientQueueList || patientQueueList.length === 0) {
       dispatch(fetchAssignedAppointments(practitionerId));
     }
   }, []);
-
-  const today = format(new Date(), "yyyy-MM-dd");
-  const todayPatients = patientsData.patients.filter(
-    (patient) => patient.date === today
-  );
 
   return (
     <div className=" bg-background p-6">
