@@ -178,10 +178,11 @@ export interface EPrescription {
     contact: string | null;
   };
   medication_request: {
+    id?: string;
     status: "active" | "completed" | "cancelled" | string;
     intent: "order" | "proposal" | string;
-    authored_on: string; // ISO datetime string
-    dispense_request: any | null; // Can be typed more specifically if known
+    authored_on: string; // ISO datetime
+    dispense_request: any | null;
     note: string;
   };
   medications: Array<{
@@ -197,7 +198,21 @@ export interface EPrescription {
   }>;
   signature: {
     signed_by: string;
-    signed_at: string; // ISO datetime string
+    signed_at: string; // ISO datetime
     type: "digital" | "manual" | string;
+  };
+  diagnosis: {
+    description: string;
+    severity: "mild" | "moderate" | "severe" | string;
+    code: string | null;
+  };
+  care_plan: {
+    detail: string;
+    goal: string;
+    plan_type: string;
+  };
+  visit_note: {
+    summary: string;
+    follow_up: string;
   };
 }

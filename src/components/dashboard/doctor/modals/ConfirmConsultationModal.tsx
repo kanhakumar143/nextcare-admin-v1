@@ -42,6 +42,7 @@ export default function ConfirmConsultationModal({}: {}) {
   const router = useRouter();
   const handleConfirm = () => {
     handleAddVisitSummary();
+    handleCancel();
     // setLoading(true);
   };
   const handleCancel = () => {
@@ -81,31 +82,13 @@ export default function ConfirmConsultationModal({}: {}) {
     router.push(
       `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
     );
-    getPrescriptionDetails(); //temporary redirect
-    // try {
-    //   const response = await submitVisitSummary(payload);
-    //   handleUpdateApptStatus();
-    // } catch (error) {
-    //   setLoading(false);
-    //   console.error("Error submitting visit summary:", error);
-    //   toast.error("Failed to submit visit summary. Please try again.");
-    // }
-  };
-
-  const handleUpdateApptStatus = async () => {
     try {
-      const response = await updateAppointmentStatus({
-        id: singlePatientDetails?.id || "",
-        status: "fulfilled",
-      });
+      const response = await submitVisitSummary(payload);
       getPrescriptionDetails();
-      dispatch(setConfirmConsultationModal(false));
-      dispatch(fetchAssignedAppointments(practitionerId));
     } catch (error) {
-      console.error("Error updating appointment status:", error);
-      toast.error("Failed to update appointment status. Please try again.");
-    } finally {
       setLoading(false);
+      console.error("Error submitting visit summary:", error);
+      toast.error("Failed to submit visit summary. Please try again.");
     }
   };
 
@@ -114,7 +97,7 @@ export default function ConfirmConsultationModal({}: {}) {
       const response = await getEprescriptionDetails(singlePatientDetails?.id);
       console.log("Prescription Details:", response);
       toast.success("Consultation completed");
-      dispatch(setEprescriptionDetails(response));
+      dispatch(setEprescriptionDetails(response.data));
     } catch (error) {
       console.error("Error fetching prescription details:", error);
     }
@@ -139,7 +122,7 @@ export default function ConfirmConsultationModal({}: {}) {
             {loading ? (
               <Loader2 className="animate-spin" />
             ) : (
-              "Confirm & Finish"
+              "Continue to Prescription Review"
             )}
           </Button>
         </DialogFooter>

@@ -23,7 +23,9 @@ const DoctorPortal = () => {
   const router = useRouter();
   const dispatch: AppDispatch = useDispatch();
   const { practitionerId } = useAuthInfo();
-  const { patientQueueList } = useSelector((state: RootState) => state.doctor);
+  const { patientQueueList, patientAppointmentHistory } = useSelector(
+    (state: RootState) => state.doctor
+  );
   const handlePatientInfo = (patient: PatientInfo) => {
     dispatch(setSinglePatientDetails(patient));
     router.push(`/dashboard/doctor/consultation/${patient.id}`);
@@ -106,7 +108,17 @@ const DoctorPortal = () => {
             <DataTable columns={columns} data={patientQueueList} />
           </CardContent>
         </Card>
-        <div></div>
+
+        {/* <Card className="bg-card border-border">
+          <CardHeader>
+            <CardTitle className="text-card-foreground">
+              Today's Patient Appointment History
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DataTable columns={columns} data={patientAppointmentHistory} />
+          </CardContent>
+        </Card> */}
       </div>
     </div>
   );

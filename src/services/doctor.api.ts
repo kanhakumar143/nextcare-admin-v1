@@ -77,3 +77,16 @@ export const getEprescriptionDetails = async (appt_id: string) => {
     throw new Error("Unexpected error occurred.");
   }
 };
+
+export const updateEprescriptionStatus = async (payload: any) => {
+  try {
+    const response = await api.put(`medication-request/`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update e-prescription";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};

@@ -19,75 +19,49 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
-  submitVisitSummary,
   updateAppointmentStatus,
+  updateEprescriptionStatus,
 } from "@/services/doctor.api";
-import { VisitSummaryPayload } from "@/types/doctor.types";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-export default function ConfirmReviewPrescriptionModal({}: {}) {
-  const {
-    ConfirmReviewPrescriptionModalVisible,
-    singlePatientDetails,
-    visitNote,
-    labTests,
-    medicines,
-  } = useSelector((state: RootState) => state.doctor);
+export default function ConfirmReviewPrescriptionModal({
+  medicationRequestId,
+}: {
+  medicationRequestId: string;
+}) {
+  const { ConfirmReviewPrescriptionModalVisible, singlePatientDetails } =
+    useSelector((state: RootState) => state.doctor);
   const [loading, setLoading] = useState<boolean>(false);
   const { practitionerId } = useAuthInfo();
   const dispatch: AppDispatch = useDispatch();
   const router = useRouter();
   const handleConfirm = () => {
-    handleAddVisitSummary();
-    // setLoading(true);
+    handleVerifyEprescription();
+    setLoading(true);
+    handleCancel();
   };
   const handleCancel = () => {
     dispatch(setConfirmReviewPrescriptionModal(false));
   };
 
-  const handleAddVisitSummary = async () => {
-    console.log("Adding visit summary for patient:", singlePatientDetails);
-    const payload: VisitSummaryPayload = {
-      practitioner_id: practitionerId || "",
-      appointment_id: singlePatientDetails?.id,
-      patient_id: singlePatientDetails?.patient_id,
-      medication_request: {
-        intent: "order",
-        status: "active",
-        note: `Prescribed for ${
-          singlePatientDetails?.service_category[0]?.text ||
-          "general consultation"
-        }`,
-      },
-      medication: medicines,
-      visit_note: {
-        summary: visitNote.summary,
-        follow_up: visitNote.follow_up,
-      },
-      visit_care_plan: {
-        plan_type: visitNote.visit_care_plan.plan_type,
-        goal: visitNote.visit_care_plan.goal,
-        detail: visitNote.visit_care_plan.detail,
-      },
-      visit_assessment: {
-        description: visitNote.visit_assessment.description,
-        severity: visitNote.visit_assessment.severity,
-      },
+  const handleVerifyEprescription = async () => {
+    const payload = {
+      id: medicationRequestId,
+      status: "completed",
+      note: "Patient has completed the medication review.",
+      practitioner_id: practitionerId,
     };
     console.log("Visit Summary Payload:", payload);
-    router.push(
-      `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
-    );
-    // try {
-    //   const response = await submitVisitSummary(payload);
-    //   handleUpdateApptStatus();
-    // } catch (error) {
-    //   setLoading(false);
-    //   console.error("Error submitting visit summary:", error);
-    //   toast.error("Failed to submit visit summary. Please try again.");
-    // }
+    try {
+      const response = await updateEprescriptionStatus(payload);
+      handleUpdateApptStatus();
+    } catch (error) {
+      setLoading(false);
+      console.error("Error submitting visit summary:", error);
+      toast.error("Failed to submit visit summary. Please try again.");
+    }
   };
 
   const handleUpdateApptStatus = async () => {
@@ -115,10 +89,10 @@ export default function ConfirmReviewPrescriptionModal({}: {}) {
     >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Finalize Prescription</DialogTitle>
+          <DialogTitle>Finalize Prescription Review</DialogTitle>
           <DialogDescription>
             You're about to finalize this prescription. Once confirmed, all
-            notes and prescriptions will be saved and cannot be edited further.
+            notes and prescriptions will be saved and shared with patient.
           </DialogDescription>
         </DialogHeader>
 

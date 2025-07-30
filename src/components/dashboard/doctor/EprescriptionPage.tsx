@@ -10,6 +10,7 @@ import {
   Clock,
   Shield,
   QrCode,
+  ArrowLeft,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,23 +28,34 @@ import { AppDispatch, RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setConfirmReviewPrescriptionModal } from "@/store/slices/doctorSlice";
 import ConfirmReviewPrescriptionModal from "./modals/ConfirmReviewPrescriptionModal";
-import { use } from "react";
+import { useState } from "react";
 import moment from "moment";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const EprescriptionPage = () => {
   const dispatch: AppDispatch = useDispatch();
-
+  const router = useRouter();
+  const [medicationRequestId, setMedicationRequestId] = useState<string>("");
   const { EprescriptionDetails } = useSelector(
     (state: RootState) => state.doctor
   );
-
+  console.log("Eprescription Details:", EprescriptionDetails);
   const handleVerifyPrescription = () => {
+    // setMedicationRequestId(EprescriptionDetails?.medication_request?.id || "");
+    setMedicationRequestId("b4e1ac51-e01b-4d9b-8ef6-ef620a828c98");
     dispatch(setConfirmReviewPrescriptionModal(true));
   };
 
   return (
     <div className="prescription-container max-w-4xl mx-auto p-8 bg-white min-h-screen">
       {/* Prescription Metadata */}
+      <div>
+        <Button onClick={() => router.back()} className="mb-6" variant="ghost">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back
+        </Button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="prescription-card">
           <div className="flex items-center space-x-2">
@@ -76,7 +88,9 @@ const EprescriptionPage = () => {
               Status
             </span>
           </div>
-          <Badge className="mt-2 status-badge status-active">Active</Badge>
+          <Badge className="mt-2 status-badge status-active">
+            {EprescriptionDetails?.medication_request?.status}
+          </Badge>
         </div>
       </div>
 
@@ -95,19 +109,21 @@ const EprescriptionPage = () => {
                 Full Name
               </p>
               <p className="text-base font-semibold text-foreground">
-                Sarah Johnson
+                {EprescriptionDetails?.patient?.name}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Gender
               </p>
-              <p className="text-base font-semibold text-foreground">Female</p>
+              <p className="text-base font-semibold text-foreground">
+                {EprescriptionDetails?.patient?.gender}
+              </p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Age</p>
               <p className="text-base font-semibold text-foreground">
-                34 years
+                {EprescriptionDetails?.patient?.age} years
               </p>
             </div>
             <div>
@@ -115,7 +131,7 @@ const EprescriptionPage = () => {
                 Patient ID
               </p>
               <p className="text-base font-semibold text-foreground">
-                PT-789456
+                {EprescriptionDetails?.patient?.patient_display_id}
               </p>
             </div>
           </div>
@@ -137,23 +153,22 @@ const EprescriptionPage = () => {
                 Doctor Name
               </p>
               <p className="text-base font-semibold text-foreground">
-                Dr. Michael Rodriguez
+                {EprescriptionDetails?.practitioner?.name}
               </p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Specialization
               </p>
-              <p className="text-base font-semibold text-foreground">
-                Internal Medicine
-              </p>
+              <p className="text-base font-semibold text-foreground">{"N/A"}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 License Number
               </p>
               <p className="text-base font-semibold text-foreground">
-                MD-12345-TX
+                {EprescriptionDetails?.practitioner?.licence_details?.number ||
+                  "N/A"}
               </p>
             </div>
             <div>
@@ -161,7 +176,7 @@ const EprescriptionPage = () => {
                 Contact
               </p>
               <p className="text-base font-semibold text-foreground">
-                +1 (555) 987-6543
+                {EprescriptionDetails?.practitioner?.contact || "N/A"}
               </p>
             </div>
           </div>
@@ -184,20 +199,22 @@ const EprescriptionPage = () => {
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell className="font-mono">J06.9</TableCell>
+              <TableCell className="font-mono">
+                {EprescriptionDetails?.diagnosis?.code || "N/A"}
+              </TableCell>
               <TableCell>
-                Acute upper respiratory infection, unspecified
+                {EprescriptionDetails?.diagnosis?.description || "N/A"}
               </TableCell>
               <TableCell>
                 <Badge
                   variant="outline"
                   className="border-yellow-500 text-yellow-700"
                 >
-                  Moderate
+                  {EprescriptionDetails?.diagnosis?.severity || "N/A"}
                 </Badge>
               </TableCell>
             </TableRow>
-            <TableRow>
+            {/* <TableRow>
               <TableCell className="font-mono">R50.9</TableCell>
               <TableCell>Fever, unspecified</TableCell>
               <TableCell>
@@ -208,7 +225,7 @@ const EprescriptionPage = () => {
                   Mild
                 </Badge>
               </TableCell>
-            </TableRow>
+            </TableRow>*/}
           </TableBody>
         </Table>
       </div>
@@ -223,58 +240,40 @@ const EprescriptionPage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Strength</TableHead>
+              {/* <TableHead>Strength</TableHead> */}
               <TableHead>Form</TableHead>
               <TableHead>Route</TableHead>
               <TableHead>Frequency</TableHead>
               <TableHead>Duration</TableHead>
-              <TableHead>Timing</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-semibold">Amoxicillin</TableCell>
-              <TableCell>500mg</TableCell>
-              <TableCell>Capsule</TableCell>
-              <TableCell>Oral</TableCell>
-              <TableCell>3x daily</TableCell>
-              <TableCell>7 days</TableCell>
-              <TableCell>With meals</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell
-                colSpan={7}
-                className="text-sm italic text-muted-foreground"
-              >
-                <strong>Dosage Instruction:</strong> Take one capsule three
-                times daily with food. Complete the full course even if symptoms
-                improve.
-                <br />
-                <strong>Notes:</strong> May cause mild stomach upset. Take with
-                plenty of water.
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="font-semibold">Ibuprofen</TableCell>
-              <TableCell>400mg</TableCell>
-              <TableCell>Tablet</TableCell>
-              <TableCell>Oral</TableCell>
-              <TableCell>2x daily</TableCell>
-              <TableCell>5 days</TableCell>
-              <TableCell>As needed</TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell
-                colSpan={7}
-                className="text-sm italic text-muted-foreground"
-              >
-                <strong>Dosage Instruction:</strong> Take for pain and fever
-                relief. Do not exceed 2 tablets per day.
-                <br />
-                <strong>Notes:</strong> Take with food to reduce stomach
-                irritation.
-              </TableCell>
-            </TableRow>
+            {EprescriptionDetails?.medications.map((data, index) => {
+              return (
+                <>
+                  <TableRow>
+                    <TableCell className="font-semibold">
+                      {data.medication_name}
+                    </TableCell>
+                    <TableCell>{data.form}</TableCell>
+                    <TableCell>{data.route}</TableCell>
+                    <TableCell>{data.frequency}</TableCell>
+                    <TableCell>{data.duration}</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-sm italic text-muted-foreground"
+                    >
+                      <strong>Dosage Instruction:</strong>{" "}
+                      {data.dosage_instruction || "N/A"}
+                      <br />
+                      <strong>Notes:</strong> {data.notes?.info || "N/A"}
+                    </TableCell>
+                  </TableRow>
+                </>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -298,31 +297,16 @@ const EprescriptionPage = () => {
               <TableCell className="break-words whitespace-normal">
                 <div className="flex items-center gap-2">
                   <Badge className="status-badge status-active">Active</Badge>
-                  <span>Rest & Recovery</span>
+                  <span>
+                    {EprescriptionDetails?.care_plan?.plan_type || "N/A"}
+                  </span>
                 </div>
               </TableCell>
               <TableCell className="break-words whitespace-normal">
-                Complete recovery from respiratory infection
+                {EprescriptionDetails?.care_plan?.goal || "N/A"}
               </TableCell>
               <TableCell className="break-words whitespace-normal">
-                Adequate rest, increased fluid intake, avoid strenuous
-                activities
-              </TableCell>
-            </TableRow>
-            <TableRow>
-              <TableCell className="break-words whitespace-normal">
-                <div className="flex items-center gap-2">
-                  <Badge className="status-badge status-pending">
-                    Follow-up
-                  </Badge>
-                  <span>Monitoring</span>
-                </div>
-              </TableCell>
-              <TableCell className="break-words whitespace-normal">
-                Monitor symptom improvement
-              </TableCell>
-              <TableCell className="break-words whitespace-normal">
-                Schedule follow-up if symptoms persist beyond 7 days
+                {EprescriptionDetails?.care_plan?.detail || "N/A"}
               </TableCell>
             </TableRow>
           </TableBody>
@@ -338,10 +322,8 @@ const EprescriptionPage = () => {
               <h4 className="font-semibold text-foreground">Visit Summary</h4>
             </div>
             <p className="text-sm text-muted-foreground">
-              Patient presented with symptoms of upper respiratory infection
-              including fever, sore throat, and nasal congestion. Physical
-              examination revealed mild throat inflammation. Prescribed
-              antibiotic course and pain management.
+              {EprescriptionDetails?.visit_note?.summary ||
+                "No summary provided."}
             </p>
           </CardContent>
         </Card>
@@ -354,9 +336,8 @@ const EprescriptionPage = () => {
               </h4>
             </div>
             <p className="text-sm text-muted-foreground">
-              Return if symptoms worsen or persist beyond 7 days. Schedule
-              follow-up appointment in 2 weeks if needed. Contact immediately if
-              experiencing difficulty breathing or high fever above 102°F.
+              {EprescriptionDetails?.visit_note?.follow_up ||
+                "No follow-up instructions provided."}
             </p>
           </CardContent>
         </Card>
@@ -364,18 +345,21 @@ const EprescriptionPage = () => {
 
       {/* Signature Section */}
       <div className="border-t-2 border-primary pt-6 mb-6">
-        <div className="flex justify-between items-end">
-          <div>
+        <div className="flex justify-end items-start">
+          <div className="text-right">
             <div className="mb-4">
               <p className="text-sm font-medium text-muted-foreground">
                 Digital Signature
               </p>
               <div className="mt-2 p-4 border-2 border-dashed border-primary rounded-lg bg-primary-light">
                 <p className="text-primary font-semibold">
-                  Dr. Michael Rodriguez, MD
+                  {EprescriptionDetails?.practitioner?.name}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Digitally signed on January 15, 2024
+                  Digitally signed on{" "}
+                  {moment(EprescriptionDetails?.signature?.signed_at).format(
+                    "MMMM D, YYYY"
+                  )}
                 </p>
               </div>
             </div>
@@ -384,22 +368,8 @@ const EprescriptionPage = () => {
                 Practitioner Name
               </p>
               <p className="text-lg font-bold text-foreground">
-                Dr. Michael Rodriguez
+                {EprescriptionDetails?.signature?.signed_by}
               </p>
-            </div>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-medium text-muted-foreground">
-              Date Signed
-            </p>
-            <p className="text-lg font-bold text-foreground">
-              January 15, 2024
-            </p>
-            <div className="mt-4 flex items-center justify-end space-x-2">
-              <Clock className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">
-                10:30 AM EST
-              </span>
             </div>
           </div>
         </div>
@@ -440,7 +410,9 @@ const EprescriptionPage = () => {
           Verify Prescription
         </button>
       </div>
-      <ConfirmReviewPrescriptionModal />
+      <ConfirmReviewPrescriptionModal
+        medicationRequestId={medicationRequestId}
+      />
     </div>
   );
 };
