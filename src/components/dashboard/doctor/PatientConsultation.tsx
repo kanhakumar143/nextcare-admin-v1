@@ -21,24 +21,22 @@ import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setConfirmConsultationModal,
-  setConsultationData,
   clearConsultationOrders,
+  updateVisitNote,
 } from "@/store/slices/doctorSlice";
 import { RootState } from "@/store";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
 import { AppointmentDetails, ConsultationData } from "@/types/doctor.types";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
-  const { singlePatientDetails } = useSelector(
+  const { singlePatientDetails, visitNote } = useSelector(
     (state: RootState) => state.doctor
   );
-  const { apt_id } = useParams();
-  const [summary, setSummary] = useState("");
   const [apptDtls, setApptDtls] = useState<AppointmentDetails | null>(null);
-  const [consultationStatus, setConsultationStatus] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -68,7 +66,7 @@ export default function PatientConsultation() {
   };
 
   const handleConfirmConsultationCheck = () => {
-    if (!summary.trim()) {
+    if (!visitNote.summary.trim()) {
       toast.error(
         "Please provide a consultation summary before completing the consultation."
       );
@@ -135,27 +133,10 @@ export default function PatientConsultation() {
               ))}
           </div>
         </div>
-        <div className="mx-5">
-          <Select
-            value={consultationStatus}
-            onValueChange={setConsultationStatus}
-          >
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Consultation status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                <SelectLabel>Status</SelectLabel>
-                <SelectItem value="followup">Follow Up</SelectItem>
-                <SelectItem value="clinic">Clinic</SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
       <div className="flex p-4 bg-background gap-4">
         {/* Left Side */}
-        <div className="w-full lg:w-4/12 space-y-4 min-h-full">
+        <div className="w-full lg:w-5/12 space-y-4 min-h-full">
           {/* Pre-consultation QnA */}
           <Card className="border-border p-0">
             <CardHeader className="bg-gray-200 rounded-t-lg">
@@ -183,31 +164,170 @@ export default function PatientConsultation() {
           </Card>
         </div>
 
-        <div className="w-full lg:w-8/12 space-y-4">
-          <div>
-            <DoctorMedicineLabEntry />
-          </div>
+        <Card className="w-full space-y-1 p-4">
           <div className="flex flex-col justify-between border-border">
-            <div className="pb-2 px-3 py-3">
-              <p className="text-xl font-bold">Consultation Summary</p>
-              <p className="text-sm text-muted-foreground">
-                A detailed summary of the patient’s consultation, including
-                prescribed medicines and recommended lab investigations.
-              </p>
+            <div className="pb-2 px-3 py-3 flex items-start justify-between">
+              <div>
+                <p className="text-xl font-bold">Visit Summary</p>
+                <p className="text-sm text-muted-foreground">
+                  A detailed summary of the patient’s consultation, including
+                  prescribed medicines and recommended lab investigations.
+                </p>
+              </div>
+              <div className="mx-5">
+                <Select
+                  value={visitNote.visit_care_plan.plan_type}
+                  onValueChange={(value) =>
+                    dispatch(
+                      updateVisitNote({
+                        field: "visit_care_plan.plan_type",
+                        value,
+                      })
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Select plan type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectLabel>Treatment Plan Type</SelectLabel>
+                      <SelectItem value="followup">Follow Up</SelectItem>
+                      <SelectItem value="medication">Medication</SelectItem>
+                      <SelectItem value="lifestyle">Lifestyle</SelectItem>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="flex flex-col gap-4 flex-grow">
+            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
+              <Label className="text-sm font-medium">Doctor Notes</Label>
               <Textarea
                 placeholder="Write your summary here..."
                 className="flex-grow h-[10vh]"
-                value={summary}
-                onChange={(e) => setSummary(e.target.value)}
+                value={visitNote.summary}
+                onChange={(e) =>
+                  dispatch(
+                    updateVisitNote({ field: "summary", value: e.target.value })
+                  )
+                }
               />
             </div>
+            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
+              <Label className="text-sm font-medium">
+                Post-Visit Care Instructions
+              </Label>
+              <Input
+                placeholder="Provide clear instructions for patient care and next steps"
+                value={visitNote.follow_up}
+                onChange={(e) =>
+                  dispatch(
+                    updateVisitNote({
+                      field: "follow_up",
+                      value: e.target.value,
+                    })
+                  )
+                }
+              />
+            </div>
+
+            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
+              <Label className="text-sm font-medium">Treatment Plan</Label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3">
+                <div className="flex flex-col gap-2">
+                  <Label className="text-sm font-medium">
+                    Treatment Objective
+                  </Label>
+                  <Input
+                    placeholder="Define the primary treatment goal."
+                    value={visitNote.visit_care_plan.goal}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "visit_care_plan.goal",
+                          value: e.target.value,
+                        })
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label className="text-sm font-medium">
+                    Care Plan Specifics
+                  </Label>
+                  <Input
+                    placeholder="Specify how the treatment plan will be executed"
+                    value={visitNote.visit_care_plan.detail}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "visit_care_plan.detail",
+                          value: e.target.value,
+                        })
+                      )
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
+              <Label className="text-sm font-medium">Clinical Assessment</Label>
+              <div className="grid grid-cols-2 gap-4 p-3">
+                <div className="flex flex-col gap-2">
+                  <Label className="text-sm font-medium">
+                    Assessment Notes
+                  </Label>
+                  <Input
+                    placeholder="Describe your clinical assessment and observations."
+                    value={visitNote.visit_assessment.description}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "visit_assessment.description",
+                          value: e.target.value,
+                        })
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Label className="text-sm font-medium">Severity Level</Label>
+                  <Select
+                    value={visitNote.visit_assessment.severity}
+                    onValueChange={(value) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "visit_assessment.severity",
+                          value,
+                        })
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select severity Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Severity Level</SelectLabel>
+                        <SelectItem value="mild">Mild</SelectItem>
+                        <SelectItem value="moderate">Moderate</SelectItem>
+                        <SelectItem value="severe">Severe</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </Card>
       </div>
 
-      <div className="flex w-full gap-3 justify-end px-6">
+      <div className="px-4 mr-2">
+        <DoctorMedicineLabEntry />
+      </div>
+
+      <div className="flex w-full gap-3 justify-end px-6 py-4">
         <Button variant={"outline"} onClick={() => router.back()}>
           Cancel
         </Button>

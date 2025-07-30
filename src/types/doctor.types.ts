@@ -1,13 +1,33 @@
+export interface VisitCarePlan {
+  plan_type: string;
+  goal: string;
+  detail: string;
+}
+
+export interface VisitAssessment {
+  description: string;
+  severity: "mild" | "moderate" | "severe";
+}
+
+export interface VisitNote {
+  summary: string;
+  follow_up: string;
+  visit_care_plan: VisitCarePlan;
+  visit_assessment: VisitAssessment;
+}
+
 export interface doctorSliceInitialStates {
   confirmConsultationModalVisible: boolean;
+  ConfirmReviewPrescriptionModalVisible: boolean;
   patientQueueList: any[];
   singlePatientDetails: any | null;
   patientQueueListLoading: boolean;
   patientQueueListError: string | null;
   consultationData: ConsultationData | null;
   labTests: LabTest[];
-  medicines: Medicine[];
   patientAppointmentHistory: any[];
+  medicines: Medication[];
+  visitNote: VisitNote;
 }
 
 interface VitalObservation {
@@ -39,11 +59,15 @@ export interface LabTest {
 }
 
 export interface Medicine {
-  medicineName: string;
+  name: string;
   composition: string;
+  form: string;
+  route: string;
   dosage: string;
   days: string;
   instructions: string;
+  dosage_instructions?: string;
+  notes?: string;
 }
 
 export interface ConsultationData {
@@ -99,7 +123,7 @@ export interface Medication {
   duration: string;
   timing: MedicationTiming;
   dosage_instruction: string;
-  note: MedicationNote;
+  note?: MedicationNote;
 }
 
 export interface MedicationRequest {
@@ -113,5 +137,23 @@ export interface VisitSummaryPayload {
   patient_id: string;
   practitioner_id: string;
   medication_request: MedicationRequest;
-  medication: Medication;
+  medication: Medication[];
+  visit_note: {
+    summary: string;
+    follow_up: string;
+  };
+  visit_care_plan: {
+    plan_type: string;
+    goal: string;
+    detail: string;
+  };
+  visit_assessment: {
+    code?: {
+      system: string;
+      code: string;
+      display: string;
+    };
+    description: string;
+    severity: "mild" | "moderate" | "severe";
+  };
 }

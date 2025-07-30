@@ -3,9 +3,12 @@ import {
   ConsultationData,
   LabTest,
   Medicine,
+  VisitNote,
+  Medication,
 } from "@/types/doctor.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAssignedAppointments } from "@/services/doctor.api";
+import { set } from "zod";
 
 export const fetchAssignedAppointments = createAsyncThunk(
   "doctor/fetchAssignedAppointments",
@@ -22,6 +25,7 @@ export const fetchAssignedAppointments = createAsyncThunk(
 
 const initialState: doctorSliceInitialStates = {
   confirmConsultationModalVisible: false,
+  ConfirmReviewPrescriptionModalVisible: false,
   patientQueueList: [],
   patientAppointmentHistory: [],
   patientQueueListLoading: false,
@@ -30,6 +34,19 @@ const initialState: doctorSliceInitialStates = {
   consultationData: null,
   labTests: [],
   medicines: [],
+  visitNote: {
+    summary: "",
+    follow_up: "",
+    visit_care_plan: {
+      plan_type: "",
+      goal: "",
+      detail: "",
+    },
+    visit_assessment: {
+      description: "",
+      severity: "mild",
+    },
+  },
 };
 
 const doctorSlice = createSlice({
@@ -38,6 +55,12 @@ const doctorSlice = createSlice({
   reducers: {
     setConfirmConsultationModal: (state, action: PayloadAction<boolean>) => {
       state.confirmConsultationModalVisible = action.payload;
+    },
+    setConfirmReviewPrescriptionModal: (
+      state,
+      action: PayloadAction<boolean>
+    ) => {
+      state.ConfirmReviewPrescriptionModalVisible = action.payload;
     },
     setSinglePatientDetails: (state, action: PayloadAction<any | null>) => {
       state.singlePatientDetails = action.payload;
@@ -48,11 +71,79 @@ const doctorSlice = createSlice({
     ) => {
       state.consultationData = action.payload;
     },
+    updateVisitNote: (
+      state,
+      action: PayloadAction<{ field: string; value: string }>
+    ) => {
+      const { field, value } = action.payload;
+      if (field.includes(".")) {
+        const [parent, child] = field.split(".");
+        if (parent === "visit_care_plan" && state.visitNote.visit_care_plan) {
+          (state.visitNote.visit_care_plan as any)[child] = value;
+        } else if (
+          parent === "visit_assessment" &&
+          state.visitNote.visit_assessment
+        ) {
+          (state.visitNote.visit_assessment as any)[child] = value;
+        }
+      } else {
+        (state.visitNote as any)[field] = value;
+      }
+    },
+    clearVisitNote: (state) => {
+      state.visitNote = {
+        summary: "",
+        follow_up: "",
+        visit_care_plan: {
+          plan_type: "",
+          goal: "",
+          detail: "",
+        },
+        visit_assessment: {
+          description: "",
+          severity: "mild",
+        },
+      };
+    },
     addLabTest: (state, action: PayloadAction<LabTest>) => {
       state.labTests.push(action.payload);
     },
-    addMedicine: (state, action: PayloadAction<Medicine>) => {
+    addMedicine: (state, action: PayloadAction<Medication>) => {
       state.medicines.push(action.payload);
+    },
+    updateLabTest: (
+      state,
+      action: PayloadAction<{ index: number; key: string; value: string }>
+    ) => {
+      const { index, key, value } = action.payload;
+      if (state.labTests[index]) {
+        (state.labTests[index] as any)[key] = value;
+      }
+    },
+    updateMedicine: (
+      state,
+      action: PayloadAction<{ index: number; key: string; value: string | any }>
+    ) => {
+      const { index, key, value } = action.payload;
+      if (state.medicines[index]) {
+        if (key.includes(".")) {
+          const [parent, child] = key.split(".");
+          if (parent === "note") {
+            if (!state.medicines[index].note) {
+              state.medicines[index].note = { info: "" };
+            }
+            (state.medicines[index].note as any)[child] = value;
+          }
+        } else {
+          (state.medicines[index] as any)[key] = value;
+        }
+      }
+    },
+    deleteLabTest: (state, action: PayloadAction<number>) => {
+      state.labTests.splice(action.payload, 1);
+    },
+    deleteMedicine: (state, action: PayloadAction<number>) => {
+      state.medicines.splice(action.payload, 1);
     },
     clearLabTests: (state) => {
       state.labTests = [];
@@ -63,6 +154,19 @@ const doctorSlice = createSlice({
     clearConsultationOrders: (state) => {
       state.labTests = [];
       state.medicines = [];
+      state.visitNote = {
+        summary: "",
+        follow_up: "",
+        visit_care_plan: {
+          plan_type: "",
+          goal: "",
+          detail: "",
+        },
+        visit_assessment: {
+          description: "",
+          severity: "mild",
+        },
+      };
     },
   },
   extraReducers: (builder) => {
@@ -90,8 +194,15 @@ export const {
   setConfirmConsultationModal,
   setSinglePatientDetails,
   setConsultationData,
+  updateVisitNote,
+  clearVisitNote,
   addLabTest,
   addMedicine,
+  updateLabTest,
+  setConfirmReviewPrescriptionModal,
+  updateMedicine,
+  deleteLabTest,
+  deleteMedicine,
   clearLabTests,
   clearMedicines,
   clearConsultationOrders,
