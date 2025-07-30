@@ -18,6 +18,7 @@ export interface VisitNote {
 
 export interface doctorSliceInitialStates {
   confirmConsultationModalVisible: boolean;
+  EprescriptionDetails: EPrescription | null;
   ConfirmReviewPrescriptionModalVisible: boolean;
   patientQueueList: any[];
   singlePatientDetails: any | null;
@@ -154,5 +155,48 @@ export interface VisitSummaryPayload {
     };
     description: string;
     severity: "mild" | "moderate" | "severe";
+  };
+}
+
+export interface EPrescription {
+  prescription_id: string;
+  patient: {
+    patient_display_id: string;
+    name: string;
+    age: number;
+    gender: "male" | "female" | "other";
+  };
+  practitioner: {
+    practitioner_display_id: string;
+    name: string;
+    licence_details: {
+      expiry: string; // ISO date string
+      number: string;
+      issued_by: string;
+    };
+    contact: string | null;
+  };
+  medication_request: {
+    status: "active" | "completed" | "cancelled" | string;
+    intent: "order" | "proposal" | string;
+    authored_on: string; // ISO datetime string
+    dispense_request: any | null; // Can be typed more specifically if known
+    note: string;
+  };
+  medications: Array<{
+    medication_name: string;
+    form: string;
+    route: string;
+    frequency: string;
+    duration: string;
+    dosage_instruction: string;
+    notes: {
+      info: string;
+    };
+  }>;
+  signature: {
+    signed_by: string;
+    signed_at: string; // ISO datetime string
+    type: "digital" | "manual" | string;
   };
 }

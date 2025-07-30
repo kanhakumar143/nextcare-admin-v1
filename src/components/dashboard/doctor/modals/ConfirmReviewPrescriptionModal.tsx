@@ -14,23 +14,22 @@ import { AppDispatch, RootState } from "@/store";
 import {
   fetchAssignedAppointments,
   setConfirmConsultationModal,
-  setEprescriptionDetails,
+  setConfirmReviewPrescriptionModal,
 } from "@/store/slices/doctorSlice";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
-  getEprescriptionDetails,
   submitVisitSummary,
   updateAppointmentStatus,
 } from "@/services/doctor.api";
-import { EPrescription, VisitSummaryPayload } from "@/types/doctor.types";
+import { VisitSummaryPayload } from "@/types/doctor.types";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-export default function ConfirmConsultationModal({}: {}) {
+export default function ConfirmReviewPrescriptionModal({}: {}) {
   const {
-    confirmConsultationModalVisible,
+    ConfirmReviewPrescriptionModalVisible,
     singlePatientDetails,
     visitNote,
     labTests,
@@ -45,7 +44,7 @@ export default function ConfirmConsultationModal({}: {}) {
     // setLoading(true);
   };
   const handleCancel = () => {
-    dispatch(setConfirmConsultationModal(false));
+    dispatch(setConfirmReviewPrescriptionModal(false));
   };
 
   const handleAddVisitSummary = async () => {
@@ -81,7 +80,6 @@ export default function ConfirmConsultationModal({}: {}) {
     router.push(
       `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
     );
-    getPrescriptionDetails(); //temporary redirect
     // try {
     //   const response = await submitVisitSummary(payload);
     //   handleUpdateApptStatus();
@@ -98,7 +96,8 @@ export default function ConfirmConsultationModal({}: {}) {
         id: singlePatientDetails?.id || "",
         status: "fulfilled",
       });
-      getPrescriptionDetails();
+      toast.success("Consultation completed");
+      router.push("/dashboard/doctor/portal");
       dispatch(setConfirmConsultationModal(false));
       dispatch(fetchAssignedAppointments(practitionerId));
     } catch (error) {
@@ -109,24 +108,16 @@ export default function ConfirmConsultationModal({}: {}) {
     }
   };
 
-  const getPrescriptionDetails = async () => {
-    try {
-      const response = await getEprescriptionDetails(singlePatientDetails?.id);
-      console.log("Prescription Details:", response);
-      toast.success("Consultation completed");
-      dispatch(setEprescriptionDetails(response));
-    } catch (error) {
-      console.error("Error fetching prescription details:", error);
-    }
-  };
-
   return (
-    <Dialog open={confirmConsultationModalVisible} onOpenChange={handleCancel}>
+    <Dialog
+      open={ConfirmReviewPrescriptionModalVisible}
+      onOpenChange={handleCancel}
+    >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Finalize Consultation</DialogTitle>
+          <DialogTitle>Finalize Prescription</DialogTitle>
           <DialogDescription>
-            You're about to finalize this consultation. Once confirmed, all
+            You're about to finalize this prescription. Once confirmed, all
             notes and prescriptions will be saved and cannot be edited further.
           </DialogDescription>
         </DialogHeader>

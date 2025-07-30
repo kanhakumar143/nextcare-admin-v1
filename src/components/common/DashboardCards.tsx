@@ -31,17 +31,22 @@ const DashboardCards: React.FC<CreateItemProps> = ({
   };
 
   return (
-    <Card className="hover:shadow-md cursor-pointer p-0" onClick={handleClick}>
-      <div className="flex justify-between items-center bg-gray-200 w-full rounded-t-lg px-6 py-4">
+    <Card
+      className="hover:shadow-md cursor-pointer p-0 flex flex-col gap-0"
+      onClick={handleClick}
+    >
+      <div className="flex justify-between items-center bg-gray-200 w-full rounded-t-lg md:px-6 px-3 md:py-4 py-2">
         <div className=" flex items-center gap-3">
-          <div className="bg-white p-3 m-1 rounded-full w-fit">{icon}</div>
-          <p className="text-2xl font-semibold">{header}</p>
+          <div className="bg-white md:p-3 p-2 md:m-1 rounded-full w-fit">
+            {icon}
+          </div>
+          <p className="md:text-2xl text-lg font-semibold">{header}</p>
         </div>
         <div>
           <ArrowRight />
         </div>
       </div>
-      <CardContent className="px-6 mb-6 flex flex-col justify-center">
+      <CardContent className="md:px-6 py-5 flex flex-col justify-center">
         {!icon && imageUrl && (
           <Image
             src={imageUrl}

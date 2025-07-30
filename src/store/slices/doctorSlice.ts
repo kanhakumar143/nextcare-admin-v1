@@ -5,6 +5,7 @@ import {
   Medicine,
   VisitNote,
   Medication,
+  EPrescription,
 } from "@/types/doctor.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAssignedAppointments } from "@/services/doctor.api";
@@ -26,6 +27,7 @@ export const fetchAssignedAppointments = createAsyncThunk(
 
 const initialState: doctorSliceInitialStates = {
   confirmConsultationModalVisible: false,
+  EprescriptionDetails: null,
   ConfirmReviewPrescriptionModalVisible: false,
   patientQueueList: [],
   patientQueueListLoading: false,
@@ -70,6 +72,9 @@ const doctorSlice = createSlice({
       action: PayloadAction<ConsultationData | null>
     ) => {
       state.consultationData = action.payload;
+    },
+    setEprescriptionDetails: (state, action: PayloadAction<EPrescription>) => {
+      state.EprescriptionDetails = action.payload;
     },
     updateVisitNote: (
       state,
@@ -200,6 +205,7 @@ export const {
   updateMedicine,
   deleteLabTest,
   deleteMedicine,
+  setEprescriptionDetails,
   clearLabTests,
   clearMedicines,
   clearConsultationOrders,
