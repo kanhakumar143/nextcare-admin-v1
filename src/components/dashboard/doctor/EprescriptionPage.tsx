@@ -42,8 +42,7 @@ const EprescriptionPage = () => {
   );
   console.log("Eprescription Details:", EprescriptionDetails);
   const handleVerifyPrescription = () => {
-    // setMedicationRequestId(EprescriptionDetails?.medication_request?.id || "");
-    setMedicationRequestId("b4e1ac51-e01b-4d9b-8ef6-ef620a828c98");
+    setMedicationRequestId(EprescriptionDetails?.medication_request?.id || "");
     dispatch(setConfirmReviewPrescriptionModal(true));
   };
 
@@ -374,32 +373,6 @@ const EprescriptionPage = () => {
           </div>
         </div>
       </div>
-
-      {/* QR Code Section */}
-      {/* <div className="flex justify-end">
-        <Link
-          href="/verify/RX-2024-001234"
-          className="border-2 border-primary rounded-lg p-4 bg-primary-light hover:bg-primary-light/80 transition-colors cursor-pointer block"
-        >
-          <div className="flex items-center space-x-3">
-            <QrCode className="h-16 w-16 text-primary" />
-            <div>
-              <p className="text-sm font-medium text-primary">
-                Prescription Verification
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Scan to verify authenticity
-              </p>
-              <p className="text-xs font-mono text-muted-foreground mt-1">
-                RX-2024-001234
-              </p>
-              <p className="text-xs text-primary font-medium mt-1">
-                Click to verify →
-              </p>
-            </div>
-          </div>
-        </Link>
-      </div> */}
 
       {/* Print Button (hidden in print) */}
       <div className="no-print mt-8 flex justify-center">

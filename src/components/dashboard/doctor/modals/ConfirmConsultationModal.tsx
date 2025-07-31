@@ -79,9 +79,7 @@ export default function ConfirmConsultationModal({}: {}) {
       },
     };
     console.log("Visit Summary Payload:", payload);
-    router.push(
-      `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
-    );
+
     try {
       const response = await submitVisitSummary(payload);
       getPrescriptionDetails();
@@ -97,6 +95,9 @@ export default function ConfirmConsultationModal({}: {}) {
       const response = await getEprescriptionDetails(singlePatientDetails?.id);
       console.log("Prescription Details:", response);
       toast.success("Consultation completed");
+      router.push(
+        `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
+      );
       dispatch(setEprescriptionDetails(response.data));
     } catch (error) {
       console.error("Error fetching prescription details:", error);
