@@ -99,8 +99,9 @@ export default function DoctorConsultationHistory() {
       : patientHistory.filter((p) => p.status === filter);
 
   const handlePatientInfo = (patient: PatientInfo) => {
+    console.log("Selected patient:", patient);
     dispatch(setSinglePatientDetails(patient));
-    router.push(`/dashboard/doctor/consultation/${patient.id}`);
+    router.push(`/dashboard/doctor/consultation-details/${patient.id}`);
   };
 
   useEffect(() => {

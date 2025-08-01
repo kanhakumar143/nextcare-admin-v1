@@ -398,14 +398,16 @@ const EprescriptionPage = () => {
       </div>
 
       {/* Print Button (hidden in print) */}
-      <div className="no-print mt-8 flex justify-center">
-        <button
-          onClick={handleVerifyPrescription}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
-        >
-          Verify Prescription
-        </button>
-      </div>
+      {EprescriptionDetails?.medication_request?.status === "active" && (
+        <div className="no-print mt-8 flex justify-center">
+          <button
+            onClick={handleVerifyPrescription}
+            className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg font-medium transition-colors"
+          >
+            Verify Prescription
+          </button>
+        </div>
+      )}
       <ConfirmReviewPrescriptionModal
         medicationRequestId={medicationRequestId}
       />

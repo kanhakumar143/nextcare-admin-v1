@@ -26,7 +26,6 @@ export const getAssignedAppointmentDtlsById = async (
     const response = await api.get(
       `appointment/appointment-details-practitioner/${appointment_id}`
     );
-
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

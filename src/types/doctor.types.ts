@@ -9,7 +9,7 @@ export interface VisitAssessment {
   severity: "mild" | "moderate" | "severe";
 }
 
-export interface VisitNote {
+export interface VisitNote1 {
   summary: string;
   follow_up: string;
   visit_care_plan: VisitCarePlan;
@@ -61,7 +61,7 @@ export interface doctorSliceInitialStates {
   patientAppointmentHistory: any[];
   medicines: Medication[];
   currentVitals: VitalReading[];
-  visitNote: VisitNote;
+  visitNote: VisitNote1;
 }
 
 interface VitalObservation {
@@ -320,4 +320,197 @@ export interface Vital {
 
 export interface VitalsResponse {
   vitals: Vital[];
+}
+
+export interface Observation {
+  patient_id: string;
+  vital_def_id: string;
+  appointment_id: string;
+  recorded_by_id: string | null;
+  value: ObservationValue;
+  is_abnormal: boolean;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  vital_definition: VitalDefinition;
+}
+
+export interface ObservationValue {
+  value?: number;
+  systolic?: number;
+  diastolic?: number;
+}
+
+export interface VitalDefinition {
+  name: string;
+  code: string;
+  loinc_code: string;
+  system: string;
+  unit: string;
+  data_type: "quantity" | "component";
+  normal_min: number;
+  normal_max: number;
+  component_definitions: Record<
+    string,
+    ComponentDefinition | string | number | boolean
+  >;
+  multiple_results_allowed: boolean;
+  is_active: boolean;
+  id: string;
+  tenant_id: string;
+}
+
+export interface ComponentDefinition {
+  measurement_method?: string;
+  site?: string;
+  measurement_site?: string;
+  loinc_code?: string;
+  normal_min?: number;
+  normal_max?: number;
+}
+
+export interface QuestionaryAnswer {
+  appointment_id: string;
+  questionary_id: string;
+  answer: string;
+  note: QuestionaryAnswerNote;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  questionary: Questionary;
+}
+
+export interface QuestionaryAnswerNote {
+  submitted_by: string;
+}
+
+export interface Questionary {
+  title: string;
+  question: string;
+  options: QuestionaryOption[];
+  note: string | null;
+  type:
+    | "multiple_choice"
+    | "yes_no"
+    | "radio"
+    | "textarea"
+    | "multi_select"
+    | "number"
+    | "text"
+    | "date"
+    | "time"
+    | "datetime"
+    | "slider";
+  id: string;
+  tenant_service_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuestionaryOption {
+  label: string;
+  value: string;
+}
+
+export interface LabTestOrder {
+  appointment_id: string;
+  patient_id: string;
+  practitioner_id: string;
+  test_code: string;
+  test_display: string;
+  status:
+    | "active"
+    | "completed"
+    | "verified"
+    | "confirmed"
+    | "cancelled"
+    | "entered-in-error"
+    | "unknown"
+    | string;
+  intent:
+    | "proposal"
+    | "plan"
+    | "order"
+    | "original-order"
+    | "reflex-order"
+    | "filler-order"
+    | "instance-order"
+    | "option"
+    | string;
+  priority: "routine" | "urgent" | "asap" | "stat" | string;
+  id: string;
+  authored_on: string;
+  created_at: string;
+  updated_at: string;
+  notes: LabTestNote[];
+}
+
+export interface LabTestNote {
+  lab_test_order_id: string;
+  practitioner_id: string;
+  author_name: string;
+  text: string;
+  id: string;
+  time: string;
+}
+
+export interface VisitNote {
+  appointment_id: string;
+  practitioner_id: string;
+  patient_id: string;
+  summary: string;
+  follow_up: string;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  assessments: Assessment[];
+  care_plans: CarePlan[];
+}
+
+export interface Prescription {
+  appointment_id: string;
+  patient_id: string;
+  practitioner_id: string;
+  status:
+    | "active"
+    | "on-hold"
+    | "cancelled"
+    | "completed"
+    | "entered-in-error"
+    | "stopped"
+    | "draft"
+    | "unknown";
+  intent:
+    | "proposal"
+    | "plan"
+    | "order"
+    | "original-order"
+    | "reflex-order"
+    | "filler-order"
+    | "instance-order"
+    | "option";
+  dispense_request: DispenseRequest | null;
+  note: string;
+  id: string;
+  medication_display_id: string;
+  authored_on: string;
+  created_at: string;
+  updated_at: string | null;
+  medications: Medication[];
+}
+
+export interface DispenseRequest {
+  validityPeriod?: {
+    start?: string;
+    end?: string;
+  };
+  numberOfRepeatsAllowed?: number;
+  quantity?: {
+    value: number;
+    unit: string;
+  };
+  expectedSupplyDuration?: {
+    value: number;
+    unit: string;
+  };
 }
