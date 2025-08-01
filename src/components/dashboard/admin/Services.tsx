@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import moment from "moment";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Trash2, Pencil, ShieldCheck, ShieldX } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,16 +15,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/common/DataTable";
-import {
-  addService,
-  getServices,
-  deleteService,
-  updateService,
-} from "@/services/admin.api";
+import { addService, getServices, updateService } from "@/services/admin.api";
 import { AddServicePayload } from "@/types/admin.types";
+import { toast } from "sonner";
 
 const postSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -40,7 +36,7 @@ type Service = {
   availableDays: string;
   timings: string;
   status: string;
-  active: string;
+  active: boolean;
   schedule: {
     planning_start: string;
     planning_end: string;
@@ -53,6 +49,9 @@ export default function Services() {
   const [filterValue, setFilterValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
+  const [apiCallFor, setApiCallFor] = useState<string | null>(null);
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const {
     register,
@@ -80,19 +79,20 @@ export default function Services() {
   const onSubmit = async (data: PostSchema) => {
     setIsSubmitting(true);
     try {
-      const payload: AddServicePayload = {
-        tenant_id,
-        name: data.name,
-      };
-
-      if (editServiceId) {
-        await updateService(editServiceId, payload);
-      } else {
-        await addService(payload);
+      if (apiCallFor === "add") {
+        await addService({ tenant_id: tenant_id, name: data.name });
+        toast.success("Service added successfully");
+      } else if (apiCallFor === "edit") {
+        await updateService({
+          service_id: editServiceId || "",
+          name: data.name,
+        });
+        toast.success("Service updated successfully");
       }
 
       await fetchServices();
       reset();
+      setApiCallFor(null);
       setEditServiceId(null);
       setOpen(false);
     } catch (error) {
@@ -103,18 +103,28 @@ export default function Services() {
   };
 
   const handleEdit = (service: Service) => {
-    setEditServiceId(service.id);
+    setApiCallFor("edit");
     setValue("name", service.name);
+    setEditServiceId(service.id);
     setOpen(true);
+    toast.success("Service edit successfully");
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this service?")) return;
+  const handleConfirmStatusChange = async () => {
+    if (!selectedService) return;
     try {
-      await deleteService(id);
+      await updateService({
+        service_id: selectedService.id,
+        name: selectedService.name,
+        active: !selectedService.active,
+      });
       await fetchServices();
+      toast.success("Service status updated successfully");
     } catch (error) {
-      console.error("Delete failed:", error);
+      console.error("Status update failed:", error);
+      toast.error("Service status update failed");
+    } finally {
+      setStatusDialogOpen(false);
     }
   };
 
@@ -139,9 +149,18 @@ export default function Services() {
       header: "Status",
       accessorFn: (row: any) => row.active,
       cell: ({ getValue }) => {
-        const status = getValue() as string;
-        const label = status === "true" ? "Inactive" : "Active";
-        return <Badge>{label}</Badge>;
+        const isActive = getValue() as boolean;
+        return (
+          <Badge
+            className={
+              isActive
+                ? "bg-green-500 text-white w-16"
+                : "bg-red-500 text-white w-16"
+            }
+          >
+            {isActive ? "Active" : "Inactive"}
+          </Badge>
+        );
       },
     },
     {
@@ -156,11 +175,26 @@ export default function Services() {
             <Pencil className="w-4 h-4" />
           </Button>
           <Button
-            variant="destructive"
+            variant="ghost"
+            className={
+              row.original.active
+                ? "  text-red-500 hover:text-red-700"
+                : "  text-green-500 hover:text-green-700"
+            }
             size="icon"
-            onClick={() => handleDelete(row.original.id)}
+            onClick={() => {
+              setSelectedService(row.original);
+              setStatusDialogOpen(true);
+            }}
           >
-            <Trash2 className="w-4 h-4" />
+            {/* <Trash2 className="w-4 h-4" /> */}
+            <div className="flex h-8 w-8 items-center justify-center">
+              {row.original.active ? (
+                <ShieldCheck className="w-8 h-8  " />
+              ) : (
+                <ShieldX className="w-8 h-8" />
+              )}
+            </div>
           </Button>
         </div>
       ),
@@ -177,6 +211,16 @@ export default function Services() {
           className="max-w-sm"
         />
 
+        <Button
+          onClick={() => {
+            setOpen(true);
+            setApiCallFor("add");
+          }}
+        >
+          <Plus className="w-4 h-4 mr-1" />
+          Add Service
+        </Button>
+
         <Dialog
           open={open}
           onOpenChange={(val) => {
@@ -187,12 +231,6 @@ export default function Services() {
             }
           }}
         >
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-1" />
-              Add Service
-            </Button>
-          </DialogTrigger>
           <DialogContent className="sm:max-w-md py-4">
             <DialogHeader>
               <DialogTitle>
@@ -206,6 +244,7 @@ export default function Services() {
                   <p className="text-sm text-red-600">{errors.name.message}</p>
                 )}
               </div>
+
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting
                   ? editServiceId
@@ -219,6 +258,55 @@ export default function Services() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Status Change Confirmation Dialog */}
+      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
+        <DialogContent className="max-w-md w-full h-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-semibold">
+              {selectedService?.active ? "Deactivate" : "Activate"} Service?
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="mt-2 text-sm text-muted-foreground">
+            Are you sure you want to{" "}
+            <span
+              className={
+                selectedService?.active
+                  ? "text-red-600 font-medium"
+                  : "text-green-600 font-medium"
+              }
+            >
+              {selectedService?.active ? "deactivate" : "activate"}
+            </span>{" "}
+            the service{" "}
+            <span className="text-foreground font-semibold">
+              {selectedService?.name}
+            </span>
+            ?
+          </div>
+
+          <DialogFooter className="p-4 flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setStatusDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant={selectedService?.active ? "destructive" : "default"}
+              onClick={handleConfirmStatusChange}
+              className={
+                selectedService?.active
+                  ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
+                  : "bg-green-500 text-white hover:bg-green-700 hover:text-white"
+              }
+            >
+              {selectedService?.active ? "Deactivate" : "Activate"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <DataTable
         columns={columns}

@@ -41,7 +41,7 @@ const doctorFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email"),
   phone: z.string().min(10, "Phone number is required"),
-  // hashed_password: z.string().min(6, "Password must be at least 6 characters"),
+  hashed_password: z.string().min(6, "Password must be at least 6 characters").optional(),
 
   // Practitioner Info
   identifier_system: z.string().url("Must be a valid URL").optional(),
@@ -154,6 +154,7 @@ export default function FormModal({
       role_display: "Doctor",
       role_text: "Doctor",
       availability_days: ["mon", "tue", "wed", "thu", "fri"],
+
     },
   });
 
@@ -175,7 +176,7 @@ export default function FormModal({
           name: data.name,
           email: data.email,
           phone: data.phone,
-          // hashed_password: data.hashed_password,
+          hashed_password: "default1234",
           user_role: "doctor",
         },
         practitioner: {
