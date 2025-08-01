@@ -16,10 +16,42 @@ export interface VisitNote {
   visit_assessment: VisitAssessment;
 }
 
+export interface VitalReading {
+  id?: string;
+  patient_id?: string;
+  vital_def_id?: string;
+  appointment_id?: string;
+  recorded_by_id?: string | null;
+  vital_definition?: {
+    id?: string;
+    name: string;
+    code: string;
+    loinc_code?: string;
+    system?: string;
+    unit?: string;
+    data_type?: string;
+    normal_min?: string | number;
+    normal_max?: string | number;
+    component_definitions?: any;
+    multiple_results_allowed?: boolean;
+    is_active?: boolean;
+    tenant_id?: string;
+  };
+  value: {
+    value?: number | string;
+    diastolic?: number | string;
+    systolic?: number | string;
+  };
+  is_abnormal?: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface doctorSliceInitialStates {
   confirmConsultationModalVisible: boolean;
   EprescriptionDetails: EPrescription | null;
   ConfirmReviewPrescriptionModalVisible: boolean;
+  editVitalsModalVisible: boolean;
   patientQueueList: any[];
   singlePatientDetails: any | null;
   patientQueueListLoading: boolean;
@@ -28,6 +60,7 @@ export interface doctorSliceInitialStates {
   labTests: LabTest[];
   patientAppointmentHistory: any[];
   medicines: Medication[];
+  currentVitals: VitalReading[];
   visitNote: VisitNote;
 }
 
@@ -273,4 +306,18 @@ interface CarePlan {
   plan_type: string;
   goal: string;
   detail: string;
+}
+
+export interface Vital {
+  id: string; // observation id
+  value: {
+    value: number | string | undefined; // numeric or string value
+    systolic: number | string | undefined;
+    diastolic: number | string | undefined;
+  };
+  is_abnormal: boolean;
+}
+
+export interface VitalsResponse {
+  vitals: Vital[];
 }

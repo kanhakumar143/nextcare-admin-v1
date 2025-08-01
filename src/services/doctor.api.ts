@@ -1,5 +1,5 @@
 import { api, axios } from "@/lib/axios";
-import { VisitSummaryPayload } from "@/types/doctor.types";
+import { VisitSummaryPayload, VitalsResponse } from "@/types/doctor.types";
 
 export const getAssignedAppointments = async (
   practitioner_id: string | null
@@ -66,9 +66,9 @@ export const updateAppointmentStatus = async (payload: {
   }
 };
 
-export const updateGeneralVitals = async (appt_id: string) => {
+export const updateGeneralVitals = async (payload: VitalsResponse) => {
   try {
-    const response = await api.get(`bulk-observations/`);
+    const response = await api.put(`bulk-observations/`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

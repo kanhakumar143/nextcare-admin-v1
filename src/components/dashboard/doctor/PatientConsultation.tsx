@@ -18,26 +18,28 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Edit, Info } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
+import EditVitalsModal from "./modals/EditVitalsModal";
 import PatientDetailsDrawer from "./PatientDetailsDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setConfirmConsultationModal,
+  setEditVitalsModal,
+  setCurrentVitals,
   clearConsultationOrders,
   updateVisitNote,
 } from "@/store/slices/doctorSlice";
 import { RootState } from "@/store";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
-import { AppointmentDetails, ConsultationData } from "@/types/doctor.types";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
-  const { singlePatientDetails, visitNote } = useSelector(
-    (state: RootState) => state.doctor
-  );
+  const { patient_name } = useParams();
+  const { singlePatientDetails, visitNote, editVitalsModalVisible } =
+    useSelector((state: RootState) => state.doctor);
   const [apptDtls, setApptDtls] = useState<AppointmentDtlsForDoctor | null>(
     null
   );
@@ -47,15 +49,18 @@ export default function PatientConsultation() {
 
   useEffect(() => {
     dispatch(clearConsultationOrders());
+    if (!singlePatientDetails?.id && patient_name) {
+      GetAssignedAppointmentDtlsById(patient_name);
+    }
     GetAssignedAppointmentDtlsById(singlePatientDetails?.id);
-  }, [singlePatientDetails, dispatch]);
+  }, [singlePatientDetails, dispatch, editVitalsModalVisible]);
 
   const GetAssignedAppointmentDtlsById = async (
     appointment_id: string | string[]
   ) => {
     try {
       const response = await getAssignedAppointmentDtlsById(appointment_id);
-      console.log("response======", response);
+      // console.log("response======", response);
       setApptDtls(response);
     } catch (error) {
       console.error("Error fetching appointment details:", error);
@@ -72,6 +77,13 @@ export default function PatientConsultation() {
     }
 
     dispatch(setConfirmConsultationModal(true));
+  };
+
+  const handleEditVitals = () => {
+    if (apptDtls?.observations) {
+      dispatch(setCurrentVitals(apptDtls?.observations));
+    }
+    dispatch(setEditVitalsModal(true));
   };
 
   return (
@@ -111,11 +123,17 @@ export default function PatientConsultation() {
                     {vital.vital_definition?.name}
                   </span>
                   <span className="text-base font-semibold text-foreground">
-                    {vital.value?.value}
+                    {vital.vital_definition?.code === "BP" ? (
+                      <span>
+                        {vital.value?.diastolic} / {vital.value?.systolic}
+                      </span>
+                    ) : (
+                      vital.value?.value
+                    )}
                   </span>
                 </div>
               ))}
-            <Button variant={"ghost"} size={"icon"}>
+            <Button variant={"ghost"} size={"icon"} onClick={handleEditVitals}>
               <Edit className="h-4 w-4" />
             </Button>
           </div>
@@ -330,6 +348,7 @@ export default function PatientConsultation() {
       />
 
       <ConfirmConsultationModal />
+      <EditVitalsModal />
     </>
   );
 }

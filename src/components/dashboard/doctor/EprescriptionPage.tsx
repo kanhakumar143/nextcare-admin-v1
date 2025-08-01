@@ -28,7 +28,7 @@ import { AppDispatch, RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
 import { setConfirmReviewPrescriptionModal } from "@/store/slices/doctorSlice";
 import ConfirmReviewPrescriptionModal from "./modals/ConfirmReviewPrescriptionModal";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";

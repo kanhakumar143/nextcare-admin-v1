@@ -6,6 +6,7 @@ import {
   VisitNote,
   Medication,
   EPrescription,
+  VitalReading,
 } from "@/types/doctor.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAssignedAppointments } from "@/services/doctor.api";
@@ -28,6 +29,7 @@ const initialState: doctorSliceInitialStates = {
   confirmConsultationModalVisible: false,
   EprescriptionDetails: null,
   ConfirmReviewPrescriptionModalVisible: false,
+  editVitalsModalVisible: false,
   patientQueueList: [],
   patientAppointmentHistory: [],
   patientQueueListLoading: false,
@@ -36,6 +38,7 @@ const initialState: doctorSliceInitialStates = {
   consultationData: null,
   labTests: [],
   medicines: [],
+  currentVitals: [],
   visitNote: {
     summary: "",
     follow_up: "",
@@ -57,6 +60,25 @@ const doctorSlice = createSlice({
   reducers: {
     setConfirmConsultationModal: (state, action: PayloadAction<boolean>) => {
       state.confirmConsultationModalVisible = action.payload;
+    },
+    setEditVitalsModal: (state, action: PayloadAction<boolean>) => {
+      state.editVitalsModalVisible = action.payload;
+    },
+    setCurrentVitals: (state, action: PayloadAction<VitalReading[]>) => {
+      state.currentVitals = action.payload;
+    },
+    updateVitalReading: (
+      state,
+      action: PayloadAction<{ index: number; field: string; value: string }>
+    ) => {
+      const { index, field, value } = action.payload;
+      if (state.currentVitals[index]) {
+        if (field === "diastolic" || field === "systolic") {
+          state.currentVitals[index].value[field] = Number(value) || value;
+        } else if (field === "value") {
+          state.currentVitals[index].value.value = Number(value) || value;
+        }
+      }
     },
     setConfirmReviewPrescriptionModal: (
       state,
@@ -197,6 +219,9 @@ const doctorSlice = createSlice({
 
 export const {
   setConfirmConsultationModal,
+  setEditVitalsModal,
+  setCurrentVitals,
+  updateVitalReading,
   setSinglePatientDetails,
   setConsultationData,
   updateVisitNote,

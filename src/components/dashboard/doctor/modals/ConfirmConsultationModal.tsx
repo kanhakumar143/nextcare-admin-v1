@@ -79,6 +79,7 @@ export default function ConfirmConsultationModal({}: {}) {
       },
       lab_test_order: labTests.map((test, ind) => ({
         test_code: `1234${ind}`,
+        note: test.notes,
         test_display: test.test_display,
         intent: test.intent,
         priority: test.priority,
