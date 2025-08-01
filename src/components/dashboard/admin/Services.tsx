@@ -188,9 +188,9 @@ export default function Services() {
             }}
           >
             {/* <Trash2 className="w-4 h-4" /> */}
-            <div className="flex h-8 w-8 items-center justify-center">
+            <div className="flex  items-center justify-center">
               {row.original.active ? (
-                <ShieldCheck className="w-8 h-8  " />
+                <ShieldCheck className="w-8 h-8" />
               ) : (
                 <ShieldX className="w-8 h-8" />
               )}
