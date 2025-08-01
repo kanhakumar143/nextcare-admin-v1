@@ -46,13 +46,15 @@ const tableConfig = [
   {
     title: "Recommended Lab Tests",
     fields: [
-      { key: "testName", placeholder: "Test Name", type: "input" },
+      { key: "test_display", placeholder: "Test Name", type: "input" },
+
+      { key: "intent", placeholder: "Intent", type: "intent-select" },
+      { key: "priority", placeholder: "Priority", type: "priority-select" },
       {
-        key: "testDescription",
-        placeholder: "Test Description",
+        key: "notes",
+        placeholder: "Notes",
         type: "input",
       },
-      { key: "comments", placeholder: "Comments", type: "input" },
     ],
   },
   {
@@ -86,6 +88,26 @@ const frequencyOptions = [
   { value: "hourly", label: "Hourly" },
   { value: "weekly", label: "Weekly" },
   { value: "monthly", label: "Monthly" },
+];
+
+// Intent options for lab tests
+const intentOptions = [
+  { value: "proposal", label: "Proposal" },
+  { value: "plan", label: "Plan" },
+  { value: "order", label: "Order" },
+  { value: "original-order", label: "Original Order" },
+  { value: "reflex-order", label: "Reflex Order" },
+  { value: "filler-order", label: "Filler Order" },
+  { value: "instance-order", label: "Instance Order" },
+  { value: "option", label: "Option" },
+];
+
+// Priority options for lab tests
+const priorityOptions = [
+  { value: "routine", label: "Routine" },
+  { value: "urgent", label: "Urgent" },
+  { value: "asap", label: "ASAP" },
+  { value: "stat", label: "STAT" },
 ];
 
 // Medication form options
@@ -202,6 +224,7 @@ function EditableTableRow({
   onDelete,
   index,
   onAdd,
+  showAddButton = false,
 }: {
   item: any;
   fields: any[];
@@ -209,13 +232,14 @@ function EditableTableRow({
   onDelete: (index: number) => void;
   onAdd: (index: number) => void;
   index: number;
+  showAddButton?: boolean;
 }) {
   return (
     <>
       <TableRow>
         <TableCell className="text-center">{index + 1}</TableCell>
         {fields.map((field) => (
-          <TableCell key={field.key}>
+          <TableCell key={field.key} className="w-[20vw]">
             {field.type === "select" ? (
               <Select
                 value={item[field.key] || ""}
@@ -269,6 +293,38 @@ function EditableTableRow({
                 value={item[field.key]}
                 onChange={(timing) => onUpdate(index, field.key, timing)}
               />
+            ) : field.type === "intent-select" ? (
+              <Select
+                value={item[field.key] || ""}
+                onValueChange={(value) => onUpdate(index, field.key, value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={field.placeholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  {intentOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : field.type === "priority-select" ? (
+              <Select
+                value={item[field.key] || ""}
+                onValueChange={(value) => onUpdate(index, field.key, value)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={field.placeholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  {priorityOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             ) : (
               <Input
                 value={item[field.key] || ""}
@@ -288,14 +344,16 @@ function EditableTableRow({
             >
               <Trash2 size={16} />
             </Button>
-            <Button
-              onClick={() => onAdd(index)}
-              variant="outline"
-              size="sm"
-              className="flex gap-1"
-            >
-              <ListPlus size={16} />
-            </Button>
+            {showAddButton && (
+              <Button
+                onClick={() => onAdd(index)}
+                variant="outline"
+                size="sm"
+                className="flex gap-1"
+              >
+                <ListPlus size={16} />
+              </Button>
+            )}
           </div>
         </TableCell>
       </TableRow>
@@ -378,9 +436,10 @@ function DoctorOrders() {
   // Add new row functions
   const addNewLabTest = () => {
     const newLabTest: LabTest = {
-      testName: "",
-      testDescription: "",
-      comments: "",
+      notes: "",
+      test_display: "",
+      intent: "order",
+      priority: "routine",
     };
     dispatch(addLabTest(newLabTest));
   };
@@ -502,7 +561,8 @@ function DoctorOrders() {
                             fields={section.fields}
                             onUpdate={updateFunction}
                             onDelete={deleteFunction}
-                            onAdd={isLabTests ? () => {} : onAddMoreFields}
+                            onAdd={onAddMoreFields}
+                            showAddButton={!isLabTests}
                             index={index}
                           />
                         )

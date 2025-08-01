@@ -32,8 +32,6 @@ export default function DynamicQuestionnaires() {
   const dispatch: AppDispatch = useDispatch();
   const { qrDtls } = useSelector((state: any) => state.nurse);
 
-  const tenantServiceId = "d3b70733-c73b-47d8-8fda-deb238d64653";
-
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -49,7 +47,7 @@ export default function DynamicQuestionnaires() {
     };
 
     fetchQuestions();
-  }, [tenantServiceId]);
+  }, []);
 
   const handleChange = (id: string, value: any) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));

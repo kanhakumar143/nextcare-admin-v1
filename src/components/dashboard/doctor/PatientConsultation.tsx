@@ -16,8 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit, Info } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
+import PatientDetailsDrawer from "./PatientDetailsDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setConfirmConsultationModal,
@@ -30,18 +31,22 @@ import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
 import { AppointmentDetails, ConsultationData } from "@/types/doctor.types";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
   const { singlePatientDetails, visitNote } = useSelector(
     (state: RootState) => state.doctor
   );
-  const [apptDtls, setApptDtls] = useState<AppointmentDetails | null>(null);
+  const [apptDtls, setApptDtls] = useState<AppointmentDtlsForDoctor | null>(
+    null
+  );
+  const [isPatientDetailsDrawerOpen, setIsPatientDetailsDrawerOpen] =
+    useState(false);
   const router = useRouter();
 
   useEffect(() => {
     dispatch(clearConsultationOrders());
-
     GetAssignedAppointmentDtlsById(singlePatientDetails?.id);
   }, [singlePatientDetails, dispatch]);
 
@@ -56,13 +61,6 @@ export default function PatientConsultation() {
       console.error("Error fetching appointment details:", error);
       throw error;
     }
-  };
-
-  const patient = {
-    name: "Kanha Kumar Khatua",
-    age: 32,
-    gender: "Male",
-    contact: "+91 8473927374",
   };
 
   const handleConfirmConsultationCheck = () => {
@@ -93,25 +91,11 @@ export default function PatientConsultation() {
               {apptDtls?.appointment_display_id}
             </p>
           </div>
-          <div className="flex  gap-5">
-            <div className="flex gap-3 items-center">
-              <Label className="text-md font-light">Age :</Label>
-              <p className="text-base font-semibold text-foreground">
-                {patient.age}
-              </p>
-            </div>
-            <div className="flex gap-3 items-center">
-              <Label className="text-md font-light">Gender</Label>
-              <p className="text-base font-semibold text-foreground">
-                {patient.gender}
-              </p>
-            </div>
-            <div className="flex gap-3">
-              <Label className="text-md font-light">Contact</Label>
-              <p className="text-base font-semibold text-foreground truncate">
-                {patient.contact}
-              </p>
-            </div>
+          <div className="">
+            <Button onClick={() => setIsPatientDetailsDrawerOpen(true)}>
+              <Info className="h-4 w-4" />
+              View Patient Details
+            </Button>
           </div>
         </div>
       </div>
@@ -120,8 +104,8 @@ export default function PatientConsultation() {
           <Label className="text-md font-medium">General Vitals : </Label>
           <div className="flex gap-7 items-center">
             {apptDtls &&
-              apptDtls?.vital_observations &&
-              apptDtls?.vital_observations?.map((vital: any, i: number) => (
+              apptDtls?.observations &&
+              apptDtls?.observations?.map((vital: any, i: number) => (
                 <div key={i} className="flex gap-1 items-center">
                   <span className="text-sm text-muted-foreground">
                     {vital.vital_definition?.name}
@@ -131,6 +115,9 @@ export default function PatientConsultation() {
                   </span>
                 </div>
               ))}
+            <Button variant={"ghost"} size={"icon"}>
+              <Edit className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -147,8 +134,8 @@ export default function PatientConsultation() {
             <CardContent>
               <ScrollArea className="pb-6 pr-4 h-[52vh]">
                 <div className="space-y-3 text-sm">
-                  {apptDtls &&
-                    apptDtls.pre_qa.map((q: any, i: number) => (
+                  {apptDtls?.questionary_answers &&
+                    apptDtls.questionary_answers.map((q: any, i: number) => (
                       <div key={i}>
                         <p className="font-medium text-foreground">
                           Q{i + 1}: {q?.questionary?.question}
@@ -335,6 +322,12 @@ export default function PatientConsultation() {
           Complete Consultation
         </Button>
       </div>
+
+      <PatientDetailsDrawer
+        isOpen={isPatientDetailsDrawerOpen}
+        onClose={() => setIsPatientDetailsDrawerOpen(false)}
+        appointmentDetails={apptDtls}
+      />
 
       <ConfirmConsultationModal />
     </>

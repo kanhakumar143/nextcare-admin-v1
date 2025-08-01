@@ -64,7 +64,8 @@ const EprescriptionPage = () => {
             </span>
           </div>
           <p className="text-lg font-bold text-foreground mt-1">
-            {EprescriptionDetails?.prescription_id}
+            {EprescriptionDetails?.medication_request?.medication_display_id ||
+              "N/A"}
           </p>
         </div>
         <div className="prescription-card">
@@ -108,7 +109,7 @@ const EprescriptionPage = () => {
                 Full Name
               </p>
               <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.patient?.name}
+                {EprescriptionDetails?.patient?.user?.name}
               </p>
             </div>
             <div>
@@ -120,9 +121,11 @@ const EprescriptionPage = () => {
               </p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Age</p>
+              <p className="text-sm font-medium text-muted-foreground">D.O.B</p>
               <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.patient?.age} years
+                {moment(EprescriptionDetails?.patient?.birth_date).format(
+                  "MMMM D, YYYY"
+                )}
               </p>
             </div>
             <div>
@@ -152,7 +155,7 @@ const EprescriptionPage = () => {
                 Doctor Name
               </p>
               <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.practitioner?.name}
+                {EprescriptionDetails?.practitioner?.user?.name}
               </p>
             </div>
             <div>
@@ -175,7 +178,7 @@ const EprescriptionPage = () => {
                 Contact
               </p>
               <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.practitioner?.contact || "N/A"}
+                {EprescriptionDetails?.practitioner?.user?.email || "N/A"}
               </p>
             </div>
           </div>
@@ -197,34 +200,24 @@ const EprescriptionPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="font-mono">
-                {EprescriptionDetails?.diagnosis?.code || "N/A"}
-              </TableCell>
-              <TableCell>
-                {EprescriptionDetails?.diagnosis?.description || "N/A"}
-              </TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className="border-yellow-500 text-yellow-700"
-                >
-                  {EprescriptionDetails?.diagnosis?.severity || "N/A"}
-                </Badge>
-              </TableCell>
-            </TableRow>
-            {/* <TableRow>
-              <TableCell className="font-mono">R50.9</TableCell>
-              <TableCell>Fever, unspecified</TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  className="border-green-500 text-green-700"
-                >
-                  Mild
-                </Badge>
-              </TableCell>
-            </TableRow>*/}
+            {EprescriptionDetails?.visit_note?.assessments?.map(
+              (assessment) => (
+                <TableRow key={assessment.id}>
+                  <TableCell className="font-mono">
+                    {assessment.code || "N/A"}
+                  </TableCell>
+                  <TableCell>{assessment.description || "N/A"}</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className="border-yellow-500 text-yellow-700"
+                    >
+                      {assessment?.severity || "N/A"}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              )
+            )}
           </TableBody>
         </Table>
       </div>
@@ -247,32 +240,59 @@ const EprescriptionPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {EprescriptionDetails?.medications.map((data, index) => {
-              return (
-                <>
-                  <TableRow>
-                    <TableCell className="font-semibold">
-                      {data.medication_name}
-                    </TableCell>
-                    <TableCell>{data.form}</TableCell>
-                    <TableCell>{data.route}</TableCell>
-                    <TableCell>{data.frequency}</TableCell>
-                    <TableCell>{data.duration}</TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell
+            {EprescriptionDetails?.medication_request?.medications.map(
+              (data, index) => {
+                return (
+                  <>
+                    <TableRow>
+                      <TableCell className="font-semibold">
+                        {data.name || "N/A"}
+                      </TableCell>
+                      <TableCell>{data.form || "N/A"}</TableCell>
+                      <TableCell>{data.route || "N/A"}</TableCell>
+                      <TableCell>{data.frequency || "N/A"}</TableCell>
+                      <TableCell>{data.duration + " days" || "N/A"}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      {/* <TableCell
                       colSpan={5}
                       className="text-sm italic text-muted-foreground"
                     >
                       <strong>Dosage Instruction:</strong>{" "}
                       {data.dosage_instruction || "N/A"}
                       <br />
-                      <strong>Notes:</strong> {data.notes?.info || "N/A"}
-                    </TableCell>
-                  </TableRow>
-                </>
-              );
-            })}
+                      <strong>Notes:</strong> {data.note?.info || "N/A"}
+                    </TableCell> */}
+                      <TableCell
+                        colSpan={6}
+                        className="text-sm italic text-muted-foreground"
+                      >
+                        <div className="space-y-2">
+                          <div>
+                            <strong>Timing:</strong>{" "}
+                            {[
+                              data.timing?.morning && "Morning",
+                              data.timing?.afternoon && "Afternoon",
+                              data.timing?.evening && "Evening",
+                              data.timing?.night && "Night",
+                            ]
+                              .filter(Boolean)
+                              .join(", ") || "N/A"}
+                          </div>
+                          <div>
+                            <strong>Dosage Instruction:</strong>{" "}
+                            {data.dosage_instruction || "N/A"}
+                          </div>
+                          <div>
+                            <strong>Notes:</strong> {data.note?.info || "N/A"}
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </>
+                );
+              }
+            )}
           </TableBody>
         </Table>
       </div>
@@ -292,29 +312,32 @@ const EprescriptionPage = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell className="break-words whitespace-normal">
-                <div className="flex items-center gap-2">
-                  <Badge className="status-badge status-active">Active</Badge>
-                  <span>
-                    {EprescriptionDetails?.care_plan?.plan_type || "N/A"}
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell className="break-words whitespace-normal">
-                {EprescriptionDetails?.care_plan?.goal || "N/A"}
-              </TableCell>
-              <TableCell className="break-words whitespace-normal">
-                {EprescriptionDetails?.care_plan?.detail || "N/A"}
-              </TableCell>
-            </TableRow>
+            {EprescriptionDetails?.visit_note?.care_plans?.map(
+              (carePlan, index) => (
+                <TableRow key={`care-plan-${index}`}>
+                  <TableCell className="break-words whitespace-normal">
+                    <div className="flex items-center gap-2">
+                      <Badge className="status-badge status-active">
+                        {carePlan?.plan_type || "N/A"}
+                      </Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell className="break-words whitespace-normal">
+                    {carePlan?.goal || "N/A"}
+                  </TableCell>
+                  <TableCell className="break-words whitespace-normal">
+                    {carePlan?.detail || "N/A"}
+                  </TableCell>
+                </TableRow>
+              )
+            )}
           </TableBody>
         </Table>
       </div>
 
       {/* Visit Summary & Follow-Up */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card>
+        <Card className="py-0 border-l-4 border-l-primary">
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 mb-3">
               <FileText className="h-5 w-5 text-primary" />
@@ -326,7 +349,7 @@ const EprescriptionPage = () => {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="py-0 border-l-4 border-l-primary">
           <CardContent className="p-6">
             <div className="flex items-center space-x-2 mb-3">
               <Calendar className="h-5 w-5 text-primary" />
@@ -352,24 +375,24 @@ const EprescriptionPage = () => {
               </p>
               <div className="mt-2 p-4 border-2 border-dashed border-primary rounded-lg bg-primary-light">
                 <p className="text-primary font-semibold">
-                  {EprescriptionDetails?.practitioner?.name}
+                  {EprescriptionDetails?.practitioner?.user?.name}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Digitally signed on{" "}
-                  {moment(EprescriptionDetails?.signature?.signed_at).format(
-                    "MMMM D, YYYY"
-                  )}
+                  {moment(
+                    EprescriptionDetails?.medication_request?.authored_on
+                  ).format("MMMM D, YYYY")}
                 </p>
               </div>
             </div>
-            <div>
+            {/* <div>
               <p className="text-sm font-medium text-muted-foreground">
                 Practitioner Name
               </p>
               <p className="text-lg font-bold text-foreground">
                 {EprescriptionDetails?.signature?.signed_by}
               </p>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

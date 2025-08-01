@@ -77,9 +77,21 @@ export default function ConfirmConsultationModal({}: {}) {
         description: visitNote.visit_assessment.description,
         severity: visitNote.visit_assessment.severity,
       },
+      lab_test_order: labTests.map((test, ind) => ({
+        test_code: `1234${ind}`,
+        test_display: test.test_display,
+        intent: test.intent,
+        priority: test.priority,
+        status: "active",
+      })),
+      lab_test_note: labTests.map((test) => ({
+        practitioner_id: practitionerId || "",
+        text: test.notes,
+        author_name: "",
+      })),
     };
     console.log("Visit Summary Payload:", payload);
-
+    console.log("Lab Tests :", labTests);
     try {
       const response = await submitVisitSummary(payload);
       getPrescriptionDetails();
@@ -98,7 +110,7 @@ export default function ConfirmConsultationModal({}: {}) {
       router.push(
         `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
       );
-      dispatch(setEprescriptionDetails(response.data));
+      dispatch(setEprescriptionDetails(response));
     } catch (error) {
       console.error("Error fetching prescription details:", error);
     }

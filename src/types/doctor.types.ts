@@ -54,9 +54,18 @@ export interface AppointmentDetails {
 }
 
 export interface LabTest {
-  testName: string;
-  testDescription: string;
-  comments: string;
+  notes: string;
+  test_display: string;
+  intent:
+    | "proposal"
+    | "plan"
+    | "order"
+    | "original-order"
+    | "reflex-order"
+    | "filler-order"
+    | "instance-order"
+    | "option";
+  priority: "routine" | "urgent" | "asap" | "stat";
 }
 
 export interface Medicine {
@@ -115,17 +124,17 @@ export interface MedicationNote {
   info: string;
 }
 
-export interface Medication {
-  name: string;
-  form: string;
-  route: string;
-  frequency: string;
-  strength: string;
-  duration: string;
-  timing: MedicationTiming;
-  dosage_instruction: string;
-  note?: MedicationNote;
-}
+// export interface Medication {
+//   name: string;
+//   form: string;
+//   route: string;
+//   frequency: string;
+//   strength: string;
+//   duration: string;
+//   timing: MedicationTiming;
+//   dosage_instruction: string;
+//   note?: MedicationNote;
+// }
 
 export interface MedicationRequest {
   intent: "order" | "plan" | "proposal" | "reflex-order"; // standard FHIR values
@@ -157,62 +166,111 @@ export interface VisitSummaryPayload {
     description: string;
     severity: "mild" | "moderate" | "severe";
   };
+  lab_test_order: {
+    test_code: string;
+    test_display: string;
+    status:
+      | "active"
+      | "completed"
+      | "verified"
+      | "confirmed"
+      | "cancelled"
+      | "entered-in-error"
+      | "unknown";
+    intent:
+      | "proposal"
+      | "plan"
+      | "order"
+      | "original-order"
+      | "reflex-order"
+      | "filler-order"
+      | "instance-order"
+      | "option";
+    priority: "routine" | "urgent" | "asap" | "stat";
+  }[];
+  lab_test_note: {
+    practitioner_id: string;
+    author_name: string;
+    text: string;
+  }[];
 }
 
 export interface EPrescription {
-  prescription_id: string;
   patient: {
+    id: string;
+    birth_date: string;
     patient_display_id: string;
-    name: string;
-    age: number;
     gender: "male" | "female" | "other";
+    user: {
+      name: string;
+      email: string;
+      phone: string;
+      user_role: "patient" | string;
+    };
   };
   practitioner: {
+    id: string;
     practitioner_display_id: string;
-    name: string;
+    user: {
+      name: string;
+      email: string;
+      phone: string | null;
+      user_role: "doctor" | string;
+    };
     licence_details: {
-      expiry: string; // ISO date string
       number: string;
       issued_by: string;
     };
-    contact: string | null;
   };
   medication_request: {
-    id?: string;
+    id: string;
     status: "active" | "completed" | "cancelled" | string;
     intent: "order" | "proposal" | string;
     authored_on: string; // ISO datetime
-    dispense_request: any | null;
     note: string;
-  };
-  medications: Array<{
-    medication_name: string;
-    form: string;
-    route: string;
-    frequency: string;
-    duration: string;
-    dosage_instruction: string;
-    notes: {
-      info: string;
-    };
-  }>;
-  signature: {
-    signed_by: string;
-    signed_at: string; // ISO datetime
-    type: "digital" | "manual" | string;
-  };
-  diagnosis: {
-    description: string;
-    severity: "mild" | "moderate" | "severe" | string;
-    code: string | null;
-  };
-  care_plan: {
-    detail: string;
-    goal: string;
-    plan_type: string;
+    dispense_request: string | null;
+    medication_display_id: string;
+    medications: Medication[];
   };
   visit_note: {
+    id: string;
     summary: string;
     follow_up: string;
+    assessments: Assessment[];
+    care_plans: CarePlan[];
   };
+}
+
+export interface Medication {
+  id?: string;
+  name: string;
+  form: string;
+  route: string;
+  frequency: string;
+  strength: string;
+  duration: string;
+  timing: {
+    morning: boolean;
+    afternoon: boolean;
+    evening: boolean;
+    night: boolean;
+  };
+  dosage_instruction: string;
+  note?: {
+    info: string;
+  };
+}
+
+interface Assessment {
+  id: string;
+  code: string | null;
+  description: string;
+  severity: "mild" | "moderate" | "severe" | string;
+}
+
+interface CarePlan {
+  id: string;
+  plan_type: string;
+  goal: string;
+  detail: string;
 }
