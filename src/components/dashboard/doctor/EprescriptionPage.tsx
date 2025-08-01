@@ -3,18 +3,14 @@
 import {
   Calendar,
   User,
-  Phone,
-  Mail,
-  MapPin,
   FileText,
-  Clock,
   Shield,
-  QrCode,
-  ArrowLeft,
+  Stethoscope,
+  HospitalIcon,
+  FileSearch,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -23,24 +19,46 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Separator } from "@/components/ui/separator";
 import { AppDispatch, RootState } from "@/store";
 import { useDispatch, useSelector } from "react-redux";
-import { setConfirmReviewPrescriptionModal } from "@/store/slices/doctorSlice";
+import {
+  setConfirmReviewPrescriptionModal,
+  setEprescriptionDetails,
+} from "@/store/slices/doctorSlice";
 import ConfirmReviewPrescriptionModal from "./modals/ConfirmReviewPrescriptionModal";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import moment from "moment";
-import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import BackButton from "@/components/common/BackButton";
+import { getEprescriptionDetails } from "@/services/doctor.api";
 
 const EprescriptionPage = () => {
   const dispatch: AppDispatch = useDispatch();
-  const router = useRouter();
+  const { patient_name } = useParams();
   const [medicationRequestId, setMedicationRequestId] = useState<string>("");
   const { EprescriptionDetails } = useSelector(
     (state: RootState) => state.doctor
   );
-  console.log("Eprescription Details:", EprescriptionDetails);
+
+  useEffect(() => {
+    if (!EprescriptionDetails) {
+      getPrescriptionDetails();
+    }
+  }, []);
+
+  const getPrescriptionDetails = async () => {
+    try {
+      if (!patient_name) {
+        return "";
+      }
+      const response = await getEprescriptionDetails(patient_name);
+
+      dispatch(setEprescriptionDetails(response));
+    } catch (error) {
+      console.error("Error fetching prescription details:", error);
+    }
+  };
+
   const handleVerifyPrescription = () => {
     setMedicationRequestId(EprescriptionDetails?.medication_request?.id || "");
     dispatch(setConfirmReviewPrescriptionModal(true));
@@ -48,12 +66,8 @@ const EprescriptionPage = () => {
 
   return (
     <div className="prescription-container max-w-4xl mx-auto p-8 bg-white min-h-screen">
-      {/* Prescription Metadata */}
       <div>
-        <Button onClick={() => router.back()} className="mb-6" variant="ghost">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back
-        </Button>
+        <BackButton />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="prescription-card">
@@ -94,98 +108,98 @@ const EprescriptionPage = () => {
         </div>
       </div>
 
-      {/* Patient Details */}
       <Card className="mb-6 border-l-4 border-l-primary py-0">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <User className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">
-              Patient Information
-            </h3>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <CardContent className="p-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Full Name
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.patient?.user?.name}
-              </p>
+              <div className="flex items-center space-x-1">
+                <User className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">
+                  Patient Information
+                </h3>
+              </div>
+              <div className="space-y-0.5 text-sm text-slate-600 mt-2">
+                <p>{EprescriptionDetails?.patient?.user?.name || "N/A"}</p>
+                <p className="capitalize ">
+                  {EprescriptionDetails?.patient?.gender || "N/A"}
+                </p>
+                <p>
+                  {EprescriptionDetails?.patient?.patient_display_id || "N/A"}
+                </p>
+              </div>
             </div>
+
             <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Gender
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.patient?.gender}
-              </p>
+              <div className="flex items-center space-x-1">
+                <Stethoscope className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">
+                  Doctor Information
+                </h3>
+              </div>
+              <div className="space-y-0.5 text-sm text-slate-600 mt-2">
+                <div className="flex justify-between">
+                  <p>
+                    {EprescriptionDetails?.practitioner?.user?.name || "N/A"}
+                  </p>
+                  <Badge
+                    className={
+                      EprescriptionDetails?.practitioner?.user.is_active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }
+                  >
+                    {EprescriptionDetails?.practitioner?.user.is_active
+                      ? "Active"
+                      : "Inactive"}
+                  </Badge>
+                </div>
+
+                <p>
+                  {EprescriptionDetails?.practitioner
+                    ?.practitioner_display_id || "N/A"}
+                </p>
+                <p>
+                  {EprescriptionDetails?.practitioner?.user?.email || "N/A"}
+                </p>
+              </div>
             </div>
+
             <div>
-              <p className="text-sm font-medium text-muted-foreground">D.O.B</p>
-              <p className="text-base font-semibold text-foreground">
-                {moment(EprescriptionDetails?.patient?.birth_date).format(
-                  "MMMM D, YYYY"
+              <div className="flex items-center space-x-1">
+                <HospitalIcon className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold text-foreground">
+                  Clinic Information
+                </h3>
+              </div>
+              <div className="space-y-0.5 text-sm text-slate-600 mt-2">
+                <div className="flex justify-between">
+                  <p>
+                    {EprescriptionDetails?.practitioner.user.tenant.name ||
+                      "N/A"}
+                  </p>
+                  <Badge
+                    className={
+                      EprescriptionDetails?.practitioner?.user?.tenant?.active
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }
+                  >
+                    {EprescriptionDetails?.practitioner?.user?.tenant?.active
+                      ? "Active"
+                      : "Inactive"}
+                  </Badge>
+                </div>
+                {EprescriptionDetails?.practitioner.user.tenant.contact[0].telecom.map(
+                  (dtls, i: number) => (
+                    <p key={i}>{dtls.value || "N/A"}</p>
+                  )
                 )}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Patient ID
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.patient?.patient_display_id}
-              </p>
+              </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Practitioner Details */}
-      <Card className="mb-6 border-l-4 border-l-primary py-0">
-        <CardContent className="p-6">
-          <div className="flex items-center space-x-2 mb-4">
-            <User className="h-5 w-5 text-primary" />
-            <h3 className="text-lg font-semibold text-foreground">
-              Practitioner Information
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Doctor Name
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.practitioner?.user?.name}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Specialization
-              </p>
-              <p className="text-base font-semibold text-foreground">{"N/A"}</p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                License Number
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.practitioner?.licence_details?.number ||
-                  "N/A"}
-              </p>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Contact
-              </p>
-              <p className="text-base font-semibold text-foreground">
-                {EprescriptionDetails?.practitioner?.user?.email || "N/A"}
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Diagnosis Table */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <FileText className="h-5 w-5 text-primary" />
@@ -222,7 +236,6 @@ const EprescriptionPage = () => {
         </Table>
       </div>
 
-      {/* Medications Table */}
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <FileText className="h-5 w-5 text-primary" />
@@ -232,7 +245,6 @@ const EprescriptionPage = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              {/* <TableHead>Strength</TableHead> */}
               <TableHead>Form</TableHead>
               <TableHead>Route</TableHead>
               <TableHead>Frequency</TableHead>
@@ -254,15 +266,6 @@ const EprescriptionPage = () => {
                       <TableCell>{data.duration + " days" || "N/A"}</TableCell>
                     </TableRow>
                     <TableRow>
-                      {/* <TableCell
-                      colSpan={5}
-                      className="text-sm italic text-muted-foreground"
-                    >
-                      <strong>Dosage Instruction:</strong>{" "}
-                      {data.dosage_instruction || "N/A"}
-                      <br />
-                      <strong>Notes:</strong> {data.note?.info || "N/A"}
-                    </TableCell> */}
                       <TableCell
                         colSpan={6}
                         className="text-sm italic text-muted-foreground"
@@ -297,7 +300,66 @@ const EprescriptionPage = () => {
         </Table>
       </div>
 
-      {/* Care Plans Section */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
+          <FileSearch className="h-5 w-5 text-primary" />
+          <span>Investigations</span>
+        </h3>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="first:rounded-tl-lg">Name</TableHead>
+              <TableHead>Priority</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className=" last:rounded-tr-lg">Ordered On</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {EprescriptionDetails?.lab_tests?.map((test, index) => (
+              <React.Fragment key={`lab-test-${index}`}>
+                <TableRow>
+                  <TableCell className="font-semibold">
+                    {test.test_display}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    {test.priority || "N/A"}
+                  </TableCell>
+                  <TableCell className="capitalize">
+                    <Badge
+                      variant="outline"
+                      className="border-yellow-500 text-yellow-700 bg-yellow-100/40 capitalize"
+                    >
+                      {test.status || "N/A"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {test.authored_on
+                      ? moment(test.authored_on).format("DD MMM YYYY, hh:mm A")
+                      : "N/A"}
+                  </TableCell>
+                </TableRow>
+
+                {test.notes?.length > 0 && (
+                  <TableRow key={`lab-test-note-${index}`}>
+                    <TableCell colSpan={4}>
+                      <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-300">
+                        <p className="text-sm text-yellow-800">
+                          <strong>Note:</strong>{" "}
+                          {test.notes
+                            .map((note) => note.text || "N/A")
+                            .join(", ")}
+                        </p>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <Shield className="h-5 w-5 text-primary" />
@@ -335,7 +397,6 @@ const EprescriptionPage = () => {
         </Table>
       </div>
 
-      {/* Visit Summary & Follow-Up */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="py-0 border-l-4 border-l-primary">
           <CardContent className="p-6">
@@ -365,7 +426,6 @@ const EprescriptionPage = () => {
         </Card>
       </div>
 
-      {/* Signature Section */}
       <div className="border-t-2 border-primary pt-6 mb-6">
         <div className="flex justify-end items-start">
           <div className="text-right">
@@ -385,19 +445,10 @@ const EprescriptionPage = () => {
                 </p>
               </div>
             </div>
-            {/* <div>
-              <p className="text-sm font-medium text-muted-foreground">
-                Practitioner Name
-              </p>
-              <p className="text-lg font-bold text-foreground">
-                {EprescriptionDetails?.signature?.signed_by}
-              </p>
-            </div> */}
           </div>
         </div>
       </div>
 
-      {/* Print Button (hidden in print) */}
       <div className="no-print mt-8 flex justify-center">
         <button
           onClick={handleVerifyPrescription}

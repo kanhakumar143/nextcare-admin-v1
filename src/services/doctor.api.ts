@@ -80,7 +80,7 @@ export const updateGeneralVitals = async (payload: VitalsResponse) => {
   }
 };
 
-export const getEprescriptionDetails = async (appt_id: string) => {
+export const getEprescriptionDetails = async (appt_id: string | string[]) => {
   try {
     const response = await api.get(
       `medication-request-by-appointment-id?appointment_id=${appt_id}`

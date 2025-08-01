@@ -17,7 +17,7 @@ import {
   setEprescriptionDetails,
 } from "@/store/slices/doctorSlice";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import {
   getEprescriptionDetails,
   submitVisitSummary,
@@ -28,7 +28,11 @@ import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-export default function ConfirmConsultationModal({}: {}) {
+export default function ConfirmConsultationModal() {
+  const { patient_name } = useParams();
+  const { practitionerId } = useAuthInfo();
+  const dispatch: AppDispatch = useDispatch();
+  const router = useRouter();
   const {
     confirmConsultationModalVisible,
     singlePatientDetails,
@@ -37,20 +41,16 @@ export default function ConfirmConsultationModal({}: {}) {
     medicines,
   } = useSelector((state: RootState) => state.doctor);
   const [loading, setLoading] = useState<boolean>(false);
-  const { practitionerId } = useAuthInfo();
-  const dispatch: AppDispatch = useDispatch();
-  const router = useRouter();
+
   const handleConfirm = () => {
     handleAddVisitSummary();
     handleCancel();
-    // setLoading(true);
   };
   const handleCancel = () => {
     dispatch(setConfirmConsultationModal(false));
   };
 
   const handleAddVisitSummary = async () => {
-    console.log("Adding visit summary for patient:", singlePatientDetails);
     const payload: VisitSummaryPayload = {
       practitioner_id: practitionerId || "",
       appointment_id: singlePatientDetails?.id,
@@ -85,20 +85,13 @@ export default function ConfirmConsultationModal({}: {}) {
         priority: test.priority,
         status: "active",
       })),
-      lab_test_note: labTests.map((test) => ({
-        practitioner_id: practitionerId || "",
-        text: test.notes,
-        author_name: "",
-      })),
     };
-    console.log("Visit Summary Payload:", payload);
-    console.log("Lab Tests :", labTests);
+
     try {
       const response = await submitVisitSummary(payload);
       getPrescriptionDetails();
     } catch (error) {
       setLoading(false);
-      console.error("Error submitting visit summary:", error);
       toast.error("Failed to submit visit summary. Please try again.");
     }
   };
@@ -106,10 +99,9 @@ export default function ConfirmConsultationModal({}: {}) {
   const getPrescriptionDetails = async () => {
     try {
       const response = await getEprescriptionDetails(singlePatientDetails?.id);
-      console.log("Prescription Details:", response);
       toast.success("Consultation completed");
       router.push(
-        `/dashboard/doctor/consultation/${singlePatientDetails?.patient_id}/prescription-review`
+        `/dashboard/doctor/consultation/${patient_name}/prescription-review`
       );
       dispatch(setEprescriptionDetails(response));
     } catch (error) {
