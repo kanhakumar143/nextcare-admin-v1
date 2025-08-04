@@ -221,7 +221,7 @@ export interface VisitSummaryPayload {
       | "option";
     priority: "routine" | "urgent" | "asap" | "stat";
   }[];
-  lab_test_note: {
+  lab_test_note?: {
     practitioner_id: string;
     author_name: string;
     text: string;
@@ -239,6 +239,7 @@ export interface EPrescription {
       email: string;
       phone: string;
       user_role: "patient" | string;
+      is_active: boolean;
     };
   };
   practitioner: {
@@ -249,6 +250,18 @@ export interface EPrescription {
       email: string;
       phone: string | null;
       user_role: "doctor" | string;
+      is_active: boolean;
+      tenant: {
+        name: string;
+        active: boolean;
+        contact: {
+          name: string | null;
+          telecom: {
+            system: string | null;
+            value: string | null;
+          }[];
+        }[];
+      };
     };
     licence_details: {
       number: string;
@@ -272,6 +285,19 @@ export interface EPrescription {
     assessments: Assessment[];
     care_plans: CarePlan[];
   };
+  lab_tests:
+    | {
+        authored_on: string | null;
+        intent: string;
+        test_display: string;
+        priority: string;
+        status: string;
+        notes: {
+          text: string;
+          time: string | null;
+        }[];
+      }[]
+    | null;
 }
 
 export interface Medication {
