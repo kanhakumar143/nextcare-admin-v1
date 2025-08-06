@@ -60,8 +60,9 @@ export type AddLocationResponse = {
 };
 
 export type AddServicePayload = {
-  tenant_id: string;
+  service_id: string;
   name: string;
+  active?: boolean;
 };
 
 export type AddDoctorPayload = {
@@ -69,7 +70,7 @@ export type AddDoctorPayload = {
     tenant_id: string;
     name: string;
     email: string;
-    hashed_password: string;
+    hashed_password?: string;
     user_role: string;
     phone?: string;
   };
@@ -166,3 +167,15 @@ export interface DoctorData {
     expiry?: string | null;
   };
 }
+
+export type UpdateDoctorPayload = {
+  id: string;
+  user_id: string;
+  practitioner_display_id: string;
+  gender: string;
+  birth_date: string;
+  is_active: boolean;
+  license_details: string | null;
+  profile_picture_url: string;
+  license_url: string;
+};
