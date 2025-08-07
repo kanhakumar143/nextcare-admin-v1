@@ -104,14 +104,14 @@ const createValidationSchema = (vitals: VitalDefinition[]) => {
           (value) => {
             const numValue = parseFloat(value);
             return (
-              numValue >= vital.normal_min * 0.5 &&
-              numValue <= vital.normal_max * 2
+              numValue >= vital.normal_min * 1 &&
+              numValue <= vital.normal_max * 1.5
             );
           },
           {
             message: `${vital.name} should be within reasonable range (${
-              vital.normal_min * 0.5
-            } - ${vital.normal_max * 2})`,
+              vital.normal_min * 1
+            } - ${vital.normal_max * 1.5})`,
           }
         );
     }
@@ -283,7 +283,7 @@ const CaptureVitals = () => {
 
   return (
     <div className="flex items-center justify-center w-full px-4">
-      <CardContent className="w-full max-w-xl mt-6 space-y-6 p-6 rounded-xl ">
+      <CardContent className="w-full max-w-xl mt-6 space-y-6 p-6 rounded-xl border border-gray-300 ">
         <h2 className="text-2xl font-semibold text-center text-primary">
           General Vitals Form
         </h2>
@@ -346,7 +346,7 @@ const CaptureVitals = () => {
                         <Input
                           {...field}
                           type="text"
-                          placeholder={`Enter ${vital.name} (${vital.normal_min}-${vital.normal_max})`}
+                          placeholder={`Enter ${vital.name} (${vital.normal_min}-${vital.normal_max*1.5})`}
                           className="w-full"
                         />
                       )}
