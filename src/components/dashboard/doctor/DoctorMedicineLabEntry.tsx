@@ -369,7 +369,7 @@ function EditableTableRow({
               {item.dosage_instruction && (
                 <div>
                   <span className="font-medium text-muted-foreground">
-                    Instructions:{" "}
+                    Instructions for consumption:{" "}
                   </span>
                   <span className="text-foreground">
                     {item.dosage_instruction}

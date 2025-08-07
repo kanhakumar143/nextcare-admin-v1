@@ -125,13 +125,13 @@ const ScannedPatientDetails = () => {
               <div className="flex justify-between">
                 <span className="font-medium">Slot Time:</span>
                 <span className="text-primary text-right font-bold">
-                  {moment(patientDetails.appointment.slot_info.start).format(
-                    "hh:mm a"
-                  )}{" "}
+                  {moment
+                    .utc(patientDetails.appointment.slot_info.start)
+                    .format("hh:mm a")}{" "}
                   -{" "}
-                  {moment(patientDetails.appointment.slot_info.end).format(
-                    "hh:mm a"
-                  )}
+                  {moment
+                    .utc(patientDetails.appointment.slot_info.end)
+                    .format("hh:mm a")}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -164,12 +164,17 @@ const ScannedPatientDetails = () => {
                   Verify Patient
                 </Button>
               ) : (
-                <Button
-                  onClick={handleConfirmCheckin}
-                  className="w-full bg-green-500 hover:bg-green-400 text-white font-semibold"
-                >
-                  {loading ? "Checking In..." : "Confirm Check-In"}
-                </Button>
+                <>
+                  <Button
+                    onClick={handleConfirmCheckin}
+                    className="w-full bg-green-500 hover:bg-green-400 text-white font-semibold"
+                  >
+                    {loading ? "Checking In..." : "Confirm Check-In"}
+                  </Button>
+                  <p className="text-sm text-gray-500">
+                    {patientDetails.time_alert}
+                  </p>
+                </>
               )}
             </div>
           </CardContent>

@@ -4,6 +4,9 @@ export interface staffSliceInitialState {
   checkinSuccessModalVisible: boolean;
   patientVerifiedModalVisible: boolean;
   storedAccessToken: string | null;
+  loading?: boolean;
+  error?: string | null;
+  scanQrMessage?: string | null;
 }
 
 export interface qrDecodedDetails {
@@ -39,6 +42,7 @@ export interface qrDecodedDetails {
       text: string;
     }[];
   };
+  time_alert: string;
 }
 
 export interface PatientVerification {

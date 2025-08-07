@@ -26,6 +26,7 @@ import {
   setSinglePatientDetails,
 } from "@/store/slices/doctorSlice";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import moment from "moment";
 
 const patientHistory = [
   {
@@ -132,6 +133,13 @@ export default function DoctorConsultationHistory() {
         >
           {getValue() as string}
         </Badge>
+      ),
+    },
+    {
+      header: "Consultation Date",
+      accessorKey: "updated_at",
+      cell: ({ getValue }) => (
+        <div>{moment(getValue() as string).format("DD MMMM YYYY")}</div>
       ),
     },
     {
