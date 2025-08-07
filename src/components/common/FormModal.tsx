@@ -35,13 +35,22 @@ import {
 import { AddDoctorPayload } from "@/types/admin.types";
 import { addDoctor } from "@/services/admin.api";
 
+const currentYear = new Date().getFullYear();
+const today = new Date().toISOString().split("T")[0];
 const doctorFormSchema = z.object({
   // User Info
   tenant_id: z.string().min(1, "Tenant ID is required"),
   name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email"),
-  phone: z.string().min(10, "Phone number is required"),
-  hashed_password: z.string().min(6, "Password must be at least 6 characters").optional(),
+  phone: z
+    .string()
+    .min(10, "Phone number must be at least 10 digits")
+    .max(15, "Phone number must be at most 15 digits")
+    .regex(/^\+?\d{10,15}$/, "Invalid phone number format"),
+  hashed_password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .optional(),
 
   // Practitioner Info
   identifier_system: z.string().url("Must be a valid URL").optional(),
@@ -55,17 +64,32 @@ const doctorFormSchema = z.object({
   telecom_phone: z.string().min(10, "Phone number is required").optional(),
   telecom_email: z.string().email("Work email is required").optional(),
   gender: z.enum(["male", "female", "other", "unknown"]).optional(),
-  birth_date: z.string().min(1, "Birth date is required").optional(),
+  birth_date: z
+    .string()
+    .optional()
+    .refine((val) => !val || val <= today, {
+      message: "Birth date cannot be in the future",
+    }),
 
   // Qualification
   degree: z.string().min(1, "Degree is required"),
   institution: z.string().min(1, "Institution is required"),
-  graduation_year: z.string().regex(/^\d{4}$/, "Year must be YYYY format"),
+  graduation_year: z
+    .string()
+    .regex(/^\d{4}$/, "Year must be in YYYY format")
+    .refine((val) => parseInt(val) <= currentYear, {
+      message: `Graduation year cannot be in the future (max ${currentYear})`,
+    }),
 
   // License
   license_number: z.string().min(1, "License number is required"),
   license_issued_by: z.string().min(1, "Issuing authority is required"),
-  license_expiry: z.string().min(1, "License expiry is required"),
+  license_expiry: z
+    .string()
+    .min(1, "License expiry is required")
+    .refine((val) => val >= today, {
+      message: "License expiry cannot be in the past",
+    }),
   profile_picture_url: z.string().url("Must be a valid URL"),
   license_url: z.string().url("Must be a valid URL"),
   is_active: z.boolean(),
@@ -154,7 +178,6 @@ export default function FormModal({
       role_display: "Doctor",
       role_text: "Doctor",
       availability_days: ["mon", "tue", "wed", "thu", "fri"],
-
     },
   });
 
