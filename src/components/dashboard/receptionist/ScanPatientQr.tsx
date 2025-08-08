@@ -3,45 +3,49 @@
 import React, { useState } from "react";
 import { toast } from "sonner";
 import {
+  clearError,
+  fetchQrDetailsAsync,
   setDecodedDetails,
   setQrToken,
 } from "@/store/slices/receptionistSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "@/store";
+import { AppDispatch, RootState } from "@/store";
 import { AlertCircleIcon, AlertTriangle } from "lucide-react";
 import QrScannerBox from "@/components/common/QrScannerBox";
 import ScannedPatientDetails from "./ScanedPatientDetails";
 import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-import { fetchDecodeQrDetails } from "@/services/receptionist.api";
+// import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 
 const ScanPatientQr: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { userId } = useAuthInfo();
-  const [invalidCode, setInvalidCode] = useState<string | null>(null);
-  const { patientDetails } = useSelector(
+  // const [invalidCode, setInvalidCode] = useState<string | null>(null);
+  const { patientDetails, scanQrMessage } = useSelector(
     (state: RootState) => state.receptionistData
   );
 
-  const handleQrDetailsData = async (token: string) => {
-    try {
-      setInvalidCode(null);
+  console.log("scanQrMessage Details:", scanQrMessage);
 
-      const response = await fetchDecodeQrDetails({
-        accessToken: token,
-        staff_id: userId,
-      });
-      if (!response.success) {
-        setInvalidCode(response.message);
-      } else {
-        dispatch(setQrToken(token));
-        dispatch(setDecodedDetails(response.data));
-      }
-    } catch {
-      toast.error("Couldn’t fetch details!");
-    }
-  };
+  // const handleQrDetailsData = async (token: string) => {
+  //   try {
+  //     setInvalidCode(null);
+
+  //     const response = await fetchDecodeQrDetails({
+  //       accessToken: token,
+  //       staff_id: userId,
+  //     });
+  //     if (!response.success) {
+  //       setInvalidCode(response.message);
+  //       dispatch(setQrToken(token));
+  //     } else {
+  //       dispatch(setDecodedDetails(response.data));
+  //     }
+  //   } catch {
+  //     toast.error("Couldn’t fetch details!");
+  //   }
+  // };
 
   return (
     <div className="flex flex-col items-center justify-start p-6 gap-6 ">
@@ -54,23 +58,31 @@ const ScanPatientQr: React.FC = () => {
       {!patientDetails && (
         <div className="w-full max-w-md">
           <QrScannerBox
-            onScanSuccess={(token) => handleQrDetailsData(token)}
+            onScanSuccess={(token) => {
+              dispatch(clearError());
+              dispatch(
+                fetchQrDetailsAsync({
+                  accessToken: token,
+                  staff_id: userId || "",
+                })
+              );
+            }}
             buttonLabel="Start QR Scan"
           />
         </div>
       )}
 
-      {invalidCode && (
+      {scanQrMessage && (
         <Alert
           variant="destructive"
           className="max-w-2xl border border-red-200"
         >
           <AlertCircleIcon />
-          <AlertTitle>{invalidCode}</AlertTitle>
+          <AlertTitle>{scanQrMessage}</AlertTitle>
         </Alert>
       )}
 
-      {patientDetails && !invalidCode && (
+      {patientDetails && !scanQrMessage && (
         <div className="w-full max-w-md">
           <ScannedPatientDetails />
           {patientDetails.patient.patient_profile.verifications[0]

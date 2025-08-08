@@ -1,12 +1,12 @@
-import DoctorConsultationHistory from "@/components/dashboard/doctor/DoctorConsultationHistory";
+import AppointmentHistoryDetails from "@/components/dashboard/doctor/AppointmentHistoryDetails";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Doctor Consultation History",
+  title: "Appointment History Details",
   description:
     "Manage appointments, patients, and reception tasks in the admin dashboard.",
 };
 
 export default function DoctorPortalPage() {
-  return <DoctorConsultationHistory />;
+  return <AppointmentHistoryDetails />;
 }

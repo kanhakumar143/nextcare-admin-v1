@@ -73,7 +73,11 @@ const NurseScanQr: React.FC = () => {
         {invalidCode && (
           <div className="mb-4 p-3 ">
             <p className="text-red-700 font-medium text-center text-sm">
-              {invalidCode}
+              {invalidCode === "Internal error: " ? (
+                <>An internal error occurred. Please try again later.</>
+              ) : (
+                invalidCode
+              )}
             </p>
           </div>
         )}
@@ -186,53 +190,72 @@ const NurseScanQr: React.FC = () => {
                 </h2>
               </div>
               <CardContent className="p-4">
-                <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                  <Button
-                    onClick={() => {
-                      router.push("/dashboard/nurse/questionnaire");
-                    }}
-                    className={`w-full sm:w-44 h-10 text-white font-medium transition-all duration-200 ${
-                      nurseStepCompleted.step1
-                        ? "bg-gray-500 hover:bg-gray-600"
-                        : "bg-gray-900 hover:bg-black"
-                    }`}
-                    disabled={nurseStepCompleted.step1}
-                  >
-                    {nurseStepCompleted.step1 && (
-                      <Check className="mr-2 h-4 w-4" />
+                {qrDtls?.appointment?.status === "checked_in" ? (
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+                    <Button
+                      onClick={() => {
+                        router.push("/dashboard/nurse/questionnaire");
+                      }}
+                      className={`w-full sm:w-44 h-10 text-white font-medium transition-all duration-200 ${
+                        nurseStepCompleted.step1
+                          ? "bg-gray-500 hover:bg-gray-600"
+                          : "bg-gray-900 hover:bg-black"
+                      }`}
+                      disabled={nurseStepCompleted.step1}
+                    >
+                      {nurseStepCompleted.step1 && (
+                        <Check className="mr-2 h-4 w-4" />
+                      )}
+                      Questionnaires
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        router.push("/dashboard/nurse/capture-details");
+                      }}
+                      className={`w-full sm:w-44 h-10 text-white font-medium transition-all duration-200 ${
+                        nurseStepCompleted.step2
+                          ? "bg-gray-500 hover:bg-gray-600"
+                          : "bg-gray-900 hover:bg-black"
+                      }`}
+                      disabled={nurseStepCompleted.step2}
+                    >
+                      {nurseStepCompleted.step2 && (
+                        <Check className="mr-2 h-4 w-4" />
+                      )}
+                      Capture Vitals
+                    </Button>
+                    {nurseStepCompleted.step1 && nurseStepCompleted.step2 && (
+                      <Button
+                        onClick={() => {
+                          dispatch(setQrDetails(null));
+                          dispatch(
+                            setNurseStepCompleted({
+                              step1: false,
+                              step2: false,
+                            })
+                          );
+                        }}
+                        className="w-full sm:w-44 h-10 bg-black hover:bg-gray-900 text-white font-medium transition-all duration-200"
+                      >
+                        Next Patient
+                      </Button>
                     )}
-                    Questionnaires
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      router.push("/dashboard/nurse/capture-details");
-                    }}
-                    className={`w-full sm:w-44 h-10 text-white font-medium transition-all duration-200 ${
-                      nurseStepCompleted.step2
-                        ? "bg-gray-500 hover:bg-gray-600"
-                        : "bg-gray-900 hover:bg-black"
-                    }`}
-                    disabled={nurseStepCompleted.step2}
-                  >
-                    {nurseStepCompleted.step2 && (
-                      <Check className="mr-2 h-4 w-4" />
-                    )}
-                    Capture Vitals
-                  </Button>
-                  {nurseStepCompleted.step1 && nurseStepCompleted.step2 && (
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center space-y-4">
+                    <p className="text-center text-gray-600">
+                      This appointment is not yet checked in .
+                    </p>
                     <Button
                       onClick={() => {
                         dispatch(setQrDetails(null));
-                        dispatch(
-                          setNurseStepCompleted({ step1: false, step2: false })
-                        );
                       }}
                       className="w-full sm:w-44 h-10 bg-black hover:bg-gray-900 text-white font-medium transition-all duration-200"
                     >
                       Next Patient
                     </Button>
-                  )}
-                </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

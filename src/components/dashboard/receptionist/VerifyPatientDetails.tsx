@@ -81,13 +81,18 @@ const VerifyPatientDetails = () => {
                     Click to view uploaded ID proof before confirming.
                   </p>
                 </div>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={() => dispatch(setImageModalVisible(true))}
-                >
-                  <ImagePlay />
-                </Button>
+                {patientDetails?.patient.patient_profile.gov_url_path !==
+                null ? (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    onClick={() => dispatch(setImageModalVisible(true))}
+                  >
+                    <ImagePlay />
+                  </Button>
+                ) : (
+                  "No document uploaded"
+                )}
               </div>
 
               {/* Instructions */}

@@ -70,7 +70,7 @@ export default function DynamicQuestionnaires() {
         return (
           <Input
             type="text"
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
             placeholder="Enter your answer..."
@@ -80,7 +80,7 @@ export default function DynamicQuestionnaires() {
       case "textarea":
         return (
           <Textarea
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 min-h-[80px] resize-none"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black min-h-[80px] resize-none"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
             placeholder="Enter your detailed answer..."
@@ -91,7 +91,7 @@ export default function DynamicQuestionnaires() {
         return (
           <Input
             type="number"
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
             placeholder="Enter a number..."
@@ -127,7 +127,7 @@ export default function DynamicQuestionnaires() {
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem
-                className="border-gray-400 text-blue-600"
+                className="border-gray-400 text-black"
                 value="yes"
                 id={`${questionId}-yes`}
               />
@@ -137,7 +137,7 @@ export default function DynamicQuestionnaires() {
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem
-                className="border-gray-400 text-blue-600"
+                className="border-gray-400 text-black"
                 value="no"
                 id={`${questionId}-no`}
               />
@@ -159,7 +159,7 @@ export default function DynamicQuestionnaires() {
             {question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <RadioGroupItem
-                  className="border-gray-400 text-blue-600"
+                  className="border-gray-400 text-black"
                   value={option.value}
                   id={`${questionId}-${option.value}`}
                 />
@@ -180,7 +180,7 @@ export default function DynamicQuestionnaires() {
             {question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox
-                  className="border-gray-400 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                  className="border-gray-400 data-[state=checked]:bg-black data-[state=checked]:border-black"
                   id={`${questionId}-${option.value}`}
                   checked={(answers[questionId] || "")
                     .split(", ")
@@ -204,7 +204,7 @@ export default function DynamicQuestionnaires() {
         return (
           <Input
             type="date"
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
           />
@@ -214,7 +214,7 @@ export default function DynamicQuestionnaires() {
         return (
           <Input
             type="time"
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
           />
@@ -224,7 +224,7 @@ export default function DynamicQuestionnaires() {
         return (
           <Input
             type="datetime-local"
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
           />
@@ -234,7 +234,7 @@ export default function DynamicQuestionnaires() {
         return (
           <Input
             type="text"
-            className="border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
             value={answers[questionId] || ""}
             onChange={(e) => handleChange(questionId, e.target.value)}
             placeholder="Enter your answer..."
@@ -354,8 +354,8 @@ export default function DynamicQuestionnaires() {
                           {question.question}
                         </Label>
                         {question.note && (
-                          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-                            <p className="text-sm text-blue-700 italic">
+                          <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
+                            <p className="text-sm text-gray-700 italic">
                               <span className="font-medium">Note:</span>{" "}
                               {question.note}
                             </p>

@@ -26,6 +26,7 @@ import {
   setSinglePatientDetails,
 } from "@/store/slices/doctorSlice";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import moment from "moment";
 
 const patientHistory = [
   {
@@ -99,8 +100,9 @@ export default function DoctorConsultationHistory() {
       : patientHistory.filter((p) => p.status === filter);
 
   const handlePatientInfo = (patient: PatientInfo) => {
+    console.log("Selected patient:", patient);
     dispatch(setSinglePatientDetails(patient));
-    router.push(`/dashboard/doctor/consultation/${patient.id}`);
+    router.push(`/dashboard/doctor/consultation-details/${patient.id}`);
   };
 
   useEffect(() => {
@@ -131,6 +133,13 @@ export default function DoctorConsultationHistory() {
         >
           {getValue() as string}
         </Badge>
+      ),
+    },
+    {
+      header: "Consultation Date",
+      accessorKey: "updated_at",
+      cell: ({ getValue }) => (
+        <div>{moment(getValue() as string).format("DD MMMM YYYY")}</div>
       ),
     },
     {

@@ -111,10 +111,10 @@ export default function PatientConsultation() {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <div className="mx-6 flex items-center gap-4 py-5">
+      <div className="flex items-center justify-between border-b-2 mx-6 my-3 py-2">
+        <div className="mx-6 flex items-start gap-4 py-5">
           <Label className="text-md font-medium">General Vitals : </Label>
-          <div className="flex gap-7 items-center">
+          <div className="grid grid-cols-5 gap-3 items-center">
             {apptDtls &&
               apptDtls?.observations &&
               apptDtls?.observations?.map((vital: any, i: number) => (
@@ -125,18 +125,19 @@ export default function PatientConsultation() {
                   <span className="text-base font-semibold text-foreground">
                     {vital.vital_definition?.code === "BP" ? (
                       <span>
-                        {vital.value?.diastolic} / {vital.value?.systolic}
+                        {vital.value?.systolic} / {vital.value?.diastolic}{" "}
+                        {vital.vital_definition?.unit}
                       </span>
                     ) : (
-                      vital.value?.value
+                      vital.value?.value + " " + vital.vital_definition?.unit
                     )}
                   </span>
                 </div>
               ))}
-            <Button variant={"ghost"} size={"icon"} onClick={handleEditVitals}>
-              <Edit className="h-4 w-4" />
-            </Button>
           </div>
+          <Button variant={"ghost"} size={"icon"} onClick={handleEditVitals}>
+            <Edit className="h-4 w-4" />
+          </Button>
         </div>
       </div>
       <div className="flex p-4 bg-background gap-4">
