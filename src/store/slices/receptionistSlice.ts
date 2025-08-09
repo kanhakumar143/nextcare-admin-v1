@@ -4,7 +4,6 @@ import {
 } from "@/types/receptionist.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
-import { act } from "react";
 import { toast } from "sonner";
 
 export const fetchQrDetailsAsync = createAsyncThunk(
@@ -16,7 +15,6 @@ export const fetchQrDetailsAsync = createAsyncThunk(
     },
     { rejectWithValue }
   ) => {
-    setQrToken(payload.accessToken);
     try {
       const response = await fetchDecodeQrDetails(payload);
       return response;

@@ -53,6 +53,7 @@ export default function ConfirmVerifyPatientModal() {
       },
     };
     setLoading(true);
+    console.log(storedAccessToken);
     try {
       const response = await UpdatePatientAccountStatus(payload);
       if (response) {

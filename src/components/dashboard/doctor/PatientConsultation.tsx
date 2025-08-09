@@ -16,7 +16,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Edit, Info } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Info,
+  Ruler,
+  Weight,
+  Thermometer,
+  Heart,
+  Activity,
+  Droplets,
+  Gauge,
+} from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
 import EditVitalsModal from "./modals/EditVitalsModal";
 import PatientDetailsDrawer from "./PatientDetailsDrawer";
@@ -34,6 +45,8 @@ import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
+import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
+import { TooltipTrigger } from "@radix-ui/react-tooltip";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
@@ -46,6 +59,29 @@ export default function PatientConsultation() {
   const [isPatientDetailsDrawerOpen, setIsPatientDetailsDrawerOpen] =
     useState(false);
   const router = useRouter();
+
+  // Helper function to get vital icon based on code
+  const getVitalIcon = (code: string) => {
+    const iconProps = { className: "h-4 w-4 text-gray-600" };
+    switch (code) {
+      case "HT":
+        return <Ruler {...iconProps} />;
+      case "WT":
+        return <Weight {...iconProps} />;
+      case "TEMP":
+        return <Thermometer {...iconProps} />;
+      case "BP":
+        return <Gauge {...iconProps} />;
+      case "HR":
+        return <Heart {...iconProps} />;
+      case "RR":
+        return <Activity {...iconProps} />;
+      case "SpO2":
+        return <Droplets {...iconProps} />;
+      default:
+        return <Activity {...iconProps} />;
+    }
+  };
 
   useEffect(() => {
     dispatch(clearConsultationOrders());
@@ -111,33 +147,77 @@ export default function PatientConsultation() {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between border-b-2 mx-6 my-3 py-2">
-        <div className="mx-6 flex items-start gap-4 py-5">
-          <Label className="text-md font-medium">General Vitals : </Label>
-          <div className="grid grid-cols-5 gap-3 items-center">
-            {apptDtls &&
-              apptDtls?.observations &&
-              apptDtls?.observations?.map((vital: any, i: number) => (
-                <div key={i} className="flex gap-1 items-center">
-                  <span className="text-sm text-muted-foreground">
-                    {vital.vital_definition?.name}
-                  </span>
-                  <span className="text-base font-semibold text-foreground">
-                    {vital.vital_definition?.code === "BP" ? (
-                      <span>
-                        {vital.value?.systolic} / {vital.value?.diastolic}{" "}
-                        {vital.vital_definition?.unit}
-                      </span>
-                    ) : (
-                      vital.value?.value + " " + vital.vital_definition?.unit
-                    )}
-                  </span>
+      <div className="border-b border-gray-200 mx-6 my-3 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex flex-col gap-4 w-full">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="text-lg font-semibold text-gray-900">
+                General Vitals
+              </Label>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleEditVitals}
+                className="h-8 w-8 hover:bg-gray-100"
+              >
+                <Edit className="h-4 w-4 text-gray-600" />
+              </Button>
+            </div>
+
+            {apptDtls?.observations && apptDtls.observations.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 w-full">
+                {apptDtls.observations.map((vital: any, i: number) => (
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                      >
+                        <div className="flex-shrink-0">
+                          {getVitalIcon(vital.vital_definition?.code)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          {/* <div className="text-xs text-gray-500 font-medium uppercase tracking-wide truncate">
+                        {vital.vital_definition?.name}
+                      </div> */}
+                          <div className="text-sm font-bold text-gray-900">
+                            {vital.vital_definition?.code === "BP" ? (
+                              <span>
+                                {vital.value?.systolic}/{vital.value?.diastolic}{" "}
+                                {vital.vital_definition?.unit}
+                              </span>
+                            ) : (
+                              <span>
+                                {vital.value?.value}{" "}
+                                {vital.vital_definition?.unit}
+                              </span>
+                            )}
+                          </div>
+                          {vital.is_abnormal && (
+                            <div className="text-xs text-red-600 font-medium mt-1">
+                              Abnormal
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <div className="text-sm text-white">
+                        {vital.vital_definition?.name}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center p-8 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="text-center">
+                  <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-500">No vitals recorded</p>
                 </div>
-              ))}
+              </div>
+            )}
           </div>
-          <Button variant={"ghost"} size={"icon"} onClick={handleEditVitals}>
-            <Edit className="h-4 w-4" />
-          </Button>
         </div>
       </div>
       <div className="flex p-4 bg-background gap-4">

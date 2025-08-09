@@ -1,11 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { toast } from "sonner";
+import React from "react";
 import {
   clearError,
   fetchQrDetailsAsync,
-  setDecodedDetails,
   setQrToken,
 } from "@/store/slices/receptionistSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -16,36 +14,24 @@ import ScannedPatientDetails from "./ScanedPatientDetails";
 import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { Alert, AlertTitle } from "@/components/ui/alert";
-// import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 
 const ScanPatientQr: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { userId } = useAuthInfo();
-  // const [invalidCode, setInvalidCode] = useState<string | null>(null);
   const { patientDetails, scanQrMessage } = useSelector(
     (state: RootState) => state.receptionistData
   );
 
-  console.log("scanQrMessage Details:", scanQrMessage);
-
-  // const handleQrDetailsData = async (token: string) => {
-  //   try {
-  //     setInvalidCode(null);
-
-  //     const response = await fetchDecodeQrDetails({
-  //       accessToken: token,
-  //       staff_id: userId,
-  //     });
-  //     if (!response.success) {
-  //       setInvalidCode(response.message);
-  //       dispatch(setQrToken(token));
-  //     } else {
-  //       dispatch(setDecodedDetails(response.data));
-  //     }
-  //   } catch {
-  //     toast.error("Couldn’t fetch details!");
-  //   }
-  // };
+  const handleScanSuccess = (token: string) => {
+    dispatch(clearError());
+    dispatch(
+      fetchQrDetailsAsync({
+        accessToken: token,
+        staff_id: userId || "",
+      })
+    );
+    dispatch(setQrToken(token));
+  };
 
   return (
     <div className="flex flex-col items-center justify-start p-6 gap-6 ">
@@ -58,15 +44,7 @@ const ScanPatientQr: React.FC = () => {
       {!patientDetails && (
         <div className="w-full max-w-md">
           <QrScannerBox
-            onScanSuccess={(token) => {
-              dispatch(clearError());
-              dispatch(
-                fetchQrDetailsAsync({
-                  accessToken: token,
-                  staff_id: userId || "",
-                })
-              );
-            }}
+            onScanSuccess={(token) => handleScanSuccess(token)}
             buttonLabel="Start QR Scan"
           />
         </div>
