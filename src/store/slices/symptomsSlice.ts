@@ -12,7 +12,7 @@ export const fetchSymptomsByTenantId = createAsyncThunk<
 >("symptom/fetchByTenantId", async (tenantId, thunkAPI) => {
   try {
     const res = await getSymptomsByTenantId(tenantId);
-    return res.data;
+    return res;
   } catch (err: any) {
     return thunkAPI.rejectWithValue(err.message);
   }

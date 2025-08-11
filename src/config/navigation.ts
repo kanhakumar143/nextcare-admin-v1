@@ -74,11 +74,15 @@ export const adminRoutes: Route[] = [
         name: "Specialty",
         icon: BriefcaseMedical,
       },
-      { href: "/dashboard/admin/symptoms", name: "Symptoms", icon: Ribbon },
       {
         href: "/dashboard/admin/services/pre-questionary-sets",
         name: "Pre-Questionary Set",
         icon: FileQuestionMark,
+      },
+      {
+        href: "/dashboard/admin/services/symptoms",
+        name: "Symptoms",
+        icon: Ribbon,
       },
     ],
   },

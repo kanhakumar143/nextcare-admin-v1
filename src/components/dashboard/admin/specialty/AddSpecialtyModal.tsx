@@ -95,7 +95,7 @@ export default function AddSpecialtyModal({
                 <SelectTrigger>
                   <SelectValue
                     placeholder={loading ? "Loading..." : "Select a service"}
-                  />
+                  />    
                 </SelectTrigger>
                 <SelectContent>
                   {services.map((srv) => (
