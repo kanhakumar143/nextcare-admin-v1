@@ -64,11 +64,19 @@ export const adminRoutes: Route[] = [
     name: "Services",
     icon: Layers,
     children: [
-      { href: "/dashboard/admin/services", name: "Services", icon: LayoutDashboard },
+      {
+        href: "/dashboard/admin/services",
+        name: "Services",
+        icon: LayoutDashboard,
+      },
       // { href: "/dashboard/admin/LocationManagement", name: "Location Management", icon: LayoutDashboard },
-      
+
       { href: "/dashboard/admin/symptoms", name: "Symptoms", icon: Ribbon },
-      { href: "/admin/questionary", name: "Questionary", icon: FileQuestionMark },
+      {
+        href: "/admin/questionary",
+        name: "Questionary",
+        icon: FileQuestionMark,
+      },
     ],
   },
 ];
@@ -99,6 +107,11 @@ export const doctorRoutes: Route[] = [
     href: "/dashboard/doctor/calender",
     name: "Calendar",
     icon: Calendar1,
+  },
+  {
+    href: "/dashboard/doctor/patient-stories",
+    name: "Patient Stories",
+    icon: ClipboardList,
   },
 ];
 

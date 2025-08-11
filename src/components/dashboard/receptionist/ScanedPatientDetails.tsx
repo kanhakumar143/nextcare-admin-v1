@@ -88,18 +88,18 @@ const ScannedPatientDetails = () => {
               </h2>
             </div>
 
-            <div className="space-y-1 text-sm text-gray-700">
-              <div className="flex justify-between">
-                <span className="font-medium">Full name:</span>
-                <span className="text-primary font-bold">
-                  {patientDetails.patient.name}
-                </span>
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+              <div className="space-y-1">
+                <div className="font-medium">Full name:</div>
+                <div className="font-medium">Phone:</div>
               </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Phone:</span>
-                <span className="text-primary text-right font-bold">
+              <div className="space-y-1">
+                <div className="text-primary font-bold">
+                  {patientDetails.patient.name}
+                </div>
+                <div className="text-primary font-bold">
                   {patientDetails.patient.phone}
-                </span>
+                </div>
               </div>
             </div>
 
@@ -109,22 +109,21 @@ const ScannedPatientDetails = () => {
               </h2>
             </div>
 
-            <div className="space-y-1 text-sm text-gray-700">
-              <div className="flex justify-between">
-                <span className="font-medium">Service:</span>
-                <span className="text-primary font-bold">
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+              <div className="space-y-1">
+                <div className="font-medium">Service:</div>
+                <div className="font-medium">Date of Booking:</div>
+                <div className="font-medium">Slot Time:</div>
+                <div className="font-medium">Booking Status:</div>
+              </div>
+              <div className="space-y-1">
+                <div className="text-primary font-bold">
                   {patientDetails.appointment.service_category[0].text}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Date of Booking:</span>
-                <span className="text-primary text-right font-bold">
+                </div>
+                <div className="text-primary font-bold">
                   {formatDate(patientDetails.appointment.slot_info.start)}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Slot Time:</span>
-                <span className="text-primary text-right font-bold">
+                </div>
+                <div className="text-primary font-bold">
                   {moment
                     .utc(patientDetails.appointment.slot_info.start)
                     .format("hh:mm a")}{" "}
@@ -132,23 +131,22 @@ const ScannedPatientDetails = () => {
                   {moment
                     .utc(patientDetails.appointment.slot_info.end)
                     .format("hh:mm a")}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="font-medium">Booking Status:</span>
-                <Badge
-                  className={`${
-                    patientDetails.appointment.status === "booked"
-                      ? "bg-sky-700"
-                      : patientDetails.appointment.status === "checked_in"
-                      ? "bg-green-600"
-                      : "bg-primary"
-                  }`}
-                >
-                  {patientDetails.appointment.status === "checked_in"
-                    ? "Checked In"
-                    : patientDetails.appointment.status}
-                </Badge>
+                </div>
+                <div>
+                  <Badge
+                    className={`${
+                      patientDetails.appointment.status === "booked"
+                        ? "bg-sky-700"
+                        : patientDetails.appointment.status === "checked_in"
+                        ? "bg-green-600"
+                        : "bg-primary"
+                    }`}
+                  >
+                    {patientDetails.appointment.status === "checked_in"
+                      ? "Checked In"
+                      : patientDetails.appointment.status}
+                  </Badge>
+                </div>
               </div>
             </div>
 

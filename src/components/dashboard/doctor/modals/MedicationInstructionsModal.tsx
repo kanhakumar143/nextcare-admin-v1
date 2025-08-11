@@ -80,7 +80,9 @@ export default function MedicationInstructionsModal({
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="dosage-instructions">How to Consume</Label>
+            <Label htmlFor="dosage-instructions">
+              Instructions for consumption
+            </Label>
             <Textarea
               id="dosage-instructions"
               placeholder="Enter detailed consumption instructions..."

@@ -34,7 +34,7 @@ const ScanPatientQr: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-start p-6 gap-6 ">
+    <div className="flex flex-col items-center justify-start p-6 gap-6">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold text-primary">
           Patient QR Code Check-In
