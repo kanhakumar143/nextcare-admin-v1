@@ -6,7 +6,7 @@ import doctorSlice from "./slices/doctorSlice";
 import adminSlice from "./slices/adminSlice";
 import specialtyReducer from "./slices/specialtySlice"
 import servicesReducer from "./slices/servicesSlice";
-
+import symptomReducer from "./slices/symptomsSlice";
 const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -16,6 +16,8 @@ const store = configureStore({
     admin: adminSlice,
     specialty: specialtyReducer,
     services: servicesReducer,
+    symptom: symptomReducer,
+    
   },
 });
 export type RootState = ReturnType<typeof store.getState>;
