@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSymptom,
   fetchSymptomsByTenantId,
-  // toggleSymptomStatus,
 } from "@/store/slices/symptomsSlice";
 import { getServices } from "@/services/admin.api";
 import { DataTable } from "@/components/common/DataTable";
@@ -22,7 +21,7 @@ import AddSymptomModal from "@/components/dashboard/admin/symptoms/AddSymptomMod
 import { Symptom } from "@/types/symptoms.type";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { useAuthInfo } from "@/hooks/useAuthInfo"; 
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 export default function Symptoms() {
   const { orgId } = useAuthInfo();
@@ -37,7 +36,7 @@ export default function Symptoms() {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [symptomToToggle, setSymptomToToggle] = useState<Symptom | null>(null);
 
-    useEffect(() => {
+  useEffect(() => {
     if (confirmModalOpen) {
       document.body.style.overflow = "hidden";
     } else {
@@ -130,14 +129,14 @@ export default function Symptoms() {
     formData: Omit<Symptom, "code" | "system" | "description">
   ) => {
     try {
-      const resultAction = await dispatch(addSymptom(formData));
-      if (addSymptom.fulfilled.match(resultAction)) {
-        toast.success("Symptom added successfully!");
-        setOpenModal(false);
-        dispatch(fetchSymptomsByTenantId(selectedServiceId));
-      } else {
-        toast.error(resultAction.payload as string);
-      }
+      // const resultAction = await dispatch(addSymptom(formData));
+      // if (addSymptom.fulfilled.match(resultAction)) {
+      //   toast.success("Symptom added successfully!");
+      //   setOpenModal(false);
+      //   dispatch(fetchSymptomsByTenantId(selectedServiceId));
+      // } else {
+      //   toast.error(resultAction.payload as string);
+      // }
     } catch {
       toast.error("Something went wrong while adding the symptom.");
     }
@@ -179,12 +178,12 @@ export default function Symptoms() {
         externalFilterValue={filterValue}
       />
 
-      <AddSymptomModal
+      {/* <AddSymptomModal
         open={openModal}
         onClose={() => setOpenModal(false)}
         onSubmit={handleAddSymptom}
         services={services}
-      />
+      /> */}
 
       {confirmModalOpen && symptomToToggle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-10 backdrop-blur-xs">

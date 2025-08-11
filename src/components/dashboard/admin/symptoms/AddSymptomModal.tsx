@@ -42,13 +42,13 @@ type SymptomFormData = z.infer<typeof symptomSchema>;
 interface AddSymptomModalProps {
   open: boolean;
   onClose: () => void;
-    onSubmit: (data: any) => void;
+  onSubmit: (data: any) => void;
   // onSubmit: (data: {
   //   tenant_service_id: string;
   //   display: string;
   //   is_active: boolean;
   // }) => void;
-//  services: Service[]; // Pass services array here
+  //  services: Service[]; // Pass services array here
 }
 
 export default function AddSymptomModal({
@@ -57,13 +57,13 @@ export default function AddSymptomModal({
   onSubmit,
 }: AddSymptomModalProps) {
   const dispatch = useAppDispatch();
-  const {items: services, loading} = useAppSelector(
+  const { items: services, loading } = useAppSelector(
     (state) => state.services
   );
 
- const {
+  const {
     register,
-    handleSubmit,
+    // handleSubmit,
     setValue,
     watch,
     formState: { errors },
@@ -74,13 +74,13 @@ export default function AddSymptomModal({
       tenant_service_id: "",
       is_active: true,
     },
-  }); 
+  });
 
-  useEffect(()=>{
+  useEffect(() => {
     if (open) {
       dispatch(fetchServices());
     }
-  }, [open,dispatch])
+  }, [open, dispatch]);
   // const [tenantServiceId, setTenantServiceId] = useState("");
   // const [display, setDisplay] = useState("");
   // const [isActive, setIsActive] = useState(true);
@@ -95,12 +95,12 @@ export default function AddSymptomModal({
     const payload = {
       tenant_service_id: formData.tenant_service_id,
       code: "",
-      system:"ICD-1",
+      system: "ICD-1",
       display: formData.display,
       description: `${formData.display} description`,
       is_active: formData.is_active,
-    }
-     onSubmit(payload);
+    };
+    onSubmit(payload);
     onClose();
     // if (!tenantServiceId || !display) {
     //   alert("Please fill all required fields");
@@ -118,67 +118,65 @@ export default function AddSymptomModal({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-          <DialogContent className="max-w-lg">
-            <VisuallyHidden>
-              <DialogTitle>Add Symptoms</DialogTitle>
-            </VisuallyHidden>
-            <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-              <div className="flex items-end gap-4">
-                <div className="w-64">
-                  <label className="block mb-1 font-medium text-sm">Service</label>
-                  <Select
-                    value={watch("tenant_service_id")}
-                    onValueChange={(val) => setValue("tenant_service_id", val)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={loading ? "Loading..." : "Select a service"}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {services.map((srv) => (
-                        <SelectItem key={srv.id} value={srv.id}>
-                          {srv.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.tenant_service_id && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.tenant_service_id.message}
-                    </p>
-                  )}
-                </div>
-    
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={watch("is_active")}
-                    onCheckedChange={(val) => setValue("is_active", val)}
+      <DialogContent className="max-w-lg">
+        <VisuallyHidden>
+          <DialogTitle>Add Symptoms</DialogTitle>
+        </VisuallyHidden>
+        <form
+          // onSubmit={handleSubmit(() => {})}
+          className="space-y-4"
+        >
+          <div className="flex items-end gap-4">
+            <div className="w-64">
+              <label className="block mb-1 font-medium text-sm">Service</label>
+              <Select
+                value={watch("tenant_service_id")}
+                onValueChange={(val) => setValue("tenant_service_id", val)}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={loading ? "Loading..." : "Select a service"}
                   />
-                  <label className="text-sm font-medium">Active</label>
-                </div>
-              </div>
-    
-              <div>
-                <label className="block mb-1 font-medium text-sm">
-                  Symptoms Name
-                </label>
-                <Input
-                  {...register("display")}
-                  placeholder="e.g. Cardiology"
-                />
-                {errors.display && (
-                  <p className="text-red-500 text-sm">
-                    {errors.display.message}
-                  </p>
-                )}
-              </div>
-    
-              <Button type="submit" className="w-full">
-                Save
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((srv) => (
+                    <SelectItem key={srv.id} value={srv.id}>
+                      {srv.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.tenant_service_id && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.tenant_service_id.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={watch("is_active")}
+                onCheckedChange={(val) => setValue("is_active", val)}
+              />
+              <label className="text-sm font-medium">Active</label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium text-sm">
+              Symptoms Name
+            </label>
+            <Input {...register("display")} placeholder="e.g. Cardiology" />
+            {errors.display && (
+              <p className="text-red-500 text-sm">{errors.display.message}</p>
+            )}
+          </div>
+
+          <Button type="submit" className="w-full">
+            Save
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
