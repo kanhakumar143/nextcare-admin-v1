@@ -62,7 +62,11 @@ const AdminSideBar = () => {
           name: "Services",
           icon: LayoutDashboard,
         },
-        { href: "/admin/symptoms", name: "Symptoms", icon: Stethoscope },
+        {
+          href: "/admin/symptoms",
+          name: "Symptom",
+          icon: Stethoscope,
+        },
         {
           href: "/admin/questionary",
           name: "Questionary",
@@ -70,6 +74,7 @@ const AdminSideBar = () => {
         },
       ],
     },
+    
   ];
   return (
     <>

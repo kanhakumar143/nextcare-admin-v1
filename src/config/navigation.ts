@@ -65,6 +65,11 @@ export const adminRoutes: Route[] = [
     icon: Layers,
     children: [
       { href: "/dashboard/admin/services", name: "Services", icon: LayoutDashboard },
+      {
+        href: "/dashboard/admin/services/specialty",
+        name: "Specialty",
+        icon: BriefcaseMedical,
+      },
       // { href: "/dashboard/admin/LocationManagement", name: "Location Management", icon: LayoutDashboard },
       
       { href: "/dashboard/admin/symptoms", name: "Symptoms", icon: Ribbon },
