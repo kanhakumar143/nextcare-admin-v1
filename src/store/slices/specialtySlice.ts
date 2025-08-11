@@ -41,6 +41,17 @@ export const toggleSpecialtyStatus = createAsyncThunk<
   }
 });
 
+export const updateSpecialtyName = createAsyncThunk<
+  Specialty,
+  { specialty: Specialty; id: string }
+>("specialty/updateName", async ({ specialty, id }, thunkAPI) => {
+  try {
+    return await updateSpecialtyStatus(specialty, id);
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
+
 export const fetchSpecialtiesByTenantId = createAsyncThunk(
   "specialty/fetchSpecialtiesByTenantId",
   async (tenantId: string | null, { rejectWithValue }) => {
@@ -62,6 +73,10 @@ interface SpecialtyState {
     loading: boolean;
     error: string | null;
   };
+  confirmModalOpen: boolean;
+  specialtyToToggle: Specialty | null;
+  editModalOpen: boolean;
+  specialtyToEdit: Specialty | null;
 }
 
 const initialState: SpecialtyState = {
@@ -73,12 +88,37 @@ const initialState: SpecialtyState = {
     loading: false,
     error: null,
   },
+  confirmModalOpen: false,
+  specialtyToToggle: null,
+  editModalOpen: false,
+  specialtyToEdit: null,
 };
 
 const specialtySlice = createSlice({
   name: "specialty",
   initialState,
-  reducers: {},
+  reducers: {
+    setConfirmModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.confirmModalOpen = action.payload;
+    },
+    setSpecialtyToToggle: (state, action: PayloadAction<Specialty | null>) => {
+      state.specialtyToToggle = action.payload;
+    },
+    openConfirmModal: (state, action: PayloadAction<Specialty>) => {
+      state.specialtyToToggle = action.payload;
+      state.confirmModalOpen = true;
+    },
+    setEditModalOpen: (state, action: PayloadAction<boolean>) => {
+      state.editModalOpen = action.payload;
+    },
+    setSpecialtyToEdit: (state, action: PayloadAction<Specialty | null>) => {
+      state.specialtyToEdit = action.payload;
+    },
+    openEditModal: (state, action: PayloadAction<Specialty>) => {
+      state.specialtyToEdit = action.payload;
+      state.editModalOpen = true;
+    },
+  },
   extraReducers: (builder) => {
     builder
 
@@ -151,8 +191,39 @@ const specialtySlice = createSlice({
       .addCase(toggleSpecialtyStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+
+      // Update specialty name
+      .addCase(updateSpecialtyName.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        updateSpecialtyName.fulfilled,
+        (state, action: PayloadAction<Specialty>) => {
+          state.loading = false;
+          const idx = state.items.findIndex(
+            (s) => s.code === action.payload.code
+          );
+          if (idx !== -1) {
+            state.items[idx] = action.payload;
+          }
+        }
+      )
+      .addCase(updateSpecialtyName.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });
+
+export const {
+  setConfirmModalOpen,
+  setSpecialtyToToggle,
+  openConfirmModal,
+  setEditModalOpen,
+  setSpecialtyToEdit,
+  openEditModal,
+} = specialtySlice.actions;
 
 export default specialtySlice.reducer;

@@ -5,6 +5,8 @@ import {
   addSymptom,
   fetchSymptomsByTenantId,
   toggleSymptomStatus,
+  openConfirmModal,
+  openEditModal,
 } from "@/store/slices/symptomsSlice";
 import { getServices } from "@/services/admin.api";
 import { DataTable } from "@/components/common/DataTable";
@@ -18,7 +20,9 @@ import {
 } from "@/components/ui/select";
 import { ColumnDef } from "@tanstack/react-table";
 import { Pencil, Plus, ShieldCheck, ShieldX } from "lucide-react";
-import AddSymptomModal from "@/components/dashboard/admin/symptoms/AddSymptomModal";
+import AddSymptomModal from "@/components/dashboard/admin/symptoms/modal/AddSymptomModal";
+import ConfirmToggleModal from "@/components/dashboard/admin/symptoms/modal/ConfirmToggleModal";
+import EditSymptomModal from "@/components/dashboard/admin/symptoms/modal/EditSymptomModal";
 import { Symptom } from "@/types/symptoms.type";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -34,19 +38,6 @@ export default function Symptoms() {
   const [filterValue, setFilterValue] = useState("");
 
   const [openModal, setOpenModal] = useState(false);
-  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [symptomToToggle, setSymptomToToggle] = useState<Symptom | null>(null);
-
-  useEffect(() => {
-    if (confirmModalOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [confirmModalOpen]);
 
   useEffect(() => {
     (async () => {
@@ -68,33 +59,12 @@ export default function Symptoms() {
     }
   }, [dispatch, orgId]);
 
-  const handleToggleStatus = async (symptom: Symptom) => {
-    try {
-      const updatedSymptom = {
-        ...symptom,
-        is_active: !symptom.is_active,
-      };
-      const resultAction = await dispatch(
-        toggleSymptomStatus({ symptom: updatedSymptom, id: symptom.id! })
-      );
-
-      if (toggleSymptomStatus.fulfilled.match(resultAction)) {
-        toast.success("Status updated successfully!");
-        dispatch(fetchSymptomsByTenantId(orgId!));
-      } else {
-        toast.error(resultAction.payload as string);
-      }
-    } catch (error) {
-      toast.error("Failed to update status.");
-    } finally {
-      setConfirmModalOpen(false);
-      setSymptomToToggle(null);
-    }
+  const handleOpenConfirmModal = (symptom: Symptom) => {
+    dispatch(openConfirmModal(symptom));
   };
 
-  const openConfirmModal = (symptom: Symptom) => {
-    setSymptomToToggle(symptom);
-    setConfirmModalOpen(true);
+  const handleOpenEditModal = (symptom: Symptom) => {
+    dispatch(openEditModal(symptom));
   };
 
   const columns: ColumnDef<Symptom>[] = [
@@ -124,18 +94,22 @@ export default function Symptoms() {
       header: "Actions",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          <Button variant="secondary" size="icon">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => handleOpenEditModal(row.original)}
+          >
             <Pencil className="w-4 h-4" />
           </Button>
           <Button
             variant="ghost"
             className={
               row.original.is_active
-                ? "text-red-500 hover:text-red-700"
-                : "text-green-500 hover:text-green-700"
+                ? "text-green-500 hover:text-green-700"
+                : "text-red-500 hover:text-red-700"
             }
             size="icon"
-            onClick={() => openConfirmModal(row.original)}
+            onClick={() => handleOpenConfirmModal(row.original)}
           >
             {row.original.is_active ? (
               <ShieldCheck className="w-8 h-8" />
@@ -214,55 +188,8 @@ export default function Symptoms() {
         orgId={orgId ?? ""} // <-- Here: convert null to undefined
       />
 
-      {confirmModalOpen && symptomToToggle && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-10 backdrop-blur-xs">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full h-auto">
-            <div className="p-4 ">
-              <h2 className="text-lg font-semibold">
-                {symptomToToggle.is_active ? "Deactivate" : "Activate"} Symptom?
-              </h2>
-            </div>
-
-            <div className="p-4 text-sm text-muted-foreground">
-              Are you sure you want to{" "}
-              <span
-                className={
-                  symptomToToggle.is_active
-                    ? "text-red-600 font-medium"
-                    : "text-green-600 font-medium"
-                }
-              >
-                {symptomToToggle.is_active ? "deactivate" : "activate"}
-              </span>{" "}
-              the symptom{" "}
-              <span className="text-foreground font-semibold">
-                {symptomToToggle.display}
-              </span>
-              ?
-            </div>
-
-            <div className="p-4 flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setConfirmModalOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant={symptomToToggle.is_active ? "destructive" : "default"}
-                onClick={() => handleToggleStatus(symptomToToggle)}
-                className={
-                  symptomToToggle.is_active
-                    ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
-                    : "bg-green-500 text-white hover:bg-green-700 hover:text-white"
-                }
-              >
-                {symptomToToggle.is_active ? "Deactivate" : "Activate"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmToggleModal />
+      <EditSymptomModal />
     </div>
   );
 }
