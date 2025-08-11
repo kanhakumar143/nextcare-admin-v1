@@ -72,7 +72,7 @@ export const adminRoutes: Route[] = [
       },
       // { href: "/dashboard/admin/LocationManagement", name: "Location Management", icon: LayoutDashboard },
       
-      { href: "/dashboard/admin/symptoms", name: "Symptoms", icon: Ribbon },
+      { href: "/dashboard/admin/services/symptoms", name: "Symptoms", icon: Ribbon },
       { href: "/admin/questionary", name: "Questionary", icon: FileQuestionMark },
     ],
   },
