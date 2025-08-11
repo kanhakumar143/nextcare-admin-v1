@@ -3,6 +3,7 @@ import { Specialty } from "@/types/specialty.type";
 import {
   createSpecialty,
   getSpecialtiesByServiceId,
+  getSpecialtyByTenantId,
   updateSpecialtyStatus,
 } from "@/services/specialty.api";
 
@@ -29,7 +30,6 @@ export const addSpecialty = createAsyncThunk<
   }
 });
 
-
 export const toggleSpecialtyStatus = createAsyncThunk<
   Specialty,
   { specialty: Specialty; id: string }
@@ -41,16 +41,38 @@ export const toggleSpecialtyStatus = createAsyncThunk<
   }
 });
 
+export const fetchSpecialtiesByTenantId = createAsyncThunk(
+  "specialty/fetchSpecialtiesByTenantId",
+  async (tenantId: string | null, { rejectWithValue }) => {
+    try {
+      const res = await getSpecialtyByTenantId(tenantId);
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
 interface SpecialtyState {
   items: Specialty[];
   loading: boolean;
   error: string | null;
+  specialtyData: {
+    data: Specialty[];
+    loading: boolean;
+    error: string | null;
+  };
 }
 
 const initialState: SpecialtyState = {
   items: [],
   loading: false,
   error: null,
+  specialtyData: {
+    data: [],
+    loading: false,
+    error: null,
+  },
 };
 
 const specialtySlice = createSlice({
@@ -76,15 +98,34 @@ const specialtySlice = createSlice({
         state.error = action.payload as string;
       })
 
+      .addCase(fetchSpecialtiesByTenantId.pending, (state) => {
+        state.specialtyData.loading = true;
+        state.specialtyData.error = null;
+      })
+      .addCase(
+        fetchSpecialtiesByTenantId.fulfilled,
+        (state, action: PayloadAction<any>) => {
+          state.specialtyData.loading = false;
+          state.specialtyData.data = action.payload;
+        }
+      )
+      .addCase(fetchSpecialtiesByTenantId.rejected, (state, action) => {
+        state.loading = false;
+        state.specialtyData.error = action.payload as string;
+      })
+
       // Add specialty
       .addCase(addSpecialty.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(addSpecialty.fulfilled, (state, action: PayloadAction<Specialty>) => {
-        state.loading = false;
-        state.items.push(action.payload);
-      })
+      .addCase(
+        addSpecialty.fulfilled,
+        (state, action: PayloadAction<Specialty>) => {
+          state.loading = false;
+          state.items.push(action.payload);
+        }
+      )
       .addCase(addSpecialty.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
@@ -95,13 +136,18 @@ const specialtySlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(toggleSpecialtyStatus.fulfilled, (state, action: PayloadAction<Specialty>) => {
-        state.loading = false;
-        const idx = state.items.findIndex((s) => s.code === action.payload.code);
-        if (idx !== -1) {
-          state.items[idx] = action.payload;
+      .addCase(
+        toggleSpecialtyStatus.fulfilled,
+        (state, action: PayloadAction<Specialty>) => {
+          state.loading = false;
+          const idx = state.items.findIndex(
+            (s) => s.code === action.payload.code
+          );
+          if (idx !== -1) {
+            state.items[idx] = action.payload;
+          }
         }
-      })
+      )
       .addCase(toggleSpecialtyStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
