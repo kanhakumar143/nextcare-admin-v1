@@ -1,21 +1,22 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { Specialty } from "@/types/specialty.type";
-import { createSpecialty } from "@/services/specialty.api";
+import {
+  createSpecialty,
+  getSpecialtiesByServiceId,
+  updateSpecialtyStatus,
+} from "@/services/specialty.api";
 
-// -----------------------------
-// Async thunks
-// -----------------------------
-
-// export const fetchSpecialties = createAsyncThunk<Specialty[]>(
-//   "specialty/fetchAll",
-//   async (_, thunkAPI) => {
-//     try {
-//       return await getSpecialties();
-//     } catch (err: any) {
-//       return thunkAPI.rejectWithValue(err.message);
-//     }
-//   }
-// );
+export const fetchSpecialtiesByServiceId = createAsyncThunk<
+  Specialty[],
+  string
+>("specialty/fetchByServiceId", async (tenantServiceId, thunkAPI) => {
+  try {
+    const res = await getSpecialtiesByServiceId(tenantServiceId);
+    return res.data;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
 
 export const addSpecialty = createAsyncThunk<
   Specialty,
@@ -28,9 +29,17 @@ export const addSpecialty = createAsyncThunk<
   }
 });
 
-// -----------------------------
-// Slice
-// -----------------------------
+
+export const toggleSpecialtyStatus = createAsyncThunk<
+  Specialty,
+  { specialty: Specialty; id: string }
+>("specialty/toggleStatus", async ({ specialty, id }, thunkAPI) => {
+  try {
+    return await updateSpecialtyStatus(specialty, id);
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
 
 interface SpecialtyState {
   items: Specialty[];
@@ -49,38 +58,51 @@ const specialtySlice = createSlice({
   initialState,
   reducers: {},
   extraReducers: (builder) => {
-    // Fetch specialties
-    // builder
-    //   .addCase(fetchSpecialties.pending, (state) => {
-    //     state.loading = true;
-    //     state.error = null;
-    //   })
-    //   .addCase(
-    //     fetchSpecialties.fulfilled,
-    //     (state, action: PayloadAction<Specialty[]>) => {
-    //       state.loading = false;
-    //       state.items = action.payload;
-    //     }
-    //   )
-    //   .addCase(fetchSpecialties.rejected, (state, action) => {
-    //     state.loading = false;
-    //     state.error = action.payload as string;
-    //   });
-
-    // Add specialty
     builder
-      .addCase(addSpecialty.pending, (state) => {
+
+      .addCase(fetchSpecialtiesByServiceId.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(
-        addSpecialty.fulfilled,
-        (state, action: PayloadAction<Specialty>) => {
+        fetchSpecialtiesByServiceId.fulfilled,
+        (state, action: PayloadAction<Specialty[]>) => {
           state.loading = false;
-          state.items.push(action.payload);
+          state.items = action.payload;
         }
       )
+      .addCase(fetchSpecialtiesByServiceId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Add specialty
+      .addCase(addSpecialty.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addSpecialty.fulfilled, (state, action: PayloadAction<Specialty>) => {
+        state.loading = false;
+        state.items.push(action.payload);
+      })
       .addCase(addSpecialty.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+      // Toggle status
+      .addCase(toggleSpecialtyStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleSpecialtyStatus.fulfilled, (state, action: PayloadAction<Specialty>) => {
+        state.loading = false;
+        const idx = state.items.findIndex((s) => s.code === action.payload.code);
+        if (idx !== -1) {
+          state.items[idx] = action.payload;
+        }
+      })
+      .addCase(toggleSpecialtyStatus.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

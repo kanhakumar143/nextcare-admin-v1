@@ -1,6 +1,7 @@
-// types/specialty.type.ts
+
 
 export interface Specialty {
+  id: string;
   tenant_service_id: string; // UUID
   code: string;
   system: string; 
@@ -10,7 +11,7 @@ export interface Specialty {
   is_active: boolean;
 }
 
-// Optional: Type for creating a new specialty (if backend generates some fields)
+
 export type SpecialtyCreate = Omit<Specialty, "code" | "system" | "description"> & {
   code?: string;
   system?: string;
