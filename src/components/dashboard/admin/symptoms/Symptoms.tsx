@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSymptom,
   fetchSymptomsByTenantId,
+  toggleSymptomStatus,
 } from "@/store/slices/symptomsSlice";
 import { getServices } from "@/services/admin.api";
 import { DataTable } from "@/components/common/DataTable";
@@ -26,7 +27,7 @@ import { useAuthInfo } from "@/hooks/useAuthInfo";
 export default function Symptoms() {
   const { orgId } = useAuthInfo();
   const dispatch = useAppDispatch();
-  const { items, loading } = useAppSelector((state) => state.symptom); // verify slice name
+  const { items, loading } = useAppSelector((state) => state.symptom);
 
   const [services, setServices] = useState<any[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
@@ -67,7 +68,29 @@ export default function Symptoms() {
     }
   }, [dispatch, orgId]);
 
-  // ... your toggleStatus handler if needed ...
+  const handleToggleStatus = async (symptom: Symptom) => {
+    try {
+      const updatedSymptom = {
+        ...symptom,
+        is_active: !symptom.is_active,
+      };
+      const resultAction = await dispatch(
+        toggleSymptomStatus({ symptom: updatedSymptom, id: symptom.id! })
+      );
+
+      if (toggleSymptomStatus.fulfilled.match(resultAction)) {
+        toast.success("Status updated successfully!");
+        dispatch(fetchSymptomsByTenantId(orgId!));
+      } else {
+        toast.error(resultAction.payload as string);
+      }
+    } catch (error) {
+      toast.error("Failed to update status.");
+    } finally {
+      setConfirmModalOpen(false);
+      setSymptomToToggle(null);
+    }
+  };
 
   const openConfirmModal = (symptom: Symptom) => {
     setSymptomToToggle(symptom);
@@ -124,19 +147,25 @@ export default function Symptoms() {
       ),
     },
   ];
+  const filteredSymptoms = selectedServiceId
+    ? items.filter((symptom) => symptom.tenant_service_id === selectedServiceId)
+    : items;
 
   const handleAddSymptom = async (
     formData: Omit<Symptom, "code" | "system" | "description">
   ) => {
     try {
-      // const resultAction = await dispatch(addSymptom(formData));
-      // if (addSymptom.fulfilled.match(resultAction)) {
-      //   toast.success("Symptom added successfully!");
-      //   setOpenModal(false);
-      //   dispatch(fetchSymptomsByTenantId(selectedServiceId));
-      // } else {
-      //   toast.error(resultAction.payload as string);
-      // }
+      const resultAction = await dispatch(addSymptom(formData));
+      if (addSymptom.fulfilled.match(resultAction)) {
+        toast.success("Symptom added successfully!");
+        setOpenModal(false);
+        // Fix here: use orgId, not selectedServiceId
+        if (orgId) {
+          dispatch(fetchSymptomsByTenantId(orgId));
+        }
+      } else {
+        toast.error(resultAction.payload as string);
+      }
     } catch {
       toast.error("Something went wrong while adding the symptom.");
     }
@@ -173,17 +202,17 @@ export default function Symptoms() {
 
       <DataTable
         columns={columns}
-        data={items}
+        data={filteredSymptoms}
         filterColumn="display"
         externalFilterValue={filterValue}
       />
 
-      {/* <AddSymptomModal
+      <AddSymptomModal
         open={openModal}
         onClose={() => setOpenModal(false)}
         onSubmit={handleAddSymptom}
-        services={services}
-      /> */}
+        orgId={orgId ?? ""} // <-- Here: convert null to undefined
+      />
 
       {confirmModalOpen && symptomToToggle && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-opacity-10 backdrop-blur-xs">
@@ -221,7 +250,7 @@ export default function Symptoms() {
               </Button>
               <Button
                 variant={symptomToToggle.is_active ? "destructive" : "default"}
-                // onClick={() => handleToggleStatus(symptomToToggle)}
+                onClick={() => handleToggleStatus(symptomToToggle)}
                 className={
                   symptomToToggle.is_active
                     ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
