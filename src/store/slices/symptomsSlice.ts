@@ -3,6 +3,7 @@ import { Symptom } from "@/types/symptoms.type";
 import {
   getSymptomsByTenantId,
   createSymptom,
+  updateSymptomStatus,
   
 } from "@/services/symptoms.api";
 
@@ -12,7 +13,7 @@ export const fetchSymptomsByTenantId = createAsyncThunk<
 >("symptom/fetchByTenantId", async (tenantId, thunkAPI) => {
   try {
     const res = await getSymptomsByTenantId(tenantId);
-    return res;
+    return res.data;
   } catch (err: any) {
     return thunkAPI.rejectWithValue(err.message);
   }
@@ -20,7 +21,7 @@ export const fetchSymptomsByTenantId = createAsyncThunk<
 
 export const addSymptom = createAsyncThunk<
   Symptom,
-  Omit<Symptom, "id" | "created_at" | "updated_at">
+  Omit<Symptom, "code" | "system" | "description">
 >("symptom/add", async (data, thunkAPI) => {
   try {
     return await createSymptom(data);
@@ -29,16 +30,16 @@ export const addSymptom = createAsyncThunk<
   }
 });
 
-// export const toggleSymptomStatus = createAsyncThunk<
-//   Symptom,
-//   { symptom: Symptom; id: string }
-// >("symptom/toggleStatus", async ({ symptom, id }, thunkAPI) => {
-//   try {
-//     return await updateSymptomStatus(symptom, id);
-//   } catch (err: any) {
-//     return thunkAPI.rejectWithValue(err.message);
-//   }
-// });
+export const toggleSymptomStatus = createAsyncThunk<
+  Symptom,
+  { symptom: Symptom; id: string }
+>("symptom/toggleStatus", async ({ symptom, id }, thunkAPI) => {
+  try {
+    return await updateSymptomStatus(symptom, id);
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
 
 interface SymptomState {
   items: Symptom[];
@@ -89,21 +90,21 @@ const symptomSlice = createSlice({
       })
 
       // Toggle status
-    //   .addCase(toggleSymptomStatus.pending, (state) => {
-    //     state.loading = true;
-    //     state.error = null;
-    //   })
-    //   .addCase(toggleSymptomStatus.fulfilled, (state, action: PayloadAction<Symptom>) => {
-    //     state.loading = false;
-    //     const idx = state.items.findIndex((s) => s.id === action.payload.id);
-    //     if (idx !== -1) {
-    //       state.items[idx] = action.payload;
-    //     }
-    //   })
-    //   .addCase(toggleSymptomStatus.rejected, (state, action) => {
-    //     state.loading = false;
-    //     state.error = action.payload as string;
-    //   });
+      .addCase(toggleSymptomStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(toggleSymptomStatus.fulfilled, (state, action: PayloadAction<Symptom>) => {
+        state.loading = false;
+        const idx = state.items.findIndex((s) => s.id === action.payload.id);
+        if (idx !== -1) {
+          state.items[idx] = action.payload;
+        }
+      })
+      .addCase(toggleSymptomStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

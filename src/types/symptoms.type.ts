@@ -9,3 +9,8 @@ export interface Symptom {
   created_at?: string;  // Optional: timestamps if returned by API
   updated_at?: string;
 }
+export type SymptomCreate = Omit<Symptom, "code" | "system" | "description"> & {
+  code?: string;
+  system?: string;
+  description?: string;
+};
