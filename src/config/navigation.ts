@@ -115,6 +115,11 @@ export const doctorRoutes: Route[] = [
     name: "Calendar",
     icon: Calendar1,
   },
+  {
+    href: "/dashboard/doctor/patient-stories",
+    name: "Patient Stories",
+    icon: ClipboardList,
+  },
 ];
 
 // Nurse Navigation Routes
