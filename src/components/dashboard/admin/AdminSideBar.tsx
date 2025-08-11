@@ -68,13 +68,12 @@ const AdminSideBar = () => {
           icon: Stethoscope,
         },
         {
-          href: "/admin/questionary",
-          name: "Questionary",
+          href: "/admin/services/pre-questionary-sets",
+          name: "Pre-Questionary Set",
           icon: FileQuestionMark,
         },
       ],
     },
-    
   ];
   return (
     <>
