@@ -51,7 +51,7 @@ export const adminRoutes: Route[] = [
     icon: Stethoscope,
   },
   {
-    href: "/admin/nurse",
+    href: "/dashboard/admin/nurse-management",
     name: "Nurse Management",
     icon: BriefcaseMedical,
   },

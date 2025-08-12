@@ -32,12 +32,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { AddDoctorPayload } from "@/types/admin.types";
-import { addDoctor } from "@/services/admin.api";
 
 const currentYear = new Date().getFullYear();
 const today = new Date().toISOString().split("T")[0];
-const doctorFormSchema = z.object({
+
+const practitionerFormSchema = z.object({
   // User Info
   tenant_id: z.string().min(1, "Tenant ID is required"),
   name: z.string().min(3, "Name must be at least 3 characters"),
@@ -47,103 +46,80 @@ const doctorFormSchema = z.object({
     .min(10, "Phone number must be at least 10 digits")
     .max(15, "Phone number must be at most 15 digits")
     .regex(/^\+?\d{10,15}$/, "Invalid phone number format"),
-  hashed_password: z
-    .string()
-    .min(6, "Password must be at least 6 characters")
-    .optional(),
+  hashed_password: z.string().min(6).optional(),
 
   // Practitioner Info
-  identifier_system: z.string().url("Must be a valid URL").optional(),
-  identifier_value: z
-    .string()
-    .min(1, "Identifier value is required")
-    .optional(),
+  identifier_system: z.string().url().optional(),
+  identifier_value: z.string().min(1).optional(),
   prefix: z.string().optional(),
-  given_name: z.string().min(1, "Given name is required").optional(),
-  family_name: z.string().min(1, "Family name is required").optional(),
-  telecom_phone: z.string().min(10, "Phone number is required").optional(),
-  telecom_email: z.string().email("Work email is required").optional(),
+  given_name: z.string().min(1).optional(),
+  family_name: z.string().min(1).optional(),
+  telecom_phone: z.string().min(10).optional(),
+  telecom_email: z.string().email().optional(),
   gender: z.enum(["male", "female", "other", "unknown"]).optional(),
-  birth_date: z
-    .string()
-    .optional()
-    .refine((val) => !val || val <= today, {
-      message: "Birth date cannot be in the future",
-    }),
+  birth_date: z.string().optional().refine((val) => !val || val <= today, {
+    message: "Birth date cannot be in the future",
+  }),
 
   // Qualification
   degree: z.string().min(1, "Degree is required"),
   institution: z.string().min(1, "Institution is required"),
   graduation_year: z
     .string()
-    .regex(/^\d{4}$/, "Year must be in YYYY format")
+    .regex(/^\d{4}$/)
     .refine((val) => parseInt(val) <= currentYear, {
       message: `Graduation year cannot be in the future (max ${currentYear})`,
     }),
 
   // License
-  license_number: z.string().min(1, "License number is required"),
-  license_issued_by: z.string().min(1, "Issuing authority is required"),
-  license_expiry: z
-    .string()
-    .min(1, "License expiry is required")
-    .refine((val) => val >= today, {
-      message: "License expiry cannot be in the past",
-    }),
-  profile_picture_url: z.string().url("Must be a valid URL"),
-  license_url: z.string().url("Must be a valid URL"),
+  license_number: z.string().min(1),
+  license_issued_by: z.string().min(1),
+  license_expiry: z.string().min(1).refine((val) => val >= today, {
+    message: "License expiry cannot be in the past",
+  }),
+  profile_picture_url: z.string().url(),
+  license_url: z.string().url(),
   is_active: z.boolean(),
 
   // Role Info
-  role_code_system: z.string().url("Must be a valid URL").optional(),
-  role_code: z.string().min(1, "Role code is required").optional(),
-  role_display: z.string().min(1, "Role display is required").optional(),
-  role_text: z.string().min(1, "Role text is required").optional(),
-  specialty: z.string().min(1, "Specialty is required").optional(),
-  location_reference: z
-    .string()
-    .min(1, "Location reference is required")
-    .optional(),
-  location_display: z
-    .string()
-    .min(1, "Location display is required")
-    .optional(),
-  healthcare_service_reference: z
-    .string()
-    .min(1, "Healthcare service reference is required")
-    .optional(),
-  healthcare_service_display: z
-    .string()
-    .min(1, "Healthcare service display is required")
-    .optional(),
-  period_start: z.string().min(1, "Period start is required").optional(),
-  period_end: z.string().min(1, "Period end is required").optional(),
+  role_code_system: z.string().url().optional(),
+  role_code: z.string().min(1).optional(),
+  role_display: z.string().min(1).optional(),
+  role_text: z.string().min(1).optional(),
+  specialty: z.string().min(1).optional(),
+  location_reference: z.string().min(1).optional(),
+  location_display: z.string().min(1).optional(),
+  healthcare_service_reference: z.string().min(1).optional(),
+  healthcare_service_display: z.string().min(1).optional(),
+  period_start: z.string().min(1).optional(),
+  period_end: z.string().min(1).optional(),
 
   // Availability
-  availability_days: z.array(z.string()).min(1, "Select at least one day"),
+  availability_days: z.array(z.string()).min(1),
   available_times: z
     .array(
       z.object({
-        start: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:MM format"),
-        end: z.string().regex(/^\d{2}:\d{2}$/, "Time must be HH:MM format"),
+        start: z.string().regex(/^\d{2}:\d{2}$/),
+        end: z.string().regex(/^\d{2}:\d{2}$/),
       })
     )
-    .min(1, "Add at least one time slot"),
+    .min(1),
 
-  // Not Available (Optional)
+  // Not Available
   not_available_description: z.string().optional(),
   not_available_start: z.string().optional(),
   not_available_end: z.string().optional(),
 });
 
-type DoctorFormData = z.infer<typeof doctorFormSchema>;
+type PractitionerFormData = z.infer<typeof practitionerFormSchema>;
 
-interface DoctorFormModalProps {
+interface PractitionerFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit1: (formData: any) => Promise<void>;
-  editDoctorId?: string | null;
+  editPractitionerId?: string | null;
   onSuccess?: () => void;
+  role: "doctor" | "nurse";
 }
 
 const daysOfWeek = [
@@ -156,58 +132,62 @@ const daysOfWeek = [
   { value: "sun", label: "Sunday" },
 ];
 
-export default function FormModal({
+const roleDefaults = {
+  doctor: {
+    role_code: "doctor",
+    role_display: "Doctor",
+    role_text: "Doctor",
+  },
+  nurse: {
+    role_code: "nurse",
+    role_display: "Nurse",
+    role_text: "Nurse",
+  },
+};
+
+export default function PractitionerFormModal({
   open,
   onOpenChange,
-  editDoctorId = null,
+  editPractitionerId = null,
   onSuccess,
   onSubmit1,
-}: DoctorFormModalProps) {
+  role,
+}: PractitionerFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<DoctorFormData>({
-    resolver: zodResolver(doctorFormSchema),
+  const form = useForm<PractitionerFormData>({
+    resolver: zodResolver(practitionerFormSchema),
     defaultValues: {
       tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
       is_active: true,
-
       available_times: [{ start: "09:00", end: "17:00" }],
-      role_code_system:
-        "http://terminology.hl7.org/CodeSystem/practitioner-role",
-      role_code: "doctor",
-      role_display: "Doctor",
-      role_text: "Doctor",
+      role_code_system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
       availability_days: ["mon", "tue", "wed", "thu", "fri"],
+      ...roleDefaults[role],
     },
   });
 
-  const {
-    fields: timeFields,
-    append: appendTime,
-    remove: removeTime,
-  } = useFieldArray({
-    control: form.control,
-    name: "available_times",
-  });
+  const { fields: timeFields, append: appendTime, remove: removeTime } =
+    useFieldArray({
+      control: form.control,
+      name: "available_times",
+    });
 
-  const onSubmit = async (data: DoctorFormData) => {
+  const onSubmit = async (data: PractitionerFormData) => {
     setIsSubmitting(true);
     try {
-      const payload: AddDoctorPayload = {
+      const payload = {
         user: {
           tenant_id: data.tenant_id,
           name: data.name,
           email: data.email,
           phone: data.phone,
           hashed_password: "default1234",
-          user_role: "doctor",
+          user_role: role,
         },
         practitioner: {
           identifiers: [
-            {
-              system: data.identifier_system ?? "",
-              value: data.identifier_value ?? "",
-            },
+            { system: data.identifier_system ?? "", value: data.identifier_value ?? "" },
           ],
           name: {
             prefix: data.prefix ? [data.prefix] : [],
@@ -215,25 +195,13 @@ export default function FormModal({
             family: data.family_name ?? "",
           },
           telecom: [
-            {
-              system: "phone",
-              value: data.telecom_phone ?? "",
-              use: "mobile",
-            },
-            {
-              system: "email",
-              value: data.telecom_email ?? "",
-              use: "work",
-            },
+            { system: "phone", value: data.telecom_phone ?? "", use: "mobile" },
+            { system: "email", value: data.telecom_email ?? "", use: "work" },
           ],
           gender: data.gender ?? "",
           birth_date: data.birth_date ?? "",
           qualification: [
-            {
-              degree: data.degree,
-              institution: data.institution,
-              year: data.graduation_year,
-            },
+            { degree: data.degree, institution: data.institution, year: data.graduation_year },
           ],
           license_details: {
             number: data.license_number,
@@ -258,55 +226,30 @@ export default function FormModal({
               text: data.role_text ?? "",
             },
           ],
-          specialty: [
-            {
-              text: data.specialty ?? "",
-            },
-          ],
-          location: [
-            {
-              reference: data.location_reference ?? "",
-              display: data.location_display ?? "",
-            },
-          ],
+          specialty: [{ text: data.specialty ?? "" }],
+          location: [{ reference: data.location_reference ?? "", display: data.location_display ?? "" }],
           healthcare_service: [
-            {
-              reference: data.healthcare_service_reference ?? "",
-              display: data.healthcare_service_display ?? "",
-            },
+            { reference: data.healthcare_service_reference ?? "", display: data.healthcare_service_display ?? "" },
           ],
-          period: {
-            start: data.period_start ?? "",
-            end: data.period_end ?? "",
-          },
-          availability: [
-            {
-              daysOfWeek: data.availability_days,
-              availableTime: data.available_times,
-            },
-          ],
+          period: { start: data.period_start ?? "", end: data.period_end ?? "" },
+          availability: [{ daysOfWeek: data.availability_days, availableTime: data.available_times }],
           not_available: data.not_available_description
             ? [
                 {
                   description: data.not_available_description,
-                  during: {
-                    start: data.not_available_start || "",
-                    end: data.not_available_end || "",
-                  },
+                  during: { start: data.not_available_start || "", end: data.not_available_end || "" },
                 },
               ]
             : [],
         },
       };
       console.log(payload);
-      onSubmit1(payload);
-      // await addDoctor(payload);
-      console.log("Doctor added successfully!");
+      await onSubmit1(payload);
       onOpenChange(false);
       form.reset();
       onSuccess?.();
     } catch (error) {
-      console.error("Error adding doctor:", error);
+      console.error(`Error adding ${role}:`, error);
     } finally {
       setIsSubmitting(false);
     }
@@ -314,9 +257,7 @@ export default function FormModal({
 
   const handleClose = (open: boolean) => {
     onOpenChange(open);
-    if (!open) {
-      form.reset();
-    }
+    if (!open) form.reset();
   };
 
   return (
@@ -324,7 +265,9 @@ export default function FormModal({
       <DialogContent className="w-[60vw] max-w-none max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {editDoctorId ? "Edit Doctor" : "Add New Doctor"}
+            {editPractitionerId
+              ? `Edit ${role.charAt(0).toUpperCase() + role.slice(1)}`
+              : `Add New ${role.charAt(0).toUpperCase() + role.slice(1)}`}
           </DialogTitle>
         </DialogHeader>
 
@@ -1000,24 +943,18 @@ export default function FormModal({
               </div>
             </div>
 
-            {/* Submit Button */}
-            <DialogFooter className="sticky bottom-0 w-full mx-auto bg-white border-t border-gray-200  flex justify-between px-4 py-3">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                className="w-1/2 mr-2"
-              >
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting} className="w-1/2 ">
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting
-                  ? editDoctorId
-                    ? "Updating..."
-                    : "Adding..."
-                  : editDoctorId
-                  ? "Update Doctor"
-                  : "Enroll Doctor"}
+                  ? editPractitionerId
+                    ? `Updating ${role}...`
+                    : `Adding ${role}...`
+                  : editPractitionerId
+                  ? `Update ${role}`
+                  : `Enroll ${role}`}
               </Button>
             </DialogFooter>
           </form>

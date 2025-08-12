@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 interface EditSpecialtyModalProps {
@@ -32,25 +33,21 @@ export default function EditSpecialtyModal({
   );
 
   const [specialtyName, setSpecialtyName] = useState("");
+  const [isActive, setIsActive] = useState(false);
   const [nameError, setNameError] = useState("");
 
   useEffect(() => {
     if (specialtyToEdit) {
       setSpecialtyName(specialtyToEdit.specialty_label);
+      setIsActive(specialtyToEdit.is_active);
       setNameError("");
     }
   }, [specialtyToEdit]);
 
   const validateName = (name: string) => {
-    if (!name.trim()) {
-      return "Specialty name is required";
-    }
-    if (name.trim().length < 2) {
-      return "Specialty name must be at least 2 characters";
-    }
-    if (name.trim().length > 100) {
-      return "Specialty name must be less than 100 characters";
-    }
+    if (!name.trim()) return "Specialty name is required";
+    if (name.trim().length < 2) return "Specialty name must be at least 2 characters";
+    if (name.trim().length > 100) return "Specialty name must be less than 100 characters";
     return "";
   };
 
@@ -76,6 +73,7 @@ export default function EditSpecialtyModal({
         display: specialtyName.trim(),
         code: specialtyName.trim().substring(0, 4).toUpperCase(),
         description: `${specialtyName.trim()} description`,
+        is_active: isActive, // update status along with name
       };
 
       const resultAction = await dispatch(
@@ -87,12 +85,11 @@ export default function EditSpecialtyModal({
 
       if (updateSpecialtyName.fulfilled.match(resultAction)) {
         toast.success("Specialty updated successfully!");
-        // Refresh the specialty list
         dispatch(fetchSpecialtiesByServiceId(selectedServiceId));
       } else {
         toast.error(resultAction.payload as string);
       }
-    } catch (error) {
+    } catch {
       toast.error("Failed to update specialty.");
     } finally {
       handleCloseModal();
@@ -110,12 +107,11 @@ export default function EditSpecialtyModal({
 
   return (
     <Dialog open={editModalOpen} onOpenChange={handleCloseModal}>
-      <DialogContent className="max-w-md" showCloseButton={false}>
+      <DialogContent className="max-w-md py-4" showCloseButton={false}>
         <DialogHeader>
           <DialogTitle>Edit Specialty</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Update the specialty name below. The changes will be saved
-            immediately.
+            Update the specialty details below.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,18 +126,31 @@ export default function EditSpecialtyModal({
               className={nameError ? "border-red-500" : ""}
               disabled={loading}
             />
-            {nameError && (
-              <p className="text-sm text-red-500 mt-1">{nameError}</p>
-            )}
+            {nameError && <p className="text-sm text-red-500 mt-1">{nameError}</p>}
+          </div>
+
+          {/* Active Status Toggle */}
+          <div className="flex items-center gap-12">
+            <span className="text-sm font-medium">Active Status</span>
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={isActive}
+                onCheckedChange={setIsActive} // only updates local state
+                className={isActive ? "bg-green-500" : "bg-red-500"}
+              />
+              <span
+                className={`text-sm font-medium ${
+                  isActive ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {isActive ? "Active" : "Inactive"}
+              </span>
+            </div>
           </div>
         </div>
 
         <DialogFooter className="gap-2">
-          <Button
-            variant="outline"
-            onClick={handleCloseModal}
-            disabled={loading}
-          >
+          <Button variant="outline" onClick={handleCloseModal} disabled={loading}>
             Cancel
           </Button>
           <Button

@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSpecialty,
   fetchSpecialtiesByServiceId,
-  openConfirmModal,
   openEditModal,
 } from "@/store/slices/specialtySlice";
 import { getServices } from "@/services/admin.api";
@@ -18,9 +17,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, ShieldCheck, ShieldX } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import AddSpecialtyModal from "@/components/dashboard/admin/specialty/modal/AddSpecialtyModal";
-import ConfirmToggleSpecialtyModal from "@/components/dashboard/admin/specialty/modal/ConfirmToggleSpecialtyModal";
 import EditSpecialtyModal from "@/components/dashboard/admin/specialty/modal/EditSpecialtyModal";
 import { Specialty } from "@/types/specialty.type";
 import { toast } from "sonner";
@@ -54,10 +52,6 @@ export default function Specialties() {
       dispatch(fetchSpecialtiesByServiceId(selectedServiceId));
     }
   }, [dispatch, selectedServiceId]);
-
-  const handleOpenConfirmModal = (specialty: Specialty) => {
-    dispatch(openConfirmModal(specialty));
-  };
 
   const handleOpenEditModal = (specialty: Specialty) => {
     dispatch(openEditModal(specialty));
@@ -93,27 +87,14 @@ export default function Specialties() {
           <Button
             variant="ghost"
             size="icon"
+            // className={
+            //   row.original.is_active
+            //     ? "text-green-500 hover:text-green-700"
+            //     : "text-red-500 hover:text-red-700"
+            // }
             onClick={() => handleOpenEditModal(row.original)}
           >
             <Pencil className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            className={
-              row.original.is_active
-                ? "text-green-500 hover:text-green-700"
-                : "text-red-500 hover:text-red-700"
-            }
-            size="icon"
-            onClick={() => handleOpenConfirmModal(row.original)}
-          >
-            <div className="flex items-center justify-center">
-              {row.original.is_active ? (
-                <ShieldCheck className="w-8 h-8" />
-              ) : (
-                <ShieldX className="w-8 h-8" />
-              )}
-            </div>
           </Button>
         </div>
       ),
@@ -180,7 +161,6 @@ export default function Specialties() {
         onSubmit={handleAddSpecialty}
       />
 
-      <ConfirmToggleSpecialtyModal selectedServiceId={selectedServiceId} />
       <EditSpecialtyModal selectedServiceId={selectedServiceId} />
     </div>
   );
