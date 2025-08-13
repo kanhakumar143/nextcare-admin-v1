@@ -100,47 +100,41 @@ export const updateService = async (
 };
 
 
-export const addDoctor = async (payload: AddDoctorPayload) => {
+export const addPractitioner = async (payload: AddDoctorPayload) => {
   try {
     const response = await api.post(`practitioner/`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      const message = error?.message || "Failed to add doctor";
-      throw new Error(message);
+      throw new Error(error?.message || "Failed to add practitioner");
     }
     throw new Error("Unexpected error occurred.");
   }
 };
 
-export const getPractitionerByRole = async () => {
+// Get Practitioner List by Role
+export const getPractitionerByRole = async (role: "doctor" | "nurse") => {
   try {
     const { data } = await api.get(
-      `practitioner/by-tenant-role?tenant_id=4896d272-e201-4dce-9048-f93b1e3ca49f&role=doctor`
+      `practitioner/by-tenant-role?tenant_id=4896d272-e201-4dce-9048-f93b1e3ca49f&role=${role}`
     );
     return data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      const message = error?.message || "Failed to fetch practitioner";
-      throw new Error(message);
+      throw new Error(error?.message || "Failed to fetch practitioner");
     }
     throw new Error("Unexpected error occurred.");
   }
 };
 
-export const UpdateDoctor = async (
-  payload: UpdateDoctorPayload
-) => {
+// Update Practitioner
+export const updatePractitioner = async (payload: UpdateDoctorPayload) => {
   try {
-    const response = await api.put(
-      `practitioner/`,
-      payload
-    );
+    const response = await api.put(`practitioner/`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      const message = error?.message || "Failed to update service status";
-      throw new Error(message);
+      throw new Error(error?.message || "Failed to update practitioner");
     }
     throw new Error("Unexpected error occurred.");
   }

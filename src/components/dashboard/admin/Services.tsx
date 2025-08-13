@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import moment from "moment";
-import { Plus, Trash2, Pencil, ShieldCheck, ShieldX } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,11 +15,10 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { DataTable } from "@/components/common/DataTable";
 import { addService, getServices, updateService } from "@/services/admin.api";
-import { AddServicePayload } from "@/types/admin.types";
 import { toast } from "sonner";
 
 const postSchema = z.object({
@@ -50,7 +49,6 @@ export default function Services() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
   const [apiCallFor, setApiCallFor] = useState<string | null>(null);
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
   const {
@@ -86,6 +84,7 @@ export default function Services() {
         await updateService({
           service_id: editServiceId || "",
           name: data.name,
+          active: selectedService?.active,
         });
         toast.success("Service updated successfully");
       }
@@ -97,6 +96,7 @@ export default function Services() {
       setOpen(false);
     } catch (error) {
       console.error("Save failed:", error);
+      toast.error("Save failed");
     } finally {
       setIsSubmitting(false);
     }
@@ -106,25 +106,28 @@ export default function Services() {
     setApiCallFor("edit");
     setValue("name", service.name);
     setEditServiceId(service.id);
+    setSelectedService(service);
     setOpen(true);
-    toast.success("Service edit successfully");
   };
 
-  const handleConfirmStatusChange = async () => {
+  const handleToggleStatus = async (checked: boolean) => {
     if (!selectedService) return;
     try {
       await updateService({
         service_id: selectedService.id,
         name: selectedService.name,
-        active: !selectedService.active,
+        active: checked,
       });
+      setSelectedService({ ...selectedService, active: checked });
+      toast.success(
+        checked
+          ? "Service activated successfully"
+          : "Service deactivated successfully"
+      );
       await fetchServices();
-      toast.success("Service status updated successfully");
     } catch (error) {
       console.error("Status update failed:", error);
-      toast.error("Service status update failed");
-    } finally {
-      setStatusDialogOpen(false);
+      toast.error("Status update failed");
     }
   };
 
@@ -166,37 +169,13 @@ export default function Services() {
     {
       header: "Actions",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <Button
-            variant="secondary"
-            size="icon"
-            onClick={() => handleEdit(row.original)}
-          >
-            <Pencil className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            className={
-              row.original.active
-                ? "  text-red-500 hover:text-red-700"
-                : "  text-green-500 hover:text-green-700"
-            }
-            size="icon"
-            onClick={() => {
-              setSelectedService(row.original);
-              setStatusDialogOpen(true);
-            }}
-          >
-            {/* <Trash2 className="w-4 h-4" /> */}
-            <div className="flex  items-center justify-center">
-              {row.original.active ? (
-                <ShieldCheck className="w-8 h-8" />
-              ) : (
-                <ShieldX className="w-8 h-8" />
-              )}
-            </div>
-          </Button>
-        </div>
+        <Button
+          variant="secondary"
+          size="icon"
+          onClick={() => handleEdit(row.original)}
+        >
+          <Pencil className="w-4 h-4" />
+        </Button>
       ),
     },
   ];
@@ -215,6 +194,7 @@ export default function Services() {
           onClick={() => {
             setOpen(true);
             setApiCallFor("add");
+            setSelectedService(null);
           }}
         >
           <Plus className="w-4 h-4 mr-1" />
@@ -228,6 +208,7 @@ export default function Services() {
             if (!val) {
               reset();
               setEditServiceId(null);
+              setSelectedService(null);
             }
           }}
         >
@@ -245,6 +226,30 @@ export default function Services() {
                 )}
               </div>
 
+              {editServiceId && selectedService && (
+                <div className="flex items-center gap-12">
+                  <span className="text-sm font-medium">Active Status</span>
+                  <div className="flex items-center gap-3">
+                    <Switch
+                      checked={selectedService.active}
+                      onCheckedChange={handleToggleStatus}
+                      className={
+                        selectedService.active ? "bg-green-500" : "bg-red-500"
+                      }
+                    />
+                    <span
+                      className={`text-sm font-medium ${
+                        selectedService.active
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    >
+                      {selectedService.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting
                   ? editServiceId
@@ -258,55 +263,6 @@ export default function Services() {
           </DialogContent>
         </Dialog>
       </div>
-
-      {/* Status Change Confirmation Dialog */}
-      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="max-w-md w-full h-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">
-              {selectedService?.active ? "Deactivate" : "Activate"} Service?
-            </DialogTitle>
-          </DialogHeader>
-
-          <div className="mt-2 text-sm text-muted-foreground">
-            Are you sure you want to{" "}
-            <span
-              className={
-                selectedService?.active
-                  ? "text-red-600 font-medium"
-                  : "text-green-600 font-medium"
-              }
-            >
-              {selectedService?.active ? "deactivate" : "activate"}
-            </span>{" "}
-            the service{" "}
-            <span className="text-foreground font-semibold">
-              {selectedService?.name}
-            </span>
-            ?
-          </div>
-
-          <DialogFooter className="p-4 flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setStatusDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant={selectedService?.active ? "destructive" : "default"}
-              onClick={handleConfirmStatusChange}
-              className={
-                selectedService?.active
-                  ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
-                  : "bg-green-500 text-white hover:bg-green-700 hover:text-white"
-              }
-            >
-              {selectedService?.active ? "Deactivate" : "Activate"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <DataTable
         columns={columns}

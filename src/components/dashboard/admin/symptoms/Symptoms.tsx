@@ -4,8 +4,6 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import {
   addSymptom,
   fetchSymptomsByTenantId,
-  toggleSymptomStatus,
-  openConfirmModal,
   openEditModal,
 } from "@/store/slices/symptomsSlice";
 import { getServices } from "@/services/admin.api";
@@ -19,10 +17,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { ColumnDef } from "@tanstack/react-table";
-import { Pencil, Plus, ShieldCheck, ShieldX } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import AddSymptomModal from "@/components/dashboard/admin/symptoms/modal/AddSymptomModal";
-import ConfirmToggleModal from "@/components/dashboard/admin/symptoms/modal/ConfirmToggleModal";
-import EditSymptomModal from "@/components/dashboard/admin/symptoms/modal/EditSymptomModal";
+import SymptomFormModal from "@/components/dashboard/admin/symptoms/modal/EditSymptomModal"; // ✅ merged modal
 import { Symptom } from "@/types/symptoms.type";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +33,6 @@ export default function Symptoms() {
   const [services, setServices] = useState<any[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
   const [filterValue, setFilterValue] = useState("");
-
   const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
@@ -58,10 +54,6 @@ export default function Symptoms() {
       dispatch(fetchSymptomsByTenantId(orgId));
     }
   }, [dispatch, orgId]);
-
-  const handleOpenConfirmModal = (symptom: Symptom) => {
-    dispatch(openConfirmModal(symptom));
-  };
 
   const handleOpenEditModal = (symptom: Symptom) => {
     dispatch(openEditModal(symptom));
@@ -101,26 +93,11 @@ export default function Symptoms() {
           >
             <Pencil className="w-4 h-4" />
           </Button>
-          <Button
-            variant="ghost"
-            className={
-              row.original.is_active
-                ? "text-green-500 hover:text-green-700"
-                : "text-red-500 hover:text-red-700"
-            }
-            size="icon"
-            onClick={() => handleOpenConfirmModal(row.original)}
-          >
-            {row.original.is_active ? (
-              <ShieldCheck className="w-8 h-8" />
-            ) : (
-              <ShieldX className="w-8 h-8" />
-            )}
-          </Button>
         </div>
       ),
     },
   ];
+
   const filteredSymptoms = selectedServiceId
     ? items.filter((symptom) => symptom.tenant_service_id === selectedServiceId)
     : items;
@@ -133,7 +110,6 @@ export default function Symptoms() {
       if (addSymptom.fulfilled.match(resultAction)) {
         toast.success("Symptom added successfully!");
         setOpenModal(false);
-        // Fix here: use orgId, not selectedServiceId
         if (orgId) {
           dispatch(fetchSymptomsByTenantId(orgId));
         }
@@ -181,15 +157,16 @@ export default function Symptoms() {
         externalFilterValue={filterValue}
       />
 
+      {/* Add Symptom Modal */}
       <AddSymptomModal
         open={openModal}
         onClose={() => setOpenModal(false)}
         onSubmit={handleAddSymptom}
-        orgId={orgId ?? ""} // <-- Here: convert null to undefined
+        orgId={orgId ?? ""}
       />
 
-      <ConfirmToggleModal />
-      <EditSymptomModal />
+      {/* Unified Edit + Toggle Modal */}
+      <SymptomFormModal />
     </div>
   );
 }

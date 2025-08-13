@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Pencil, ShieldCheck, ShieldX } from "lucide-react";
+import { Plus, Pencil, ShieldCheck, ShieldX } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,90 +15,89 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
-import { DoctorData, UpdateDoctorPayload } from "@/types/admin.types";
+import { NurseData } from "@/types/admin.types"; // ✅ Create a similar type as DoctorData
 import {
   addPractitioner,
   getPractitionerByRole,
   updatePractitioner,
-} from "@/services/admin.api";
+} from "@/services/admin.api"; // ✅ Ensure these exist in API
 import FormModal from "../../common/FormModal";
 import { toast } from "sonner";
-import PractitionerFormModal from "../../common/FormModal";
 
-type ExtendedDoctorData = DoctorData & {
+type ExtendedNurseData = NurseData & {
   name: string;
   id: string;
   user_id: string;
   license_details: string;
 };
 
-export default function DoctorManagement() {
+export default function NurseManagement() {
   const [open, setOpen] = useState(false);
   const [filterValue, setFilterValue] = useState("");
-  const [editDoctorId, setEditDoctorId] = useState<string | null>(null);
-  const [selectedDoctor, setSelectedDoctor] =
-    useState<ExtendedDoctorData | null>(null);
-  const [practitioners, setPractitioners] = useState<ExtendedDoctorData[]>([]);
+  const [editNurseId, setEditNurseId] = useState<string | null>(null);
+  const [selectedNurse, setSelectedNurse] = useState<ExtendedNurseData | null>(
+    null
+  );
+  const [nurses, setNurses] = useState<ExtendedNurseData[]>([]);
 
-  const fetchPractitionerByRole = async () => {
+  const fetchNurses = async () => {
     try {
-      const res = await getPractitionerByRole("doctor");
-      const data = (res?.data || []).map((doc: DoctorData) => ({
-        ...doc,
-        name: doc.user.name,
+      const res = await getPractitionerByRole("nurse"); // ✅ fetch only nurses
+      const data = (res?.data || []).map((nurse: NurseData) => ({
+        ...nurse,
+        name: nurse.user.name,
       }));
-      setPractitioners(data);
+      setNurses(data);
     } catch (error) {
-      console.error("Failed to fetch practitioners:", error);
+      console.error("Failed to fetch nurses:", error);
     }
   };
 
   useEffect(() => {
-    fetchPractitionerByRole();
+    fetchNurses();
   }, []);
 
-  const handleAddDoctor = async (formData: any) => {
+  const handleAddNurse = async (formData: any) => {
     try {
-      console.log(formData);
       await addPractitioner(formData);
-      await fetchPractitionerByRole();
+      await fetchNurses();
       setOpen(false);
-      toast.success("Doctor added successfully.");
+      toast.success("Nurse added successfully.");
     } catch (error) {
-      console.error("Error adding doctor:", error);
-      toast.error("Failed to add doctor.");
+      console.error("Error adding nurse:", error);
+      toast.error("Failed to add nurse.");
     }
   };
 
-  const handleToggleStatus = async (doctor: ExtendedDoctorData) => {
+  const handleToggleStatus = async (nurse: ExtendedNurseData) => {
     try {
       await updatePractitioner({
-        id: doctor.id,
-        user_id: doctor.user_id,
-        practitioner_display_id: doctor.practitioner_display_id ?? "",
-        gender: doctor.gender ?? "",
-        birth_date: doctor.birth_date ?? "",
-        is_active: !doctor.is_active,
-        license_details: doctor.license_details,
-        profile_picture_url: doctor.profile_picture_url ?? "",
-        license_url: doctor.license_url ?? "",
+        id: nurse.id,
+        user_id: nurse.user_id,
+        practitioner_display_id: nurse.practitioner_display_id ?? "",
+        gender: nurse.gender ?? "",
+        birth_date: nurse.birth_date ?? "",
+        is_active: !nurse.is_active,
+        license_details: nurse.license_details,
+        profile_picture_url: nurse.profile_picture_url ?? "",
+        license_url: nurse.license_url ?? "",
       });
 
       toast.success(
-        `Doctor ${!doctor.is_active ? "activated" : "deactivated"} successfully`
+        `Nurse ${!nurse.is_active ? "activated" : "deactivated"} successfully`
       );
-      setSelectedDoctor(null);
+      setSelectedNurse(null);
       setOpen(false);
-      await fetchPractitionerByRole();
+      await fetchNurses();
     } catch (error) {
       console.error("Status toggle failed:", error);
-      toast.error("Failed to update doctor status");
+      toast.error("Failed to update nurse status");
     }
   };
 
-  const columns: ColumnDef<ExtendedDoctorData>[] = [
+  const columns: ColumnDef<ExtendedNurseData>[] = [
     {
-      header: "Doctor Name",
+      header: "Nurse Name",
       accessorKey: "name",
     },
     {
@@ -131,7 +130,7 @@ export default function DoctorManagement() {
     {
       header: "Actions",
       cell: ({ row }) => {
-        const doctor = row.original;
+        const nurse = row.original;
         return (
           <div className="flex items-center gap-2">
             <Button variant="secondary" size="icon" onClick={() => {}}>
@@ -140,19 +139,18 @@ export default function DoctorManagement() {
             <Button
               variant="ghost"
               className={
-                doctor.is_active
+                nurse.is_active
                   ? " text-red-500 hover:text-red-700"
                   : " text-green-500 hover:text-green-700"
               }
               onClick={() => {
-                setSelectedDoctor(doctor);
+                setSelectedNurse(nurse);
                 setOpen(true);
               }}
             >
-              {/* <Trash2 className="w-4 h-4" /> */}
               <div className="flex h-8 w-8 items-center justify-center">
-                {doctor.is_active ? (
-                  <ShieldCheck className="w-8 h-8  " />
+                {nurse.is_active ? (
+                  <ShieldCheck className="w-8 h-8" />
                 ) : (
                   <ShieldX className="w-8 h-8" />
                 )}
@@ -168,7 +166,7 @@ export default function DoctorManagement() {
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
         <Input
-          placeholder="Filter by Doctor Name..."
+          placeholder="Filter by Nurse Name..."
           value={filterValue}
           onChange={(e) => setFilterValue(e.target.value)}
           className="max-w-sm"
@@ -179,47 +177,47 @@ export default function DoctorManagement() {
           onOpenChange={(val) => {
             setOpen(val);
             if (!val) {
-              setEditDoctorId(null);
-              setSelectedDoctor(null);
+              setEditNurseId(null);
+              setSelectedNurse(null);
             }
           }}
         >
           <DialogTrigger asChild>
             <Button>
               <Plus className="w-4 h-4 mr-1" />
-              Add Doctor
+              Add Nurse
             </Button>
           </DialogTrigger>
 
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {selectedDoctor
-                  ? selectedDoctor.is_active
-                    ? "Deactivate Doctor"
-                    : "Activate Doctor"
-                  : editDoctorId
-                  ? "Edit Doctor"
-                  : "Add New Doctor"}
+                {selectedNurse
+                  ? selectedNurse.is_active
+                    ? "Deactivate Nurse"
+                    : "Activate Nurse"
+                  : editNurseId
+                  ? "Edit Nurse"
+                  : "Add New Nurse"}
               </DialogTitle>
             </DialogHeader>
 
-            {selectedDoctor ? (
+            {selectedNurse ? (
               <>
                 <div className="mt-2 text-sm text-muted-foreground">
                   Are you sure you want to{" "}
                   <span
                     className={
-                      selectedDoctor.is_active
+                      selectedNurse.is_active
                         ? "text-red-600 font-medium"
                         : "text-green-600 font-medium"
                     }
                   >
-                    {selectedDoctor.is_active ? "deactivate" : "activate"}
+                    {selectedNurse.is_active ? "deactivate" : "activate"}
                   </span>{" "}
-                  the doctor{" "}
+                  the nurse{" "}
                   <span className="text-foreground font-semibold">
-                    {selectedDoctor.name}
+                    {selectedNurse.name}
                   </span>
                   ?
                 </div>
@@ -228,35 +226,35 @@ export default function DoctorManagement() {
                     variant="outline"
                     onClick={() => {
                       setOpen(false);
-                      setSelectedDoctor(null);
+                      setSelectedNurse(null);
                     }}
                   >
                     Cancel
                   </Button>
                   <Button
                     variant={
-                      selectedDoctor.is_active ? "destructive" : "default"
+                      selectedNurse.is_active ? "destructive" : "default"
                     }
-                    onClick={() => handleToggleStatus(selectedDoctor)}
+                    onClick={() => handleToggleStatus(selectedNurse)}
                     className={
-                      selectedDoctor.is_active
+                      selectedNurse.is_active
                         ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
                         : "bg-green-500 text-white hover:bg-green-700 hover:text-white"
                     }
                   >
-                    {selectedDoctor.is_active ? "Deactivate" : "Activate"}
+                    {selectedNurse.is_active ? "Deactivate" : "Activate"}
                   </Button>
                 </DialogFooter>
               </>
             ) : (
-              <PractitionerFormModal
-                role="doctor"
-                onSubmit1={handleAddDoctor}
-                editPractitionerId={editDoctorId}
+              <FormModal
+                role="nurse" 
+                onSubmit1={handleAddNurse}
+                editPractitionerId={editNurseId} 
                 open={open}
                 onOpenChange={(val) => {
                   setOpen(val);
-                  if (!val) setEditDoctorId(null);
+                  if (!val) setEditNurseId(null);
                 }}
               />
             )}
@@ -264,9 +262,9 @@ export default function DoctorManagement() {
         </Dialog>
       </div>
 
-      <DataTable<ExtendedDoctorData>
+      <DataTable<ExtendedNurseData>
         columns={columns}
-        data={practitioners}
+        data={nurses}
         filterColumn="name"
         externalFilterValue={filterValue}
       />
