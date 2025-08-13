@@ -17,16 +17,26 @@ export interface QuestionOption {
   value: string;
 }
 
-export interface Question {
-  type: QuestionType;
+export interface QuestionNote {
+  mandatory: boolean;
+  instruction: string;
+}
+
+// This is what you send to add a new question
+export interface AddQuestionRequest {
   specialty_id: string;
-  question: string;
-  note: string | null;
-  updated_at: string;
-  id: string;
   title: string;
+  question: string;
+  type: QuestionType;
   options: QuestionOption[];
+  note: QuestionNote | null;
+}
+
+// This is the full Question object you might receive from backend (includes metadata)
+export interface Question extends AddQuestionRequest {
+  id: string;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ServicesState {
