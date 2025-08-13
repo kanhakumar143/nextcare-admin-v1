@@ -2,15 +2,15 @@ import {
   doctorSliceInitialStates,
   ConsultationData,
   LabTest,
-  Medicine,
-  VisitNote,
   Medication,
   EPrescription,
   VitalReading,
 } from "@/types/doctor.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import { getAssignedAppointments } from "@/services/doctor.api";
-import { set } from "zod";
+import {
+  getAssignedAppointments,
+  getPractitionerDetails,
+} from "@/services/doctor.api";
 
 export const fetchAssignedAppointments = createAsyncThunk(
   "doctor/fetchAssignedAppointments",
@@ -21,6 +21,21 @@ export const fetchAssignedAppointments = createAsyncThunk(
     } catch (error: any) {
       console.error("Error fetching assigned appointments:", error);
       return rejectWithValue(error.message || "Failed to fetch appointments");
+    }
+  }
+);
+
+export const fetchPractitionerDetails = createAsyncThunk(
+  "doctor/fetchPractitionerDetails",
+  async (userId: string, { rejectWithValue }) => {
+    try {
+      const response = await getPractitionerDetails(userId);
+      return response?.data;
+    } catch (error: any) {
+      console.error("Error fetching practitioner details:", error);
+      return rejectWithValue(
+        error.message || "Failed to fetch practitioner details"
+      );
     }
   }
 );
@@ -39,6 +54,9 @@ const initialState: doctorSliceInitialStates = {
   labTests: [],
   medicines: [],
   currentVitals: [],
+  practitionerData: null,
+  practitionerDataLoading: false,
+  practitionerDataError: null,
   visitNote: {
     summary: "",
     follow_up: "",
@@ -213,6 +231,19 @@ const doctorSlice = createSlice({
       .addCase(fetchAssignedAppointments.rejected, (state, action) => {
         state.patientQueueListLoading = false;
         state.patientQueueListError = action.payload as string;
+      })
+      .addCase(fetchPractitionerDetails.pending, (state) => {
+        state.practitionerDataLoading = true;
+        state.practitionerDataError = null;
+      })
+      .addCase(fetchPractitionerDetails.fulfilled, (state, action) => {
+        state.practitionerDataLoading = false;
+        state.practitionerData = action.payload;
+        state.practitionerDataError = null;
+      })
+      .addCase(fetchPractitionerDetails.rejected, (state, action) => {
+        state.practitionerDataLoading = false;
+        state.practitionerDataError = action.payload as string;
       });
   },
 });
@@ -238,4 +269,5 @@ export const {
   clearMedicines,
   clearConsultationOrders,
 } = doctorSlice.actions;
+
 export default doctorSlice.reducer;

@@ -129,9 +129,13 @@ export default function DoctorConsultationHistory() {
       cell: ({ getValue }) => (
         <Badge
           variant={getValue() === "scheduled" ? "secondary" : "outline"}
-          className="bg-secondary text-secondary-foreground"
+          className={
+            getValue() === "fulfilled"
+              ? "bg-green-50 border-green-600 text-green-600"
+              : "bg-secondary text-secondary-foreground"
+          }
         >
-          {getValue() as string}
+          {getValue() === "fulfilled" ? "Completed" : (getValue() as string)}
         </Badge>
       ),
     },

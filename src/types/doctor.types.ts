@@ -1,3 +1,5 @@
+import { PractitionerData } from "@/types/doctorNew.types";
+
 export interface VisitCarePlan {
   plan_type: string;
   goal: string;
@@ -61,6 +63,9 @@ export interface doctorSliceInitialStates {
   patientAppointmentHistory: any[];
   medicines: Medication[];
   currentVitals: VitalReading[];
+  practitionerData: PractitionerData | null;
+  practitionerDataLoading: boolean;
+  practitionerDataError: string | null;
   visitNote: VisitNote1;
 }
 
