@@ -13,7 +13,11 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
-import { DoctorData, UpdateDoctorPayload } from "@/types/admin.types";
+import {
+  DoctorData,
+  UpdateDoctorPayload,
+  AddDoctorPayload,
+} from "@/types/admin.types";
 import {
   addPractitioner,
   getPractitionerByRole,
@@ -59,6 +63,76 @@ function mapDoctorToFormDefaults(doctor: ExtendedDoctorData) {
   };
 }
 
+// ✅ helper: flat form → API shape for adding
+function mapFormToAddDoctorPayload(formData: any): AddDoctorPayload {
+  return {
+    user: {
+      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      name: formData.name,
+      email: formData.email,
+      user_role: "doctor",
+      phone: formData.phone,
+    },
+    practitioner: {
+      identifiers: [
+        {
+          system: "practitioner_id",
+          value: formData.practitioner_display_id || "",
+        },
+      ],
+      name: {
+        given: [formData.name],
+        family: "",
+      },
+      gender: formData.gender,
+      birth_date: formData.birth_date,
+      qualification: [
+        {
+          degree: formData.degree,
+          institution: formData.institution,
+          year: formData.graduation_year,
+        },
+      ],
+      license_details: {
+        number: formData.license_number,
+        issued_by: formData.license_issued_by,
+        expiry: formData.license_expiry,
+      },
+      profile_picture_url: formData.profile_picture_url,
+      license_url: formData.license_url,
+      is_active: formData.is_active ?? true,
+    },
+    role: {
+      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      code: [
+        {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
+              code: "doctor",
+              display: "Doctor",
+            },
+          ],
+          text: "Doctor",
+        },
+      ],
+      specialty: [
+        {
+          text: formData.specialty || "General Practice",
+        },
+      ],
+      location: [],
+      healthcare_service: [],
+      period: {
+        start: new Date().toISOString(),
+        end: "",
+      },
+      availability: [],
+      not_available: [],
+    },
+  };
+}
+
 // ✅ helper: flat form → API shape
 function mapFormToDoctorPayload(
   formData: any,
@@ -72,20 +146,18 @@ function mapFormToDoctorPayload(
     gender: formData.gender,
     birth_date: formData.birth_date,
     is_active: formData.is_active,
-    profile_picture_url: formData.profile_picture_url ,
-    license_url: formData.license_url ,
-    license_details: {
-      number: formData.license_number ,
-      issued_by: formData.license_issued_by ,
-      expiry: formData.license_expiry ,
+    profile_picture_url: formData.profile_picture_url,
+    license_url: formData.license_url,
+    license_details: JSON.stringify({
+      number: formData.license_number,
+      issued_by: formData.license_issued_by,
+      expiry: formData.license_expiry,
+    }),
+    qualification: {
+      degree: formData.degree,
+      institution: formData.institution,
+      graduation_year: formData.graduation_year,
     },
-    qualification: [
-      {
-        degree: formData.degree ,
-        institution: formData.institution ,
-        graduation_year: formData.graduation_year ,
-      },
-    ],
   };
 }
 
@@ -115,7 +187,7 @@ export default function DoctorManagement() {
 
   const handleAddDoctor = async (formData: any) => {
     try {
-      const payload = mapFormToDoctorPayload(formData);
+      const payload = mapFormToAddDoctorPayload(formData);
       const res = await addPractitioner(payload);
 
       // Add new doctor to local state immediately
@@ -133,39 +205,42 @@ export default function DoctorManagement() {
     }
   };
 
- const handleEditDoctor = async (formData: any) => {
-  if (!editDoctor) return;
+  const handleEditDoctor = async (formData: any) => {
+    if (!editDoctor) return;
 
-  try {
-    const payload = mapFormToDoctorPayload(formData, editDoctor.id, editDoctor.user_id);
-    const res = await updatePractitioner(payload); // res.data contains updated doctor
+    try {
+      const payload = mapFormToDoctorPayload(
+        formData,
+        editDoctor.id,
+        editDoctor.user_id
+      );
+      const res = await updatePractitioner(payload); // res.data contains updated doctor
 
-    const updatedDoctor: ExtendedDoctorData = {
-      ...res.data,
-      name: res.data.user?.name ?? editDoctor.name,
-      license_details: {
-        number: res.data.license_details?.number ?? "",
-        issued_by: res.data.license_details?.issued_by ?? "",
-        expiry: res.data.license_details?.expiry ?? "",
-      },
-      qualification: res.data.qualification?.length
-        ? res.data.qualification
-        : [{ degree: "", institution: "", year: "" }],
-    };
+      const updatedDoctor: ExtendedDoctorData = {
+        ...res.data,
+        name: res.data.user?.name ?? editDoctor.name,
+        license_details: {
+          number: res.data.license_details?.number ?? "",
+          issued_by: res.data.license_details?.issued_by ?? "",
+          expiry: res.data.license_details?.expiry ?? "",
+        },
+        qualification: res.data.qualification?.length
+          ? res.data.qualification
+          : [{ degree: "", institution: "", year: "" }],
+      };
 
-    setPractitioners((prev) =>
-      prev.map((doc) => (doc.id === editDoctor.id ? updatedDoctor : doc))
-    );
+      setPractitioners((prev) =>
+        prev.map((doc) => (doc.id === editDoctor.id ? updatedDoctor : doc))
+      );
 
-    setOpen(false);
-    setEditDoctor(null);
-    toast.success("Doctor updated successfully.");
-  } catch (error) {
-    console.error("Error updating doctor:", error);
-    toast.error("Failed to update doctor.");
-  }
-};
-
+      setOpen(false);
+      setEditDoctor(null);
+      toast.success("Doctor updated successfully.");
+    } catch (error) {
+      console.error("Error updating doctor:", error);
+      toast.error("Failed to update doctor.");
+    }
+  };
 
   const columns: ColumnDef<ExtendedDoctorData>[] = [
     {

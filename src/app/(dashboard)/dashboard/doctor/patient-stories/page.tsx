@@ -1,4 +1,4 @@
-import PatienStoriesList from "@/components/dashboard/doctor/patientStories/PatienStoriesList";
+import PatientStoriesList from "@/components/dashboard/doctor/patientStories/PatienStoriesList";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function DoctorDashboardPage() {
-  return <PatienStoriesList />;
+  return <PatientStoriesList />;
 }

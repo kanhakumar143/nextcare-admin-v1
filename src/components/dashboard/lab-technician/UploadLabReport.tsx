@@ -85,7 +85,16 @@ export default function UploadLabReport() {
       const fileUrl = awsRes?.uploaded_files?.[0]?.file_url;
       if (!fileUrl) throw new Error("AWS upload failed");
 
-      const payload = { ...order, test_report_path: fileUrl, status: "completed" };
+      const payload = {
+        ...order,
+        test_report_path: fileUrl,
+        status: "completed",
+        notes: [
+          {
+            value: description,
+          },
+        ],
+      };
       await updateLabTestOrder(payload);
 
       toast.success("Lab report uploaded & linked");

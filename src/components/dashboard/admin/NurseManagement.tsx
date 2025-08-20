@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
-import { NurseData } from "@/types/admin.types"; // ✅ Create a similar type as DoctorData
+import {
+  NurseData,
+  UpdateNursePayload,
+  AddNursePayload,
+} from "@/types/admin.types"; // ✅ Create a similar type as DoctorData
 import {
   addPractitioner,
   getPractitionerByRole,
@@ -30,6 +34,76 @@ type ExtendedNurseData = NurseData & {
   user_id: string;
   license_details: string;
 };
+
+// ✅ helper: flat form → API shape for adding new nurse
+function mapFormToAddNursePayload(formData: any): AddNursePayload {
+  return {
+    user: {
+      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      name: formData.name,
+      email: formData.email,
+      user_role: "nurse",
+      phone: formData.phone,
+    },
+    practitioner: {
+      identifiers: [
+        {
+          system: "practitioner_id",
+          value: formData.practitioner_display_id || "",
+        },
+      ],
+      name: {
+        given: [formData.name],
+        family: "",
+      },
+      gender: formData.gender,
+      birth_date: formData.birth_date,
+      qualification: [
+        {
+          degree: formData.degree,
+          institution: formData.institution,
+          year: formData.graduation_year,
+        },
+      ],
+      license_details: {
+        number: formData.license_number,
+        issued_by: formData.license_issued_by,
+        expiry: formData.license_expiry,
+      },
+      profile_picture_url: formData.profile_picture_url,
+      license_url: formData.license_url,
+      is_active: formData.is_active ?? true,
+    },
+    role: {
+      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      code: [
+        {
+          coding: [
+            {
+              system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
+              code: "nurse",
+              display: "Nurse",
+            },
+          ],
+          text: "Nurse",
+        },
+      ],
+      specialty: [
+        {
+          text: formData.specialty || "General Nursing",
+        },
+      ],
+      location: [],
+      healthcare_service: [],
+      period: {
+        start: new Date().toISOString(),
+        end: "",
+      },
+      availability: [],
+      not_available: [],
+    },
+  };
+}
 
 export default function NurseManagement() {
   const [open, setOpen] = useState(false);
@@ -59,7 +133,8 @@ export default function NurseManagement() {
 
   const handleAddNurse = async (formData: any) => {
     try {
-      await addPractitioner(formData);
+      const payload = mapFormToAddNursePayload(formData);
+      await addPractitioner(payload);
       await fetchNurses();
       setOpen(false);
       toast.success("Nurse added successfully.");
@@ -71,17 +146,22 @@ export default function NurseManagement() {
 
   const handleToggleStatus = async (nurse: ExtendedNurseData) => {
     try {
-      await updatePractitioner({
+      const updatePayload = {
         id: nurse.id,
         user_id: nurse.user_id,
         practitioner_display_id: nurse.practitioner_display_id ?? "",
         gender: nurse.gender ?? "",
         birth_date: nurse.birth_date ?? "",
         is_active: !nurse.is_active,
-        license_details: nurse.license_details,
+        license_details:
+          typeof nurse.license_details === "string"
+            ? nurse.license_details
+            : JSON.stringify(nurse.license_details),
         profile_picture_url: nurse.profile_picture_url ?? "",
         license_url: nurse.license_url ?? "",
-      });
+      };
+
+      await updatePractitioner(updatePayload);
 
       toast.success(
         `Nurse ${!nurse.is_active ? "activated" : "deactivated"} successfully`
@@ -248,9 +328,9 @@ export default function NurseManagement() {
               </>
             ) : (
               <FormModal
-                role="nurse" 
+                role="nurse"
                 onSubmit1={handleAddNurse}
-                editPractitionerId={editNurseId} 
+                editPractitionerId={editNurseId}
                 open={open}
                 onOpenChange={(val) => {
                   setOpen(val);

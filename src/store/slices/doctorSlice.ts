@@ -46,6 +46,7 @@ const initialState: doctorSliceInitialStates = {
   ConfirmReviewPrescriptionModalVisible: false,
   editVitalsModalVisible: false,
   patientQueueList: [],
+  labTestsReviewData: [],
   patientAppointmentHistory: [],
   patientQueueListLoading: false,
   patientQueueListError: null,
@@ -225,7 +226,7 @@ const doctorSlice = createSlice({
         state.patientQueueList = action.payload?.upcoming_consultation || [];
         state.patientAppointmentHistory =
           action.payload?.past_consultation || [];
-
+        state.labTestsReviewData = action.payload?.lab_report_ready || [];
         state.patientQueueListError = null;
       })
       .addCase(fetchAssignedAppointments.rejected, (state, action) => {

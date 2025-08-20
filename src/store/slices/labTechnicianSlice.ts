@@ -19,10 +19,12 @@ export type LabOrder = {
 
 interface LabOrderState {
   selectedOrder: LabOrder | null;
+  tempToken: string | null;
 }
 
 const initialState: LabOrderState = {
   selectedOrder: null,
+  tempToken: null,
 };
 
 const labOrderSlice = createSlice({
@@ -35,8 +37,12 @@ const labOrderSlice = createSlice({
     clearSelectedOrder: (state) => {
       state.selectedOrder = null;
     },
+    setTempToken: (state, action: PayloadAction<string | null>) => {
+      state.tempToken = action.payload;
+    },
   },
 });
 
-export const { setSelectedOrder, clearSelectedOrder } = labOrderSlice.actions;
+export const { setSelectedOrder, clearSelectedOrder, setTempToken } =
+  labOrderSlice.actions;
 export default labOrderSlice.reducer;

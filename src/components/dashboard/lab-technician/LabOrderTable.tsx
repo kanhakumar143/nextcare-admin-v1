@@ -1,7 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/common/DataTable";
-import { Upload } from "lucide-react";
+import { Check, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { setSelectedOrder } from "@/store/slices/labTechnicianSlice";
@@ -23,7 +23,11 @@ type LabOrder = {
   notes: any[];
 };
 
-export default function LabOrderTable({ labOrders }: { labOrders: LabOrder[] }) {
+export default function LabOrderTable({
+  labOrders,
+}: {
+  labOrders: LabOrder[];
+}) {
   const router = useRouter();
   const dispatch = useDispatch();
 
@@ -48,38 +52,30 @@ export default function LabOrderTable({ labOrders }: { labOrders: LabOrder[] }) 
       accessorKey: "intent",
       header: "Intent",
     },
-    // {
-    //   accessorKey: "authored_on",
-    //   header: "Ordered On",
-    //   cell: ({ row }: any) => {
-    //     const date = new Date(row.original.authored_on);
-    //     return date.toLocaleDateString("en-GB", {
-    //       day: "2-digit",
-    //       month: "short",
-    //       year: "numeric",
-    //     });
-    //   },
-    // },
+    {
+      header: "File",
+      cell: ({ row }: any) => {
+        const order = row.original;
+        if (order.test_report_path === null) {
+          return <span>No File</span>;
+        }
+        return (
+          <span className="flex justify-start gap-3 items-center">
+            <Check className="w-4 h-4 text-green-500" /> Uploaded
+          </span>
+        );
+      },
+    },
     {
       id: "actions",
       header: "Action",
       cell: ({ row }: any) => {
         const order = row.original;
-        // const hasReport = !!order.test_report_path;
-
         return (
           <button
-            // disabled={hasReport}
-            // className={`p-2 rounded ${
-            //   hasReport
-            //     ? "text-gray-400 cursor-not-allowed"
-            //     : "hover:bg-gray-100"
-            // }`}
             onClick={() => {
-            //   if (!hasReport) {
-                dispatch(setSelectedOrder(order)); 
-                router.push(`/dashboard/lab-technician/upload`);
-            //   }
+              dispatch(setSelectedOrder(order));
+              router.push(`/dashboard/lab-technician/upload`);
             }}
           >
             <Upload className="w-5 h-5" />

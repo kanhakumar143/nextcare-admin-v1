@@ -23,10 +23,17 @@ const DoctorPortal = () => {
   const router = useRouter();
   const dispatch: AppDispatch = useDispatch();
   const { practitionerId } = useAuthInfo();
-  const { patientQueueList } = useSelector((state: RootState) => state.doctor);
+  const { patientQueueList, labTestsReviewData } = useSelector(
+    (state: RootState) => state.doctor
+  );
   const handlePatientInfo = (patient: PatientInfo) => {
     dispatch(setSinglePatientDetails(patient));
     router.push(`/dashboard/doctor/consultation/${patient.id}`);
+  };
+
+  const handleLabTests = (patient: PatientInfo) => {
+    dispatch(setSinglePatientDetails(patient));
+    router.push(`/dashboard/doctor/labtest-details/${patient.id}`);
   };
 
   const columns: ColumnDef<PatientInfo>[] = [
@@ -68,6 +75,47 @@ const DoctorPortal = () => {
     },
   ];
 
+  const columnsforCompletedLabTests: ColumnDef<PatientInfo>[] = [
+    {
+      header: "Serial No.",
+      cell: ({ row }) => {
+        return <div className="px-5">{row.index + 1}</div>;
+      },
+    },
+    {
+      header: "Service",
+      accessorFn: (row) => row.service_category[0]?.text || "",
+      cell: ({ getValue }) => <div>{getValue() as string}</div>,
+    },
+    {
+      header: "Status",
+      accessorKey: "status",
+      cell: ({ getValue }) => (
+        <Badge
+          variant={getValue() === "scheduled" ? "secondary" : "outline"}
+          className="bg-secondary text-secondary-foreground"
+        >
+          {(getValue() as string) === "report_ready"
+            ? "Tests done"
+            : (getValue() as string)}
+        </Badge>
+      ),
+    },
+    {
+      header: "Action",
+      cell: ({ row }) => (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => handleLabTests(row.original)}
+          className="text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+        >
+          <ArrowRight className="h-4 w-4" />
+        </Button>
+      ),
+    },
+  ];
+
   useEffect(() => {
     if (!patientQueueList || patientQueueList.length === 0) {
       dispatch(fetchAssignedAppointments(practitionerId));
@@ -95,6 +143,22 @@ const DoctorPortal = () => {
             </p>
           </div>
         </div>
+
+        {
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-card-foreground">
+                Completed Lab Tests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DataTable
+                columns={columnsforCompletedLabTests}
+                data={labTestsReviewData}
+              />
+            </CardContent>
+          </Card>
+        }
 
         <Card className="bg-card border-border">
           <CardHeader>

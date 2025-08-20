@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import QrScannerBox from "@/components/common/QrScannerBox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,20 +15,28 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check } from "lucide-react";
 import LabOrderTable from "./LabOrderTable";
 import { LabQrDetails } from "@/types/labTechnician.type";
+import { updateAppointmentStatus } from "@/services/doctor.api";
+import { toast } from "sonner";
+import { setTempToken } from "@/store/slices/labTechnicianSlice";
 
 const LabTechnicianScanQr: React.FC = () => {
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { userId } = useAuthInfo();
-  const { qrDtls } = useSelector(
-    (state: RootState) => state.nurse
-  ) as { qrDtls: LabQrDetails | null };
+  const { qrDtls } = useSelector((state: RootState) => state.nurse) as {
+    qrDtls: LabQrDetails | null;
+  };
+  const { tempToken } = useSelector((state: RootState) => state.labOrder) as {
+    tempToken: string | null;
+  };
 
   const [invalidCode, setInvalidCode] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (tempToken) handleScan(tempToken);
+  }, [tempToken]);
+
   const handleScan = async (token: string) => {
-    setInvalidCode(null);
-    dispatch(setQrDetails(null));
     try {
       const response = await fetchDecodeQrDetails({
         accessToken: token,
@@ -46,10 +54,24 @@ const LabTechnicianScanQr: React.FC = () => {
     }
   };
 
+  const handleSubmitReports = async () => {
+    try {
+      await updateAppointmentStatus({
+        id: qrDtls?.appointment?.id || "",
+        status: "report_ready",
+      });
+      toast.success("Successfully Uploaded Reports");
+      dispatch(setQrDetails(null));
+      setInvalidCode(null);
+      dispatch(setTempToken(null));
+    } catch (error) {
+      toast.error("Failed to upload reports. Please try again.");
+    }
+  };
+
   return (
     <div className="min-h-screen py-4 px-4">
       <div className="max-w-3xl mx-auto">
-        
         {!qrDtls && (
           <>
             <div className="flex flex-col items-center justify-center space-y-6">
@@ -67,6 +89,7 @@ const LabTechnicianScanQr: React.FC = () => {
                   <QrScannerBox
                     onScanSuccess={(token: string) => {
                       handleScan(token);
+                      dispatch(setTempToken(token));
                     }}
                     buttonLabel="Scan QR Code"
                   />
@@ -84,7 +107,6 @@ const LabTechnicianScanQr: React.FC = () => {
           </>
         )}
 
-       
         {invalidCode && (
           <div className="mb-4 p-3">
             <p className="text-red-700 font-medium text-center text-sm">
@@ -97,7 +119,6 @@ const LabTechnicianScanQr: React.FC = () => {
           </div>
         )}
 
-       
         {qrDtls && (
           <div className="space-y-4">
             <div className="text-center space-y-1 mb-6">
@@ -109,7 +130,6 @@ const LabTechnicianScanQr: React.FC = () => {
               </p>
             </div>
 
-            
             <Card className="bg-white border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200 pt-0">
               <div className="bg-gray-200 text-gray-800 p-3 rounded-t-lg">
                 <h2 className="text-lg font-semibold text-center">
@@ -139,7 +159,8 @@ const LabTechnicianScanQr: React.FC = () => {
                       Gender
                     </p>
                     <p className="text-sm font-semibold text-gray-900 capitalize">
-                      {qrDtls.patient?.patient_profile?.gender || "Not specified"}
+                      {qrDtls.patient?.patient_profile?.gender ||
+                        "Not specified"}
                     </p>
                   </div>
                 </div>
@@ -196,7 +217,9 @@ const LabTechnicianScanQr: React.FC = () => {
             </Card>
 
             {/* Lab Orders */}
-            <LabOrderTable labOrders={qrDtls.appointment.lab_test_orders ?? []} />
+            <LabOrderTable
+              labOrders={qrDtls.appointment.lab_test_orders ?? []}
+            />
 
             {/* Actions */}
             <Card className="bg-white border-gray-200 shadow-md pt-0">
@@ -206,7 +229,9 @@ const LabTechnicianScanQr: React.FC = () => {
                     <Button
                       onClick={() => {
                         dispatch(setQrDetails(null));
-                        dispatch(setNurseStepCompleted({ step1: false, step2: false }));
+                        dispatch(
+                          setNurseStepCompleted({ step1: false, step2: false })
+                        );
                       }}
                       className="w-full sm:w-44 h-10 bg-black hover:bg-gray-900 text-white font-medium cursor-pointer transition-all duration-200"
                     >
@@ -215,16 +240,11 @@ const LabTechnicianScanQr: React.FC = () => {
                   </div>
                 ) : (
                   <div className="flex flex-col items-center space-y-4">
-                    <p className="text-center text-gray-600">
-                      This appointment is not yet checked in.
-                    </p>
                     <Button
-                      onClick={() => {
-                        dispatch(setQrDetails(null));
-                      }}
+                      onClick={handleSubmitReports}
                       className="w-full sm:w-44 h-10 bg-black hover:bg-gray-900 text-white font-medium cursor-pointer transition-all duration-200"
                     >
-                      Next Patient
+                      Submit Reports
                     </Button>
                   </div>
                 )}

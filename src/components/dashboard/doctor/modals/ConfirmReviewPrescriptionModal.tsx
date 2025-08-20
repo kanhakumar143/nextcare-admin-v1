@@ -31,8 +31,11 @@ export default function ConfirmReviewPrescriptionModal({
 }: {
   medicationRequestId: string;
 }) {
-  const { ConfirmReviewPrescriptionModalVisible, singlePatientDetails } =
-    useSelector((state: RootState) => state.doctor);
+  const {
+    ConfirmReviewPrescriptionModalVisible,
+    singlePatientDetails,
+    EprescriptionDetails,
+  } = useSelector((state: RootState) => state.doctor);
   const [loading, setLoading] = useState<boolean>(false);
   const { practitionerId } = useAuthInfo();
   const dispatch: AppDispatch = useDispatch();
@@ -66,9 +69,12 @@ export default function ConfirmReviewPrescriptionModal({
 
   const handleUpdateApptStatus = async () => {
     try {
-      const response = await updateAppointmentStatus({
+      await updateAppointmentStatus({
         id: singlePatientDetails?.id || "",
-        status: "fulfilled",
+        status:
+          EprescriptionDetails?.lab_tests?.length === 0
+            ? "completed"
+            : "fulfilled",
       });
       toast.success("Consultation completed");
       router.push("/dashboard/doctor/portal");

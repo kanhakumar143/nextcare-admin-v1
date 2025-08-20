@@ -55,6 +55,7 @@ export interface doctorSliceInitialStates {
   ConfirmReviewPrescriptionModalVisible: boolean;
   editVitalsModalVisible: boolean;
   patientQueueList: any[];
+  labTestsReviewData: any[];
   singlePatientDetails: any | null;
   patientQueueListLoading: boolean;
   patientQueueListError: string | null;

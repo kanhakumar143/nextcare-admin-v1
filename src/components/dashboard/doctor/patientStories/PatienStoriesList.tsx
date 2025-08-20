@@ -55,7 +55,7 @@ const staticPatientStories: PatientStory[] = [
   },
 ];
 
-const PatienStoriesList = () => {
+const PatientStoriesList = () => {
   const router = useRouter();
   const [selectedStory, setSelectedStory] = useState<PatientStory | null>(null);
 
@@ -172,4 +172,4 @@ const PatienStoriesList = () => {
   );
 };
 
-export default PatienStoriesList;
+export default PatientStoriesList;

@@ -183,14 +183,12 @@ export type UpdateDoctorPayload = {
   license_details: string | null;
   profile_picture_url: string;
   license_url: string;
-  qualification: {
+  qualification?: {
     degree: string;
     institution: string;
     graduation_year: string;
   };
 };
-
-
 
 export type AddNursePayload = {
   user: {

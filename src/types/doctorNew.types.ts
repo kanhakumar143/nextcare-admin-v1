@@ -13,7 +13,24 @@ export interface AppointmentDtlsForDoctor {
   prescriptions: Prescription[];
   visit_notes: VisitNote[];
   cancellation_record: any;
-  lab_test_orders: any[];
+  lab_test_orders: LabTestOrder[];
+}
+
+interface LabTestOrder {
+  appointment_id: string;
+  patient_id: string;
+  practitioner_id: string;
+  test_code: string;
+  test_display: string;
+  status: string;
+  intent: string;
+  priority: string;
+  test_report_path?: string;
+  id: string;
+  authored_on: string;
+  created_at: string;
+  updated_at: string;
+  notes: any[];
 }
 
 interface Patient {
@@ -36,6 +53,22 @@ interface User {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  tenant?: {
+    id: string;
+    active: boolean;
+    name: string;
+    alias: string[];
+    contact: Array<{
+      name: string;
+      telecom: Array<{
+        system: string;
+        value: string;
+        use: string | null;
+      }>;
+      address: any;
+      purpose: any;
+    }>;
+  };
 }
 
 interface Observation {
