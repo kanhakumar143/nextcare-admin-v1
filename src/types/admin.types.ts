@@ -166,6 +166,11 @@ export interface DoctorData {
     number?: string | null;
     expiry?: string | null;
   };
+  qualification: {
+    degree: string | null;
+    institution: string | null;
+    graduation_year: string | null;
+  };
 }
 
 export type UpdateDoctorPayload = {
@@ -178,6 +183,11 @@ export type UpdateDoctorPayload = {
   license_details: string | null;
   profile_picture_url: string;
   license_url: string;
+  qualification: {
+    degree: string;
+    institution: string;
+    graduation_year: string;
+  };
 };
 
 

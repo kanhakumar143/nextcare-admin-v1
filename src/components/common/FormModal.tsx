@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import * as z from "zod";
 import { Plus, X } from "lucide-react";
@@ -118,6 +118,7 @@ interface PractitionerFormModalProps {
   onOpenChange: (open: boolean) => void;
   onSubmit1: (formData: any) => Promise<void>;
   editPractitionerId?: string | null;
+  defaultValues?: Partial<PractitionerFormData>;
   onSuccess?: () => void;
   role: "doctor" | "nurse";
 }
@@ -151,21 +152,24 @@ export default function PractitionerFormModal({
   editPractitionerId = null,
   onSuccess,
   onSubmit1,
+  defaultValues,
   role,
 }: PractitionerFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<PractitionerFormData>({
-    resolver: zodResolver(practitionerFormSchema),
-    defaultValues: {
-      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
-      is_active: true,
-      available_times: [{ start: "09:00", end: "17:00" }],
-      role_code_system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
-      availability_days: ["mon", "tue", "wed", "thu", "fri"],
-      ...roleDefaults[role],
-    },
-  });
+const form = useForm<PractitionerFormData>({
+  resolver: zodResolver(practitionerFormSchema),
+  defaultValues: {
+    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+    is_active: true,
+    available_times: [{ start: "09:00", end: "17:00" }],
+    role_code_system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
+    availability_days: ["mon", "tue", "wed", "thu", "fri"],
+    ...roleDefaults[role],
+    ...defaultValues, // ✅ merge parent defaultValues here
+  },
+});
+
 
   const { fields: timeFields, append: appendTime, remove: removeTime } =
     useFieldArray({
@@ -245,6 +249,7 @@ export default function PractitionerFormModal({
       };
       console.log(payload);
       await onSubmit1(payload);
+      
       onOpenChange(false);
       form.reset();
       onSuccess?.();
@@ -254,6 +259,12 @@ export default function PractitionerFormModal({
       setIsSubmitting(false);
     }
   };
+//   useEffect(() => {
+//   if (defaultValues) {
+//     form.reset(defaultValues);
+//   }
+// }, [defaultValues]);
+
 
   const handleClose = (open: boolean) => {
     onOpenChange(open);
