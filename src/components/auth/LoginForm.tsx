@@ -63,6 +63,8 @@ export default function LoginForm() {
         return router.push("/dashboard/admin");
       } else if (res?.user_role === "doctor") {
         return router.push("/dashboard/doctor/portal");
+      } else if (res?.user_role === "lab_technician") {
+        return router.push("/dashboard/lab-technician");
       } else {
         return toast.warning("User role not available");
       }

@@ -9,6 +9,7 @@ import symptomReducer from "./slices/symptomsSlice";
 import preQuestionaryReducer from "./slices/preQuestionarySlice";
 import doctorReducer from "./slices/doctorSlice";
 import nurseReducer from "./slices/nurseSlice";
+import labOrderReducer from "./slices/labTechnicianSlice";
 
 const store = configureStore({
   reducer: {
@@ -22,6 +23,7 @@ const store = configureStore({
     doctor: doctorReducer,
     nurse: nurseReducer,
     preQuestionary: preQuestionaryReducer,
+    labOrder: labOrderReducer,
   },
 });
 

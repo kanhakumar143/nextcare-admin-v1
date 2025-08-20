@@ -134,6 +134,26 @@ export const nurseRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
+
+];
+
+// Lab Technician Navigation Routes
+export const labTechnicianRoutes: Route[] = [
+  {
+    href: "/dashboard/lab-technician",
+    name: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/lab-technician/check-in",
+    name: "Scan QR Code",
+    icon: QrCode,
+  },
+  // {
+  //   href: "/dashboard/lab-technician/upload",
+  //   name: "Lab Record Uploads",
+  //   icon: ClipboardList,
+  // },
 ];
 
 // Receptionist Navigation Routes
@@ -161,6 +181,8 @@ export const getRoutesByRole = (role: string | null): Route[] => {
       return nurseRoutes;
     case "receptionist":
       return receptionistRoutes;
+    case "lab_technician":
+      return labTechnicianRoutes;
     default:
       return [];
   }
@@ -177,6 +199,8 @@ export const getSidebarLabel = (role: string | null): string => {
       return "Nurse Panel";
     case "receptionist":
       return "Receptionist Panel";
+    case "lab_technician":
+      return "Lab Technician Panel";
     default:
       return "Dashboard";
   }
