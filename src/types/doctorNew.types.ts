@@ -182,3 +182,73 @@ interface CarePlan {
   detail: string;
   id: string;
 }
+
+export interface PractitionerData {
+  user_data: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+    user_role: string;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    tenant: {
+      id: string;
+      active: boolean;
+      name: string;
+      alias: string[];
+      contact: Array<{
+        name: string;
+        telecom: Array<{
+          system: string;
+          value: string;
+          use: string | null;
+        }>;
+        address: any;
+        purpose: any;
+      }>;
+    };
+  };
+  practitioner_data: {
+    practitioner_display_id: string;
+    identifiers: Array<{
+      system: string;
+      value: string;
+    }>;
+    name: {
+      use: string | null;
+      text: string | null;
+      family: string;
+      given: string[];
+      prefix: string[];
+      suffix: string | null;
+      period: any;
+    };
+    telecom: Array<{
+      system: string;
+      value: string;
+      use: string;
+      rank: number | null;
+      period: any;
+    }>;
+    gender: string;
+    birth_date: string;
+    qualification: Array<{
+      year: string;
+      degree: string;
+      institution: string;
+    }>;
+    is_active: boolean;
+    license_details: {
+      expiry: string;
+      number: string;
+      issued_by: string;
+    };
+    profile_picture_url: string;
+    license_url: string;
+    e_sign_path: string | null;
+    id: string;
+    user_id: string;
+  };
+}

@@ -107,3 +107,31 @@ export const updateEprescriptionStatus = async (payload: any) => {
     throw new Error("Unexpected error occurred.");
   }
 };
+
+export const getPractitionerDetails = async (user_id: string) => {
+  try {
+    const response = await api.get(`user_practitioner`, {
+      params: { user_id },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to get practitioner details";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const updatePractitionerDetails = async (payload: any) => {
+  try {
+    const response = await api.put(`practitioner/`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update practitioner details";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
