@@ -47,6 +47,8 @@ import { Input } from "@/components/ui/input";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
+import BackButton from "@/components/common/BackButton";
+import DentalProcedureEntry from "./DentalProcedureEntry";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
@@ -125,13 +127,7 @@ export default function PatientConsultation() {
   return (
     <>
       <div className="mx-6 my-3 py-2 border-b-2">
-        <Button
-          variant={"ghost"}
-          className="mb-4"
-          onClick={() => router.back()}
-        >
-          <ArrowLeft /> back
-        </Button>
+        <BackButton />
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Label className="text-md font-light">Appointment ID :</Label>
@@ -412,6 +408,14 @@ export default function PatientConsultation() {
       <div className="px-4 mr-2">
         <DoctorMedicineLabEntry />
       </div>
+
+      {singlePatientDetails.service_specialty.display === "Dentistry" && (
+        <div className="mt-4">
+          <DentalProcedureEntry
+            onAddProcedure={(proc) => console.log("Added:", proc)}
+          />
+        </div>
+      )}
 
       <div className="flex w-full gap-3 justify-end px-6 py-4">
         <Button variant={"outline"} onClick={() => router.back()}>
