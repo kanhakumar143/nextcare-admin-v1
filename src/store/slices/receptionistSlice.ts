@@ -31,6 +31,7 @@ const initialState: staffSliceInitialState = {
   storedAccessToken: null,
   loading: false,
   error: null,
+  downloadReportsData: null,
   scanQrMessage: null,
 };
 
@@ -56,6 +57,9 @@ const receptionistSlice = createSlice({
     },
     setVerifiedPatientModal: (state, action: PayloadAction<boolean>) => {
       state.patientVerifiedModalVisible = action.payload;
+    },
+    setDownloadReportsData: (state, action: PayloadAction<any | null>) => {
+      state.downloadReportsData = action.payload;
     },
     clearError: (state) => {
       state.error = null;
@@ -100,6 +104,7 @@ export const {
   setVerifiedPatientModal,
   setImageModalVisible,
   clearError,
+  setDownloadReportsData,
 } = receptionistSlice.actions;
 
 export default receptionistSlice.reducer;

@@ -19,6 +19,7 @@ import {
   NurseData,
   UpdateNursePayload,
   AddNursePayload,
+  UpdateDoctorPayload,
 } from "@/types/admin.types"; // ✅ Create a similar type as DoctorData
 import {
   addPractitioner,
@@ -32,7 +33,11 @@ type ExtendedNurseData = NurseData & {
   name: string;
   id: string;
   user_id: string;
-  license_details: string;
+  license_details: {
+    number: string;
+    issued_by: string;
+    expiry: string;
+  };
 };
 
 // ✅ helper: flat form → API shape for adding new nurse
@@ -146,17 +151,14 @@ export default function NurseManagement() {
 
   const handleToggleStatus = async (nurse: ExtendedNurseData) => {
     try {
-      const updatePayload = {
+      const updatePayload: UpdateDoctorPayload = {
         id: nurse.id,
         user_id: nurse.user_id,
         practitioner_display_id: nurse.practitioner_display_id ?? "",
         gender: nurse.gender ?? "",
         birth_date: nurse.birth_date ?? "",
         is_active: !nurse.is_active,
-        license_details:
-          typeof nurse.license_details === "string"
-            ? nurse.license_details
-            : JSON.stringify(nurse.license_details),
+        license_details: nurse.license_details,
         profile_picture_url: nurse.profile_picture_url ?? "",
         license_url: nurse.license_url ?? "",
       };

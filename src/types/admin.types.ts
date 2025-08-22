@@ -190,10 +190,9 @@ export type UpdateDoctorPayload = {
   qualification?: {
     degree: string;
     institution: string;
-    year: string;   // ✅ match API
+    graduation_year: string; // ✅ match API
   }[];
 };
-
 
 export type AddNursePayload = {
   user: {

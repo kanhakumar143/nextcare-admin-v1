@@ -29,7 +29,6 @@ const initialState: PractitionerState = {
   error: null,
 };
 
-
 export const fetchPractitioners = createAsyncThunk(
   "practitioner/fetchByRole",
   async (role: Role, { rejectWithValue }) => {
@@ -37,18 +36,15 @@ export const fetchPractitioners = createAsyncThunk(
       const res = await getPractitionerByRole(role);
       return { role, data: res || [] };
     } catch (error: any) {
-      return rejectWithValue(
-        error.message || "Failed to fetch practitioners"
-      );
+      return rejectWithValue(error.message || "Failed to fetch practitioners");
     }
   }
 );
 
-
 export const createPractitioner = createAsyncThunk(
   "practitioner/add",
   async (
-    payload: AddDoctorPayload | AddNursePayload & { role: Role },
+    payload: AddDoctorPayload | (AddNursePayload & { role: Role }),
     { rejectWithValue }
   ) => {
     try {
@@ -60,11 +56,10 @@ export const createPractitioner = createAsyncThunk(
   }
 );
 
-
 export const editPractitioner = createAsyncThunk(
   "practitioner/update",
   async (
-    payload: (UpdateDoctorPayload | UpdateNursePayload) & { role: Role },
+    payload: UpdateDoctorPayload & { role: Role },
     { rejectWithValue }
   ) => {
     try {

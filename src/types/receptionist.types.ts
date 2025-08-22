@@ -26,7 +26,12 @@ export interface AppointmentDetails {
   lab_test_orders?: LabTestOrder[]; // added lab orders
   appointment_display_id?: string;
   appointment_type?: string | null;
-  class_concept?: { system: string | null; code: string | null; display: string | null; text: string };
+  class_concept?: {
+    system: string | null;
+    code: string | null;
+    display: string | null;
+    text: string;
+  };
   created?: string;
   created_at?: string;
   cancellation_date?: string | null;
@@ -99,6 +104,7 @@ export interface staffSliceInitialState {
   storedAccessToken: string | null;
   loading?: boolean;
   error?: string | null;
+  downloadReportsData: any | null;
   scanQrMessage?: string | null;
 }
 
@@ -106,4 +112,111 @@ export interface staffSliceInitialState {
 export interface UserPatientProfileResponse {
   user_id: string;
   patient_profile: PatientProfile;
+}
+
+export interface EPrescriptionDetails {
+  patient: {
+    id: string;
+    patient_display_id: string;
+    gender: "male" | "female" | "other";
+    user: {
+      name: string;
+      email: string;
+      phone: string;
+      user_role: "patient" | string;
+    };
+  };
+  practitioner: {
+    id: string;
+    practitioner_display_id: string;
+    user: {
+      name: string;
+      is_active: boolean;
+      email: string;
+      phone: string | null;
+      user_role: "doctor" | string;
+      tenant: {
+        id: string;
+        name: string;
+        active: boolean;
+        contact: {
+          name: string | null;
+          telecom: {
+            system: string | null;
+            value: string | null;
+          }[];
+        }[];
+      };
+    };
+  };
+  medication_request: {
+    id: string;
+    status: "active" | "completed" | "cancelled" | string;
+    intent: "order" | "proposal" | string;
+    authored_on: string; // ISO datetime
+    note: string;
+    dispense_request: string | null;
+    medication_display_id?: string | null;
+    medications: Medication[];
+  };
+  visit_note: {
+    id: string;
+    summary: string;
+    follow_up: string;
+    chief_complaint: string;
+    critical: boolean;
+    provisional_diagnosis: string;
+    consultation_mode: string;
+    followup_date: string;
+    criticality_remark: string;
+    assessments: Assessment[];
+    care_plans: CarePlan[];
+  };
+  lab_tests:
+    | {
+        authored_on: string | null;
+        intent: string;
+        test_display: string;
+        priority: string;
+        status: string;
+        notes: {
+          text: string;
+          time: string | null;
+        }[];
+      }[]
+    | null;
+}
+
+interface Medication {
+  id: string;
+  name: string;
+  form: string;
+  route: string;
+  frequency: string;
+  strength: string;
+  duration: string;
+  timing: {
+    morning: boolean;
+    afternoon: boolean;
+    evening: boolean;
+    night: boolean;
+  };
+  dosage_instruction: string;
+  note: {
+    info: string;
+  };
+}
+
+interface Assessment {
+  id: string;
+  code: string | null;
+  description: string;
+  severity: "mild" | "moderate" | "severe" | string;
+}
+
+interface CarePlan {
+  id: string;
+  plan_type: string;
+  goal: string;
+  detail: string;
 }
