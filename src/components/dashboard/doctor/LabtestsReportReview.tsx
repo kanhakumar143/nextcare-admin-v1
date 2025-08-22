@@ -243,7 +243,7 @@ export default function LabtestsReportReview() {
       header: "Actions",
       cell: ({ row }: any) => (
         <div className="flex gap-2">
-          <Select
+          {/* <Select
             value={selectedStatuses[row.original.id] || ""}
             onValueChange={(value) =>
               handleStatusUpdate(row.original, value as "verify" | "reject")
@@ -256,7 +256,7 @@ export default function LabtestsReportReview() {
               <SelectItem value="verify">Verify</SelectItem>
               <SelectItem value="reject">Reject</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
           {row.original.test_report_path && (
             <Button
               variant="outline"

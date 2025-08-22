@@ -360,7 +360,7 @@ const EprescriptionPage = () => {
         </Table>
       </div>
 
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <Shield className="h-5 w-5 text-primary" />
           <span>Care Plans</span>
@@ -395,7 +395,7 @@ const EprescriptionPage = () => {
             )}
           </TableBody>
         </Table>
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card className="py-0 border-l-4 border-l-primary">

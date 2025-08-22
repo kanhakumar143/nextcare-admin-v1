@@ -4,6 +4,8 @@ export interface VisitCarePlan {
   plan_type: string;
   goal: string;
   detail: string;
+  followup_date?: string;
+  consultation_mode?: string;
 }
 
 export interface VisitAssessment {
@@ -14,8 +16,12 @@ export interface VisitAssessment {
 export interface VisitNote1 {
   summary: string;
   follow_up: string;
+  chief_complaint: string;
+  provisional_diagnosis: string;
+  remarks: string;
   visit_care_plan: VisitCarePlan;
   visit_assessment: VisitAssessment;
+  critical: boolean;
 }
 
 export interface VitalReading {
@@ -144,6 +150,12 @@ export interface PatientInfo {
   concern: string;
   date: string;
   status: string;
+  patient: {
+    user: {
+      name: string;
+      phone: string;
+    };
+  };
   phone: string;
   age: number;
   bloodGroup: string;
@@ -190,13 +202,19 @@ export interface VisitSummaryPayload {
   visit_note: {
     summary: string;
     follow_up: string;
+    chief_complaint: string;
+    critical: boolean;
+    provisional_diagnosis: string;
+    consultation_mode: string;
+    followup_date: string;
+    criticality_remark: string;
   };
-  visit_care_plan: {
+  visit_care_plan?: {
     plan_type: string;
     goal: string;
     detail: string;
   };
-  visit_assessment: {
+  visit_assessment?: {
     code?: {
       system: string;
       code: string;

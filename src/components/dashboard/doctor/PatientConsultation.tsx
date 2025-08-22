@@ -16,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   Edit,
@@ -43,7 +45,6 @@ import { RootState } from "@/store";
 import { useParams, useRouter } from "next/navigation";
 import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
@@ -256,37 +257,40 @@ export default function PatientConsultation() {
                   prescribed medicines and recommended lab investigations.
                 </p>
               </div>
-              <div className="mx-5">
-                <Select
-                  value={visitNote.visit_care_plan.plan_type}
-                  onValueChange={(value) =>
-                    dispatch(
-                      updateVisitNote({
-                        field: "visit_care_plan.plan_type",
-                        value,
-                      })
-                    )
-                  }
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select plan type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectLabel>Treatment Plan Type</SelectLabel>
-                      <SelectItem value="followup">Follow Up</SelectItem>
-                      <SelectItem value="medication">Medication</SelectItem>
-                      <SelectItem value="lifestyle">Lifestyle</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             <div className="flex flex-col gap-2 flex-grow px-3 py-2">
+              <Label className="text-sm font-medium">Chief Complaint</Label>
+              <Input
+                placeholder="Enter the patient's main concern or complaint"
+                value={visitNote.chief_complaint}
+                onChange={(e) =>
+                  dispatch(
+                    updateVisitNote({
+                      field: "chief_complaint",
+                      value: e.target.value,
+                    })
+                  )
+                }
+              />
+              <Label className="text-sm font-medium">
+                Provisional Diagnosis
+              </Label>
+              <Input
+                placeholder="Enter preliminary diagnosis based on assessment"
+                value={visitNote.provisional_diagnosis}
+                onChange={(e) =>
+                  dispatch(
+                    updateVisitNote({
+                      field: "provisional_diagnosis",
+                      value: e.target.value,
+                    })
+                  )
+                }
+              />
               <Label className="text-sm font-medium">Doctor Notes</Label>
               <Textarea
                 placeholder="Write your summary here..."
-                className="flex-grow h-[10vh]"
+                className="flex-grow h-[15vh]"
                 value={visitNote.summary}
                 onChange={(e) =>
                   dispatch(
@@ -294,8 +298,118 @@ export default function PatientConsultation() {
                   )
                 }
               />
+              <div className="flex items-center justify-between w-full space-x-2 mt-2">
+                <div className="flex-grow">
+                  <Label className="text-sm font-medium mb-2">Remarks</Label>
+                  <Input
+                    placeholder="Additional remarks or observations"
+                    value={visitNote.remarks}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "remarks",
+                          value: e.target.value,
+                        })
+                      )
+                    }
+                  />
+                </div>
+                <div className="flex space-x-2 pt-4">
+                  <Checkbox
+                    className="h-5 w-5"
+                    checked={visitNote.critical}
+                    onCheckedChange={(checked) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "critical",
+                          value: checked as boolean,
+                        })
+                      )
+                    }
+                  />
+                  <Label className="text-sm font-medium">Critical</Label>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium mb-2">
+                    Consultation Type
+                  </Label>
+                  <Select
+                    value={visitNote.visit_care_plan.plan_type}
+                    onValueChange={(value) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "visit_care_plan.plan_type",
+                          value,
+                        })
+                      )
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select plan type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectLabel>Treatment Plan Type</SelectLabel>
+                        <SelectItem value="followup">Follow Up</SelectItem>
+                        <SelectItem value="medication">Medication</SelectItem>
+                        {/* <SelectItem value="lifestyle">Lifestyle</SelectItem> */}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Conditional Follow-up Fields */}
+                {visitNote.visit_care_plan.plan_type === "followup" && (
+                  <div className="grid grid-cols-2   gap-4">
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium mb-2">
+                        Follow-up Date
+                      </Label>
+                      <Input
+                        type="date"
+                        onChange={(e) =>
+                          dispatch(
+                            updateVisitNote({
+                              field: "visit_care_plan.followup_date",
+                              value: e.target.value,
+                            })
+                          )
+                        }
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Label className="text-sm font-medium mb-2">
+                        Consultation Mode
+                      </Label>
+                      <Select
+                        onValueChange={(value) =>
+                          dispatch(
+                            updateVisitNote({
+                              field: "visit_care_plan.consultation_mode",
+                              value,
+                            })
+                          )
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select mode" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Mode</SelectLabel>
+                            <SelectItem value="online">Online</SelectItem>
+                            <SelectItem value="in-clinic">In-Clinic</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
+
+            {/* <div className="flex flex-col gap-2 flex-grow px-3 py-2">
               <Label className="text-sm font-medium">
                 Post-Visit Care Instructions
               </Label>
@@ -400,7 +514,7 @@ export default function PatientConsultation() {
                   </Select>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </Card>
       </div>
@@ -409,7 +523,7 @@ export default function PatientConsultation() {
         <DoctorMedicineLabEntry />
       </div>
 
-      {singlePatientDetails.service_specialty.display === "Dentistry" && (
+      {singlePatientDetails?.service_specialty.display === "Dentistry" && (
         <div className="mt-4">
           <DentalProcedureEntry
             onAddProcedure={(proc) => console.log("Added:", proc)}

@@ -38,10 +38,14 @@ const DoctorPortal = () => {
 
   const columns: ColumnDef<PatientInfo>[] = [
     {
-      header: "Serial No.",
-      cell: ({ row }) => {
-        return <div className="px-5">{row.index + 1}</div>;
-      },
+      header: "Patient Name",
+      accessorFn: (row) => row.patient.user.name || "",
+      cell: ({ getValue }) => <div>{getValue() as string}</div>,
+    },
+    {
+      header: "Contact Number",
+      accessorFn: (row) => row.patient.user.phone || "",
+      cell: ({ getValue }) => <div>{getValue() as string}</div>,
     },
     {
       header: "Service",
@@ -77,10 +81,14 @@ const DoctorPortal = () => {
 
   const columnsforCompletedLabTests: ColumnDef<PatientInfo>[] = [
     {
-      header: "Serial No.",
-      cell: ({ row }) => {
-        return <div className="px-5">{row.index + 1}</div>;
-      },
+      header: "Patient Name",
+      accessorFn: (row) => row.patient.user.name || "",
+      cell: ({ getValue }) => <div>{getValue() as string}</div>,
+    },
+    {
+      header: "Contact Number",
+      accessorFn: (row) => row.patient.user.phone || "",
+      cell: ({ getValue }) => <div>{getValue() as string}</div>,
     },
     {
       header: "Service",
@@ -96,7 +104,7 @@ const DoctorPortal = () => {
           className="bg-secondary text-secondary-foreground"
         >
           {(getValue() as string) === "report_ready"
-            ? "Tests done"
+            ? "Pending Review"
             : (getValue() as string)}
         </Badge>
       ),
@@ -148,7 +156,7 @@ const DoctorPortal = () => {
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-card-foreground">
-                Completed Lab Tests
+                Reports Pending Review
               </CardTitle>
             </CardHeader>
             <CardContent>

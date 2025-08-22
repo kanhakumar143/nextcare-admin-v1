@@ -66,7 +66,13 @@ export default function ConfirmConsultationModal() {
       medication: medicines,
       visit_note: {
         summary: visitNote.summary,
-        follow_up: visitNote.follow_up,
+        follow_up: visitNote.visit_care_plan.plan_type,
+        chief_complaint: visitNote.chief_complaint,
+        provisional_diagnosis: visitNote.provisional_diagnosis,
+        critical: visitNote.critical,
+        consultation_mode: visitNote.visit_care_plan.plan_type,
+        followup_date: visitNote.visit_care_plan.followup_date || "",
+        criticality_remark: visitNote.remarks,
       },
       visit_care_plan: {
         plan_type: visitNote.visit_care_plan.plan_type,
@@ -87,8 +93,10 @@ export default function ConfirmConsultationModal() {
       })),
     };
 
+    console.log(payload, visitNote);
+
     try {
-      const response = await submitVisitSummary(payload);
+      await submitVisitSummary(payload);
       getPrescriptionDetails();
     } catch (error) {
       setLoading(false);

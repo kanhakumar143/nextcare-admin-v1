@@ -61,15 +61,21 @@ const initialState: doctorSliceInitialStates = {
   visitNote: {
     summary: "",
     follow_up: "",
+    chief_complaint: "",
+    provisional_diagnosis: "",
+    remarks: "",
     visit_care_plan: {
       plan_type: "",
       goal: "",
       detail: "",
+      followup_date: "",
+      consultation_mode: "",
     },
     visit_assessment: {
       description: "",
       severity: "mild",
     },
+    critical: false,
   },
 };
 
@@ -119,7 +125,7 @@ const doctorSlice = createSlice({
     },
     updateVisitNote: (
       state,
-      action: PayloadAction<{ field: string; value: string }>
+      action: PayloadAction<{ field: string; value: string | boolean }>
     ) => {
       const { field, value } = action.payload;
       if (field.includes(".")) {
@@ -140,15 +146,21 @@ const doctorSlice = createSlice({
       state.visitNote = {
         summary: "",
         follow_up: "",
+        chief_complaint: "",
+        provisional_diagnosis: "",
+        remarks: "",
         visit_care_plan: {
           plan_type: "",
           goal: "",
           detail: "",
+          followup_date: "",
+          consultation_mode: "",
         },
         visit_assessment: {
           description: "",
           severity: "mild",
         },
+        critical: false,
       };
     },
     addLabTest: (state, action: PayloadAction<LabTest>) => {
@@ -203,15 +215,21 @@ const doctorSlice = createSlice({
       state.visitNote = {
         summary: "",
         follow_up: "",
+        chief_complaint: "",
+        provisional_diagnosis: "",
+        remarks: "",
         visit_care_plan: {
           plan_type: "",
           goal: "",
           detail: "",
+          followup_date: "",
+          consultation_mode: "",
         },
         visit_assessment: {
           description: "",
           severity: "mild",
         },
+        critical: false,
       };
     },
   },
