@@ -6,13 +6,11 @@ import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 import { toast } from "sonner";
 
+// Async thunk to fetch QR details
 export const fetchQrDetailsAsync = createAsyncThunk(
   "receptionist/fetchQrDetails",
   async (
-    payload: {
-      accessToken: string;
-      staff_id: string;
-    },
+    payload: { accessToken: string; staff_id: string },
     { rejectWithValue }
   ) => {
     try {
@@ -26,6 +24,7 @@ export const fetchQrDetailsAsync = createAsyncThunk(
 
 const initialState: staffSliceInitialState = {
   patientDetails: null,
+  appoinmentDetails: null,
   patientVerifiedModalVisible: false,
   imageModalVisible: false,
   checkinSuccessModalVisible: false,
@@ -44,6 +43,7 @@ const receptionistSlice = createSlice({
       action: PayloadAction<qrDecodedDetails | null>
     ) => {
       state.patientDetails = action.payload;
+      state.appoinmentDetails = action.payload?.appointment || null;
     },
     setQrToken: (state, action: PayloadAction<string | null>) => {
       state.storedAccessToken = action.payload;
@@ -71,18 +71,23 @@ const receptionistSlice = createSlice({
       .addCase(fetchQrDetailsAsync.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload.success) {
+          // Populate both patientDetails and appoinmentDetails
           state.patientDetails = action.payload.data;
+          state.appoinmentDetails = action.payload.data.appointment || null;
           state.error = null;
+          state.scanQrMessage = null;
         } else {
           state.error = action.payload.message;
-          state.patientDetails = null;
           state.scanQrMessage = action.payload.message;
+          state.patientDetails = null;
+          state.appoinmentDetails = null;
         }
       })
       .addCase(fetchQrDetailsAsync.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
         state.patientDetails = null;
+        state.appoinmentDetails = null;
         toast.error("Couldn’t fetch details!");
       });
   },
@@ -96,4 +101,5 @@ export const {
   setImageModalVisible,
   clearError,
 } = receptionistSlice.actions;
+
 export default receptionistSlice.reducer;
