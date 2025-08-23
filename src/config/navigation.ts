@@ -168,6 +168,11 @@ export const receptionistRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
+    {
+    href: "/dashboard/receptionist/print-prescription",
+    name: "Print Prescription",
+    icon: LayoutDashboard,
+  },
 ];
 
 // Function to get routes based on user role

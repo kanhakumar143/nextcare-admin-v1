@@ -180,14 +180,18 @@ export type UpdateDoctorPayload = {
   gender: string;
   birth_date: string;
   is_active: boolean;
-  license_details: string | null;
+  license_details: {
+    number: string;
+    issued_by: string;
+    expiry: string;
+  } | null;
   profile_picture_url: string;
   license_url: string;
   qualification?: {
     degree: string;
     institution: string;
-    graduation_year: string;
-  };
+    graduation_year: string; // ✅ match API
+  }[];
 };
 
 export type AddNursePayload = {
