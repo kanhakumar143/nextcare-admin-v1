@@ -148,16 +148,18 @@ function mapFormToDoctorPayload(
     is_active: formData.is_active,
     profile_picture_url: formData.profile_picture_url,
     license_url: formData.license_url,
-    license_details: JSON.stringify({
+    license_details: {
       number: formData.license_number,
       issued_by: formData.license_issued_by,
       expiry: formData.license_expiry,
-    }),
-    qualification: {
-      degree: formData.degree,
-      institution: formData.institution,
-      graduation_year: formData.graduation_year,
     },
+    qualification: [
+      {
+        degree: formData.degree,
+        institution: formData.institution,
+        graduation_year: formData.graduation_year,
+      },
+    ],
   };
 }
 

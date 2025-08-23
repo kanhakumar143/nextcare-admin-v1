@@ -141,17 +141,6 @@ const EprescriptionPage = () => {
                   <p>
                     {EprescriptionDetails?.practitioner?.user?.name || "N/A"}
                   </p>
-                  <Badge
-                    className={
-                      EprescriptionDetails?.practitioner?.user.is_active
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }
-                  >
-                    {EprescriptionDetails?.practitioner?.user.is_active
-                      ? "Active"
-                      : "Inactive"}
-                  </Badge>
                 </div>
 
                 <p>
@@ -177,17 +166,6 @@ const EprescriptionPage = () => {
                     {EprescriptionDetails?.practitioner.user.tenant.name ||
                       "N/A"}
                   </p>
-                  <Badge
-                    className={
-                      EprescriptionDetails?.practitioner?.user?.tenant?.active
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }
-                  >
-                    {EprescriptionDetails?.practitioner?.user?.tenant?.active
-                      ? "Active"
-                      : "Inactive"}
-                  </Badge>
                 </div>
                 {EprescriptionDetails?.practitioner.user.tenant.contact[0].telecom.map(
                   (dtls, i: number) => (
@@ -203,37 +181,78 @@ const EprescriptionPage = () => {
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <FileText className="h-5 w-5 text-primary" />
-          <span>Diagnosis Information</span>
+          <span>Clinical Details</span>
         </h3>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Severity</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {EprescriptionDetails?.visit_note?.assessments?.map(
-              (assessment) => (
-                <TableRow key={assessment.id}>
-                  <TableCell className="font-mono">
-                    {assessment.code || "N/A"}
-                  </TableCell>
-                  <TableCell>{assessment.description || "N/A"}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="border-yellow-500 text-yellow-700"
-                    >
-                      {assessment?.severity || "N/A"}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              )
-            )}
-          </TableBody>
-        </Table>
+
+        <div className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="font-medium text-gray-700">
+                Chief Complaint:{" "}
+              </span>
+              <span className="text-gray-900">
+                {(EprescriptionDetails?.visit_note as any)?.chief_complaint ||
+                  "Not specified"}
+              </span>
+            </div>
+
+            <div>
+              <span className="font-medium text-gray-700">Diagnosis: </span>
+              <span className="text-gray-900">
+                {(EprescriptionDetails?.visit_note as any)
+                  ?.provisional_diagnosis || "Not specified"}
+              </span>
+            </div>
+
+            <div>
+              <span className="font-medium text-gray-700">
+                Next Follow-up:{" "}
+              </span>
+              <span className="text-gray-900">
+                {(EprescriptionDetails?.visit_note as any)?.followup_date
+                  ? moment(
+                      (EprescriptionDetails?.visit_note as any)?.followup_date
+                    ).format("DD/MM/YYYY")
+                  : "Not scheduled"}
+              </span>
+            </div>
+
+            <div>
+              <span className="font-medium text-gray-700">Status: </span>
+              <span
+                className={`font-medium ${
+                  (EprescriptionDetails?.visit_note as any)?.critical
+                    ? "text-red-600"
+                    : "text-green-600"
+                }`}
+              >
+                {(EprescriptionDetails?.visit_note as any)?.critical
+                  ? "Critical"
+                  : "Stable"}
+              </span>
+            </div>
+          </div>
+
+          {EprescriptionDetails?.visit_note?.summary && (
+            <div className="border-t pt-3 mt-3">
+              <span className="font-medium text-gray-700">
+                Clinical Notes:{" "}
+              </span>
+              <span className="text-gray-900">
+                {EprescriptionDetails.visit_note.summary}
+              </span>
+            </div>
+          )}
+
+          {EprescriptionDetails?.visit_note?.follow_up && (
+            <div>
+              <span className="font-medium text-gray-700">Instructions: </span>
+              <span className="text-gray-900">
+                {EprescriptionDetails.visit_note.follow_up}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mb-6">
@@ -360,7 +379,7 @@ const EprescriptionPage = () => {
         </Table>
       </div>
 
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <Shield className="h-5 w-5 text-primary" />
           <span>Care Plans</span>
@@ -395,36 +414,7 @@ const EprescriptionPage = () => {
             )}
           </TableBody>
         </Table>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card className="py-0 border-l-4 border-l-primary">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 mb-3">
-              <FileText className="h-5 w-5 text-primary" />
-              <h4 className="font-semibold text-foreground">Visit Summary</h4>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {EprescriptionDetails?.visit_note?.summary ||
-                "No summary provided."}
-            </p>
-          </CardContent>
-        </Card>
-        <Card className="py-0 border-l-4 border-l-primary">
-          <CardContent className="p-6">
-            <div className="flex items-center space-x-2 mb-3">
-              <Calendar className="h-5 w-5 text-primary" />
-              <h4 className="font-semibold text-foreground">
-                Follow-Up Instructions
-              </h4>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {EprescriptionDetails?.visit_note?.follow_up ||
-                "No follow-up instructions provided."}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      </div> */}
 
       <div className="border-t-2 border-primary pt-6 mb-6">
         <div className="flex justify-end items-start">
