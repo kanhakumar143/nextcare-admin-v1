@@ -20,14 +20,15 @@ import {
   UpdateNursePayload,
   AddNursePayload,
   UpdateDoctorPayload,
-} from "@/types/admin.types"; // ✅ Create a similar type as DoctorData
+} from "@/types/admin.types";
 import {
   addPractitioner,
   getPractitionerByRole,
   updatePractitioner,
-} from "@/services/admin.api"; // ✅ Ensure these exist in API
+} from "@/services/admin.api";
 import FormModal from "../../common/FormModal";
 import { toast } from "sonner";
+// import { tenantId } from "@/config/authKeys";
 
 type ExtendedNurseData = NurseData & {
   name: string;
@@ -40,75 +41,6 @@ type ExtendedNurseData = NurseData & {
   };
 };
 
-// ✅ helper: flat form → API shape for adding new nurse
-function mapFormToAddNursePayload(formData: any): AddNursePayload {
-  return {
-    user: {
-      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
-      name: formData.name,
-      email: formData.email,
-      user_role: "nurse",
-      phone: formData.phone,
-    },
-    practitioner: {
-      identifiers: [
-        {
-          system: "practitioner_id",
-          value: formData.practitioner_display_id || "",
-        },
-      ],
-      name: {
-        given: [formData.name],
-        family: "",
-      },
-      gender: formData.gender,
-      birth_date: formData.birth_date,
-      qualification: [
-        {
-          degree: formData.degree,
-          institution: formData.institution,
-          year: formData.graduation_year,
-        },
-      ],
-      license_details: {
-        number: formData.license_number,
-        issued_by: formData.license_issued_by,
-        expiry: formData.license_expiry,
-      },
-      profile_picture_url: formData.profile_picture_url,
-      license_url: formData.license_url,
-      is_active: formData.is_active ?? true,
-    },
-    role: {
-      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
-      code: [
-        {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
-              code: "nurse",
-              display: "Nurse",
-            },
-          ],
-          text: "Nurse",
-        },
-      ],
-      specialty: [
-        {
-          text: formData.specialty || "General Nursing",
-        },
-      ],
-      location: [],
-      healthcare_service: [],
-      period: {
-        start: new Date().toISOString(),
-        end: "",
-      },
-      availability: [],
-      not_available: [],
-    },
-  };
-}
 
 export default function NurseManagement() {
   const [open, setOpen] = useState(false);
@@ -121,7 +53,7 @@ export default function NurseManagement() {
 
   const fetchNurses = async () => {
     try {
-      const res = await getPractitionerByRole("nurse"); // ✅ fetch only nurses
+      const res = await getPractitionerByRole("nurse");
       const data = (res?.data || []).map((nurse: NurseData) => ({
         ...nurse,
         name: nurse.user.name,
@@ -138,7 +70,14 @@ export default function NurseManagement() {
 
   const handleAddNurse = async (formData: any) => {
     try {
-      const payload = mapFormToAddNursePayload(formData);
+      console.log(formData);
+      const payload = {
+        ...formData,
+        role: {
+          ...formData.role,
+          tenantId: "4896d272-e201-4dce-9048-f93b1e3ca49f"
+        }
+      }
       await addPractitioner(payload);
       await fetchNurses();
       setOpen(false);

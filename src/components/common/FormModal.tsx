@@ -181,72 +181,85 @@ const form = useForm<PractitionerFormData>({
     setIsSubmitting(true);
     try {
       const payload = {
-        user: {
-          tenant_id: data.tenant_id,
-          name: data.name,
-          email: data.email,
-          phone: data.phone,
-          hashed_password: "default1234",
-          user_role: role,
-        },
-        practitioner: {
-          identifiers: [
-            { system: data.identifier_system ?? "", value: data.identifier_value ?? "" },
-          ],
-          name: {
-            prefix: data.prefix ? [data.prefix] : [],
-            given: [data.given_name ?? ""],
-            family: data.family_name ?? "",
+  user: {
+    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+    name: data.name ?? "",
+    email: data.email ?? "",
+    phone: data.phone ?? "",
+    hashed_password: "default1234",
+    user_role: role === "nurse" ? "nurse" : "doctor",
+
+  },
+  practitioner: {
+    identifiers: data.identifier_system && data.identifier_value
+  ? [{ system: data.identifier_system, value: data.identifier_value }]
+  : [],
+
+    name: {
+      prefix: data.prefix ? [data.prefix] : [],
+      given: [data.given_name ?? ""],
+      family: data.family_name ?? "",
+    },
+    telecom: [
+      { system: "phone", value: data.telecom_phone ?? "", use: "mobile" },
+      { system: "email", value: data.telecom_email ?? "", use: "work" },
+    ],
+    gender: data.gender ?? "unknown",
+    birth_date: data.birth_date ?? "",
+    qualification: [
+      {
+        degree: data.degree ?? null,
+        institution: data.institution ?? null,
+        year: data.graduation_year ?? null,
+      },
+    ],
+    license_details: {
+      number: data.license_number ?? null,
+      issued_by: data.license_issued_by ?? null,
+      expiry: data.license_expiry ?? null,
+    },
+    profile_picture_url: data.profile_picture_url ?? null,
+    license_url: data.license_url ?? null,
+    is_active: data.is_active ?? true,
+  },
+  role: {
+    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+    code: [
+      {
+        coding: [
+          {
+            system: data.role_code_system ?? "",
+            code: data.role_code ?? "",
+            display: data.role_display ?? "",
           },
-          telecom: [
-            { system: "phone", value: data.telecom_phone ?? "", use: "mobile" },
-            { system: "email", value: data.telecom_email ?? "", use: "work" },
-          ],
-          gender: data.gender ?? "",
-          birth_date: data.birth_date ?? "",
-          qualification: [
-            { degree: data.degree, institution: data.institution, year: data.graduation_year },
-          ],
-          license_details: {
-            number: data.license_number,
-            issued_by: data.license_issued_by,
-            expiry: data.license_expiry,
-          },
-          profile_picture_url: data.profile_picture_url,
-          license_url: data.license_url,
-          is_active: data.is_active,
-        },
-        role: {
-          tenant_id: data.tenant_id,
-          code: [
-            {
-              coding: [
-                {
-                  system: data.role_code_system ?? "",
-                  code: data.role_code ?? "",
-                  display: data.role_display ?? "",
-                },
-              ],
-              text: data.role_text ?? "",
+        ],
+        text: data.role_text ?? "",
+      },
+    ],
+    specialty: [{ text: data.specialty ?? "" }],
+    location: [{ reference: data.location_reference ?? "", display: data.location_display ?? "" }],
+    healthcare_service: [
+      { reference: data.healthcare_service_reference ?? "", display: data.healthcare_service_display ?? "" },
+    ],
+    period: { start: data.period_start ?? "", end: data.period_end ?? "" },
+    availability: data.availability_days
+      ? [{ daysOfWeek: data.availability_days,
+         availableTime: data.available_times ?? [] }]
+      : [],
+    not_available: data.not_available_description
+      ? [
+          {
+            description: data.not_available_description,
+            during: {
+              start: data.not_available_start ?? "",
+              end: data.not_available_end ?? "",
             },
-          ],
-          specialty: [{ text: data.specialty ?? "" }],
-          location: [{ reference: data.location_reference ?? "", display: data.location_display ?? "" }],
-          healthcare_service: [
-            { reference: data.healthcare_service_reference ?? "", display: data.healthcare_service_display ?? "" },
-          ],
-          period: { start: data.period_start ?? "", end: data.period_end ?? "" },
-          availability: [{ daysOfWeek: data.availability_days, availableTime: data.available_times }],
-          not_available: data.not_available_description
-            ? [
-                {
-                  description: data.not_available_description,
-                  during: { start: data.not_available_start || "", end: data.not_available_end || "" },
-                },
-              ]
-            : [],
-        },
-      };
+          },
+        ]
+      : [],
+  },
+};
+
       console.log(payload);
       await onSubmit1(payload);
       
@@ -259,11 +272,11 @@ const form = useForm<PractitionerFormData>({
       setIsSubmitting(false);
     }
   };
-//   useEffect(() => {
-//   if (defaultValues) {
-//     form.reset(defaultValues);
-//   }
-// }, [defaultValues]);
+  useEffect(() => {
+  if (defaultValues) {
+    form.reset(defaultValues);
+  }
+}, [defaultValues]);
 
 
   const handleClose = (open: boolean) => {
