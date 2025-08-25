@@ -464,7 +464,7 @@ function DoctorOrders() {
   const dispatch = useDispatch();
 
   // Get data from Redux store
-  const { labTests, medicines } = useSelector(
+  const { labTests, medicines, isEditingConsultation } = useSelector(
     (state: RootState) => state.doctor
   );
 
@@ -551,6 +551,12 @@ function DoctorOrders() {
       <div className="grid gap-6">
         {tableConfig.map((section) => {
           const isLabTests = section.title === "Recommended Lab Tests";
+
+          // Hide lab tests section when editing consultation
+          if (isLabTests && isEditingConsultation) {
+            return null;
+          }
+
           const currentData = isLabTests ? labTests : medicines;
           const addFunction = isLabTests ? addNewLabTest : addNewMedicine;
           const updateFunction = isLabTests
