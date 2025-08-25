@@ -50,6 +50,7 @@ import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import BackButton from "@/components/common/BackButton";
 import DentalProcedureEntry from "./DentalProcedureEntry";
+import PreConsultationAnswers from "./PreConsultationAnswers";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
@@ -218,33 +219,8 @@ export default function PatientConsultation() {
         </div>
       </div>
       <div className="flex p-4 bg-background gap-4">
-        {/* Left Side */}
         <div className="w-full lg:w-5/12 space-y-4 min-h-full">
-          {/* Pre-consultation QnA */}
-          <Card className="border-border p-0">
-            <CardHeader className="bg-gray-200 rounded-t-lg">
-              <CardTitle className="text-lg py-3">
-                Pre-consultation Answers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="pb-6 pr-4 h-[52vh]">
-                <div className="space-y-3 text-sm">
-                  {apptDtls?.questionary_answers &&
-                    apptDtls.questionary_answers.map((q: any, i: number) => (
-                      <div key={i}>
-                        <p className="font-medium text-foreground">
-                          Q{i + 1}: {q?.questionary?.question}
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : {q.answer || ""}
-                        </p>
-                      </div>
-                    ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+          <PreConsultationAnswers apptDtls={apptDtls} />
         </div>
 
         <Card className="w-full space-y-1 p-4">
