@@ -96,7 +96,7 @@ export default function ConfirmConsultationModal() {
         test_display: test.test_display,
         intent: test.intent,
         priority: test.priority,
-        status: "active",
+        status: "verified",
       })),
     };
 

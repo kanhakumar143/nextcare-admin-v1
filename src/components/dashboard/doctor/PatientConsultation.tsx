@@ -414,6 +414,23 @@ export default function PatientConsultation() {
                     }
                   />
                 </div>
+                <div className="flex items-center space-x-2 mt-7">
+                  <Checkbox
+                    className="h-5 w-5"
+                    checked={visitNote.critical}
+                    onCheckedChange={(checked) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "critical",
+                          value: checked ? true : false,
+                        })
+                      )
+                    }
+                  />
+                  <Label className="text-sm font-medium">
+                    Critical Patient
+                  </Label>
+                </div>
               </div>
               <div className="grid grid-cols-1 gap-4 mt-3">
                 <div className="flex items-center space-x-2">
@@ -515,7 +532,7 @@ export default function PatientConsultation() {
         )}
 
       <div className="px-4 mr-2">
-        <DoctorMedicineLabEntry />
+        <DoctorMedicineLabEntry appointmentDetails={apptDtls} />
       </div>
 
       {singlePatientDetails?.service_specialty.display === "Dentistry" && (

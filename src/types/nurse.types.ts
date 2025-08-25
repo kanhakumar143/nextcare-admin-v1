@@ -46,7 +46,10 @@ export interface Question {
     | "time"
     | "datetime";
   options: QuestionOption[];
-  note?: string;
+  note?: {
+    instruction?: string;
+    mandatory?: boolean;
+  };
   tenant_service_id: string;
   created_at: string;
   updated_at: string;

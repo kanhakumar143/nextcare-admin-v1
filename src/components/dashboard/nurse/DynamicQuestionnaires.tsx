@@ -55,7 +55,7 @@ export default function DynamicQuestionnaires() {
       preAppQuestionnaires.response?.data
     ) {
       const initialAnswers: Record<string, any> = {};
-      preAppQuestionnaires.response.data.forEach((questionData, index) => {
+      preAppQuestionnaires?.response.data.forEach((questionData, index) => {
         initialAnswers[`question_${index}`] = questionData.answer;
       });
       setNextcareAnswers(initialAnswers);
@@ -428,7 +428,7 @@ export default function DynamicQuestionnaires() {
                               <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
                                 <p className="text-sm text-gray-700 italic">
                                   <span className="font-medium">Note:</span>{" "}
-                                  {question?.note}
+                                  {question?.note?.instruction}
                                 </p>
                               </div>
                             )}

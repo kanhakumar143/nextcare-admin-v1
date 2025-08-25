@@ -40,6 +40,7 @@ import { RootState } from "@/store";
 import { LabTest, Medication } from "@/types/doctor.types";
 import MedicationInstructionsModal from "./modals/MedicationInstructionsModal";
 import { toast } from "sonner";
+import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 
 // Drug warnings configuration
 const drugWarnings = {
@@ -460,13 +461,16 @@ export interface DoctorOrdersRef {
   };
 }
 
-function DoctorOrders() {
+function DoctorOrders({
+  appointmentDetails,
+}: {
+  appointmentDetails: AppointmentDtlsForDoctor | null;
+}) {
   const dispatch = useDispatch();
 
   // Get data from Redux store
-  const { labTests, medicines, isEditingConsultation } = useSelector(
-    (state: RootState) => state.doctor
-  );
+  const { labTests, medicines, isEditingConsultation, singlePatientDetails } =
+    useSelector((state: RootState) => state.doctor);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -499,6 +503,10 @@ function DoctorOrders() {
       },
       duration: "",
       dosage_instruction: "",
+      // Add medication_request_id when editing consultation
+      ...(isEditingConsultation && {
+        medication_request_id: appointmentDetails?.prescriptions[0]?.id,
+      }),
     };
     dispatch(addMedicine(newMedicine));
   };
