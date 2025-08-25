@@ -105,6 +105,7 @@ export default function ConfirmConsultationModal() {
     if (isEditingConsultation) {
       try {
         await updateVisitSummary(payload);
+        handleCompleteReview();
       } catch (error) {
         setLoading(false);
         toast.error("Failed to update visit summary. Please try again.");
