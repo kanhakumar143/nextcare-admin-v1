@@ -110,119 +110,130 @@ export default function UploadLabReport() {
     }
   };
   return (
-   <div className="flex justify-center px-4 mt-4">
-  <div className="w-full max-w-md sm:max-w-lg md:max-w-lg flex flex-col justify-center pt-2">
-    <h1 className="text-2xl font-bold text-center">Upload Lab Report</h1>
+    <div className="flex justify-center px-4 mt-4">
+      <div className="w-full max-w-md sm:max-w-lg md:max-w-lg flex flex-col justify-center pt-2">
+        <h1 className="text-2xl font-bold text-center">Upload Lab Report</h1>
 
-    {/* File + Camera Section */}
-    <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-stretch mt-4 justify-center">
-      {/* File Upload */}
-      <div
-        onClick={triggerFileSelect}
-        className="flex items-center justify-center border-2 h-20 border-dashed border-gray-300 rounded-lg p-2 text-center text-black bg-gray-100 cursor-pointer flex-2"
-      >
-        <Label htmlFor="fileUpload" className="cursor-pointer">
-          Drag & drop images or PDFs here, or click to select
-        </Label>
-        <input
-          type="file"
-          accept="image/*,.pdf"
-          ref={fileInputRef}
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      </div>
-
-      {/* Camera */}
-      <div className="flex flex-col items-center justify-center flex-1 h-20 border-dashed border-gray-300 rounded-lg p-">
-        {!cameraActive ? (
-          <Button onClick={startCamera} className="w-full h-full cursor-pointer">
-            <Camera className="mr-2 h-4 w-4 " /> Capture
-          </Button>
-        ) : (
-          <div className="flex flex-col items-center space-y-2">
-            <video
-              ref={videoRef}
-              width={280}
-              height={160}
-              className="border rounded-lg"
+        {/* File + Camera Section */}
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 items-stretch mt-4 justify-center">
+          {/* File Upload */}
+          <div
+            onClick={triggerFileSelect}
+            className="flex items-center justify-center border-2 h-20 border-dashed border-gray-300 rounded-lg p-2 text-center text-black bg-gray-100 cursor-pointer flex-2"
+          >
+            <Label htmlFor="fileUpload" className="cursor-pointer">
+              Drag & drop images or PDFs here, or click to select
+            </Label>
+            <input
+              type="file"
+              accept="image/*,.pdf"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
             />
-            <Button onClick={capturePhoto} className="w-full cursor-pointer">
-              Capture Photo
-            </Button>
+          </div>
+
+          {/* Camera */}
+          <div className="flex flex-col items-center justify-center flex-1 h-20 border-dashed border-gray-300 rounded-lg p-">
+            {!cameraActive ? (
+              <Button
+                onClick={startCamera}
+                className="w-full h-full cursor-pointer"
+              >
+                <Camera className="mr-2 h-4 w-4 " /> Capture
+              </Button>
+            ) : (
+              <div className="flex flex-col items-center space-y-2">
+                <video
+                  ref={videoRef}
+                  width={280}
+                  height={160}
+                  className="border rounded-lg"
+                />
+                <Button
+                  onClick={capturePhoto}
+                  className="w-full cursor-pointer"
+                >
+                  Capture Photo
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Remark */}
+        <div className="mt-4">
+          <Label htmlFor="remark" className="block mb-2 font-medium">
+            Remark
+          </Label>
+          <textarea
+            id="remark"
+            placeholder="Add any notes or remarks..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="w-full border rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 min-h-[100px]"
+          />
+        </div>
+
+        
+        {/* Preview */}
+        {image && (
+          <div className="relative mt-4 border rounded-lg overflow-hidden min-h-[24rem]">
+            <button
+              onClick={removeImage}
+              className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full cursor-pointer p-1 hover:bg-opacity-70"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {image.type === "application/pdf" ? (
+              <object
+                data={URL.createObjectURL(image)}
+                type="application/pdf"
+                className="w-full h-96"
+              >
+                <p className="text-center text-gray-500">
+                  PDF preview not supported. <br />
+                  <a
+                    href={URL.createObjectURL(image)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-500 underline"
+                  >
+                    Click here to view
+                  </a>
+                </p>
+              </object>
+            ) : (
+              <img
+                src={URL.createObjectURL(image)}
+                alt="Preview"
+                className="w-full"
+              />
+            )}
           </div>
         )}
+
+        <canvas ref={canvasRef} width={300} height={200} className="hidden" />
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row justify-between mt-6 gap-2 sm:gap-0">
+          <Button
+            variant="outline"
+            className="cursor-pointer w-full sm:w-auto"
+            onClick={() => router.back()}
+          >
+            ← Back
+          </Button>
+          <Button
+            className="cursor-pointer w-full sm:w-auto"
+            onClick={handleUpload}
+            disabled={loading}
+          >
+            {loading ? "Uploading..." : "Upload →"}
+          </Button>
+        </div>
       </div>
     </div>
-
-    {/* Remark */}
-    <div className="mt-4">
-      <Label htmlFor="remark" className="block mb-2 font-medium">
-        Remark
-      </Label>
-      <textarea
-        id="remark"
-        placeholder="Add any notes or remarks..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        className="w-full border rounded-lg p-2 text-gray-700 focus:outline-none focus:ring-2 min-h-[100px]"
-      />
-    </div>
-
-    {/* Preview */}
-    {/* Preview */}
-{image && (
-  <div className="relative mt-4 border rounded-lg overflow-hidden min-h-[24rem]">
-    <button
-      onClick={removeImage}
-      className="absolute top-2 right-2 text-white bg-black bg-opacity-50 rounded-full cursor-pointer p-1 hover:bg-opacity-70"
-    >
-      <X className="w-5 h-5" />
-    </button>
-
-    {image.type === "application/pdf" ? (
-      <object
-        data={URL.createObjectURL(image)}
-        type="application/pdf"
-        className="w-full h-96"
-      >
-        <p className="text-center text-gray-500">
-          PDF preview not supported. <br />
-          <a
-            href={URL.createObjectURL(image)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline"
-          >
-            Click here to view
-          </a>
-        </p>
-      </object>
-    ) : (
-      <img
-        src={URL.createObjectURL(image)}
-        alt="Preview"
-        className="w-full"
-      />
-    )}
-  </div>
-)}
-
-
-    <canvas ref={canvasRef} width={300} height={200} className="hidden" />
-
-    {/* Actions */}
-    <div className="flex flex-col sm:flex-row justify-between mt-6 gap-2 sm:gap-0">
-      <Button variant="outline" className="cursor-pointer w-full sm:w-auto" onClick={() => router.back()}>
-        ← Back
-      </Button>
-      <Button className="cursor-pointer w-full sm:w-auto" onClick={handleUpload} disabled={loading}>
-        {loading ? "Uploading..." : "Upload →"}
-      </Button>
-    </div>
-  </div>
-</div>
-
-
   );
 }
