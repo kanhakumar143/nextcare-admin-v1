@@ -8,6 +8,114 @@ export interface LabTestOrder {
   // add more fields if returned by API
 }
 
+// Availability status interface
+export interface AvailabilityStatus {
+  practitioner_id: string;
+  practitioner_name: string;
+  date: string;
+  availability_status: "AVAILABLE" | "UNAVAILABLE" | string;
+  attendance_details: any | null;
+  break_details: any | null;
+  check_in_time: string | null;
+  check_out_time: string | null;
+  total_hours: string | null;
+}
+
+// Practitioner identifier interface
+export interface PractitionerIdentifier {
+  system: string;
+  value: string;
+}
+
+// Practitioner name interface
+export interface PractitionerName {
+  use: string | null;
+  text: string | null;
+  family: string;
+  given: string[];
+  prefix: string[];
+  suffix: string | null;
+  period: any | null;
+}
+
+// Practitioner telecom interface
+export interface PractitionerTelecom {
+  system: "phone" | "email" | string;
+  value: string;
+  use: "mobile" | "work" | "home" | string;
+  rank: number | null;
+  period: any | null;
+}
+
+// Practitioner qualification interface
+export interface PractitionerQualification {
+  year?: string;
+  degree?: string;
+  institution?: string;
+}
+
+// License details interface
+export interface LicenseDetails {
+  number?: string;
+  issued_by?: string;
+  expiry?: string;
+}
+
+// Tenant contact interface
+export interface TenantContact {
+  name: string;
+  telecom: {
+    system: string;
+    value: string;
+    use: string | null;
+  }[];
+  address: any | null;
+  purpose: any | null;
+}
+
+// Tenant interface
+export interface Tenant {
+  id: string;
+  active: boolean;
+  name: string;
+  alias: string[];
+  contact: TenantContact[];
+}
+
+// User interface for practitioner
+export interface PractitionerUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  user_role: "doctor" | string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  tenant: Tenant;
+}
+
+// Complete practitioner data interface
+export interface PractitionerAttendanceData {
+  practitioner_display_id: string;
+  identifiers: PractitionerIdentifier[];
+  name: PractitionerName;
+  telecom: PractitionerTelecom[];
+  gender: "male" | "female" | "other" | string;
+  birth_date: string;
+  qualification: PractitionerQualification[];
+  is_active: boolean;
+  license_details: LicenseDetails;
+  profile_picture_url: string;
+  license_url: string;
+  e_sign_path: string | null;
+  status: "verified" | "unverified" | string;
+  id: string;
+  user_id: string;
+  user: PractitionerUser;
+  availability_status: AvailabilityStatus;
+}
+
 // Appointment interface with lab orders
 export interface AppointmentDetails {
   description: string;
@@ -99,6 +207,7 @@ export interface staffSliceInitialState {
   patientDetails: qrDecodedDetails | null;
   medicationDetailsForReminder: any | null;
   appoinmentDetails: any | null;
+  practitionerAttendanceData: PractitionerAttendanceData | null;
   imageModalVisible: boolean;
   checkinSuccessModalVisible: boolean;
   patientVerifiedModalVisible: boolean;

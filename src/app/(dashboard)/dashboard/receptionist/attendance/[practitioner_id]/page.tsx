@@ -1,4 +1,4 @@
-import LogAttendance from "@/components/dashboard/receptionist/LogAttendance";
+import AttendanceForPractitioner from "@/components/dashboard/receptionist/AttendanceForPractitioner";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function Blogs() {
   return (
     <div>
-      <LogAttendance />
+      <AttendanceForPractitioner />
     </div>
   );
 }
