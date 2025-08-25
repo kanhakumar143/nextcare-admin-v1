@@ -550,7 +550,7 @@ export default function PatientConsultation() {
       <ImageReportModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
-        imageUrl={selectedImage}
+        fileUrl={selectedImage}
         title="Lab Test Report"
       />
     </>
