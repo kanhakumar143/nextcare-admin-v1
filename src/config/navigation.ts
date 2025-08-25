@@ -15,6 +15,7 @@ import {
   FileQuestionMark,
   MapPinPlus,
   Ribbon,
+  BellRing,
 } from "lucide-react";
 
 export type Route = {
@@ -61,6 +62,11 @@ export const adminRoutes: Route[] = [
     icon: Users,
   },
   {
+    href: "/dashboard/admin/notify-patient",
+    name: "Notify Patient",
+    icon: BellRing,
+  },
+  {
     name: "Services",
     icon: Layers,
     children: [
@@ -86,6 +92,27 @@ export const adminRoutes: Route[] = [
       },
     ],
   },
+];
+
+// Super Admin Navigation Routes
+export const superAdminRoutes: Route[] = [
+  {
+    href: "/dashboard/super-admin",
+    name: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/admin/nurse-management",
+    name: "Nurse Management",
+    icon: Ribbon,
+  },
+  {
+    href: "/dashboard/admin/doctor-management",
+    name: "Doctor Management",
+    icon: Stethoscope,
+  },
+   
+
 ];
 
 // Doctor Navigation Routes
@@ -180,6 +207,8 @@ export const getRoutesByRole = (role: string | null): Route[] => {
   switch (role?.toLowerCase()) {
     case "admin":
       return adminRoutes;
+    case "super_admin":
+      return superAdminRoutes;
     case "doctor":
       return doctorRoutes;
     case "nurse":
@@ -198,6 +227,8 @@ export const getSidebarLabel = (role: string | null): string => {
   switch (role?.toLowerCase()) {
     case "admin":
       return "Admin Panel";
+    case "super_admin":
+      return "Super Admin Panel";
     case "doctor":
       return "Doctor Panel";
     case "nurse":

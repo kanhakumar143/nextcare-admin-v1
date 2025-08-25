@@ -6,6 +6,7 @@ import {
   AddServicePayload,
   AddDoctorPayload,
   UpdateDoctorPayload,
+  UpdateNursePayload,
 } from "@/types/admin.types";
 
 const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -128,13 +129,30 @@ export const getPractitionerByRole = async (role: "doctor" | "nurse") => {
 };
 
 // Update Practitioner
-export const updatePractitioner = async (payload: UpdateDoctorPayload) => {
+export const updatePractitioner = async (payload: UpdateDoctorPayload | UpdateNursePayload) => {
   try {
     const response = await api.put(`practitioner/`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       throw new Error(error?.message || "Failed to update practitioner");
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+
+
+// Fetch All Appointment of perticular practitioner
+export const getAllAppointmentsByPractitioner = async (practitionerId: string) => {
+  try {
+    const { data } = await api.get(
+      `practitioner/appointments?practitioner_id=${practitionerId}`
+    );
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error?.message || "Failed to fetch appointments");
     }
     throw new Error("Unexpected error occurred.");
   }
