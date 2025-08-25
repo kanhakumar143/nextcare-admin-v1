@@ -26,7 +26,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ListPlus, Plus, Trash2, Clock } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -40,6 +39,47 @@ import {
 import { RootState } from "@/store";
 import { LabTest, Medication } from "@/types/doctor.types";
 import MedicationInstructionsModal from "./modals/MedicationInstructionsModal";
+import { toast } from "sonner";
+
+// Drug warnings configuration
+const drugWarnings = {
+  amlodipine: {
+    heading: "CDSS Alerts",
+    message: "May cause pedal edema. Advice patient to monitor BP regularly",
+  },
+  atorvastatin: {
+    heading: "CDSS Alerts",
+    message:
+      "When used with amlodipine, atorvastatin dose should not exceed 20 mg",
+  },
+  paracetamol: {
+    heading: "CDSS Alerts",
+    message: "Max dose = 3 g/day. Avoid in liver disease/alcohol misuse",
+  },
+  aspirin: {
+    heading: "CDSS Alerts",
+    message:
+      "Check bleeding risk & GI history before prescribing. If long-term, consider PPI co-prescription for gastric protection",
+  },
+};
+
+// Function to check for drug warnings
+const checkDrugWarning = (medicationName: string) => {
+  const drugName = medicationName.toLowerCase().trim();
+  const warning = drugWarnings[drugName as keyof typeof drugWarnings];
+
+  if (warning) {
+    toast.info(warning.heading, {
+      description: warning.message,
+      duration: 8000, // Show for 8 seconds
+      style: {
+        backgroundColor: "#fef3c7", // Yellow background
+        border: "1px solid #f59e0b",
+        color: "#92400e",
+      },
+    });
+  }
+};
 
 // Configuration for dynamic sections
 const tableConfig = [
@@ -474,6 +514,11 @@ function DoctorOrders() {
     value: string | any
   ) => {
     dispatch(updateMedicine({ index, key, value }));
+
+    // Check for drug warnings when medication name is updated
+    if (key === "name" && typeof value === "string" && value.trim()) {
+      checkDrugWarning(value);
+    }
   };
 
   // Delete functions

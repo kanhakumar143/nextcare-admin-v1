@@ -15,6 +15,7 @@ import {
   FileQuestionMark,
   MapPinPlus,
   Ribbon,
+  AlarmClock,
 } from "lucide-react";
 
 export type Route = {
@@ -134,7 +135,6 @@ export const nurseRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
-
 ];
 
 // Lab Technician Navigation Routes
@@ -168,9 +168,24 @@ export const receptionistRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
-    {
+  {
     href: "/dashboard/receptionist/print-prescription",
     name: "Print Prescription",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/receptionist/set-reminders",
+    name: "Medication Reminder",
+    icon: AlarmClock,
+  },
+  {
+    href: "/dashboard/receptionist/plan-pricing",
+    name: "Pricing Plans",
+    icon: FileText,
+  },
+  {
+    href: "/dashboard/receptionist/attendance",
+    name: "Attendance",
     icon: LayoutDashboard,
   },
 ];

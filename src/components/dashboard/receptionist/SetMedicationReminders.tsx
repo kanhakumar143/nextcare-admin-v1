@@ -4,21 +4,20 @@ import React, { useEffect } from "react";
 import {
   clearError,
   setDownloadReportsData,
+  setMedicationDetailsForReminder,
   setQrToken,
 } from "@/store/slices/receptionistSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { AlertCircleIcon } from "lucide-react";
 import QrScannerBox from "@/components/common/QrScannerBox";
-import ScannedPatientLabOrders from "./ScanPatientReportDetails";
-import ConsultationDetailsPrint from "./ConsultationDetailsPrint";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { fetchDecodeQrDetailsForReports } from "@/services/receptionist.api";
+import ScannedPatientMedication from "./ScannedPatientMedication";
 
-const PrintScannedPatientQr: React.FC = () => {
+const SetMedicationReminders: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-
-  const { patientDetails, scanQrMessage, downloadReportsData } = useSelector(
+  const { medicationDetailsForReminder } = useSelector(
     (state: RootState) => state.receptionistData
   );
 
@@ -28,7 +27,7 @@ const PrintScannedPatientQr: React.FC = () => {
       const data = await fetchDecodeQrDetailsForReports({ accessToken: token });
       dispatch(setQrToken(token));
       console.log("Fetched report data:", data.data);
-      dispatch(setDownloadReportsData(data.data));
+      dispatch(setMedicationDetailsForReminder(data.data));
     } catch (error) {
       console.error("Error fetching QR details:", error);
     }
@@ -38,19 +37,19 @@ const PrintScannedPatientQr: React.FC = () => {
     <div className="flex flex-col items-center justify-start p-6 gap-6">
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold text-primary">
-          Scan QR Code to Print Patient Details
+          Scan QR Code to set Medication Reminders
         </h1>
       </div>
 
-      {!patientDetails && (
-        <div className="w-full max-w-md">
-          <QrScannerBox
-            onScanSuccess={(token) => handleScanSuccess(token)}
-            buttonLabel="Start QR Scan"
-          />
-        </div>
-      )}
-
+      {/* {!medicationDetailsForReminder && ( */}
+      <div className="w-full max-w-md">
+        <QrScannerBox
+          onScanSuccess={(token) => handleScanSuccess(token)}
+          buttonLabel="Start QR Scan"
+        />
+      </div>
+      {/* )} */}
+      {/* 
       {scanQrMessage && (
         <Alert
           variant="destructive"
@@ -59,25 +58,15 @@ const PrintScannedPatientQr: React.FC = () => {
           <AlertCircleIcon />
           <AlertTitle>{scanQrMessage}</AlertTitle>
         </Alert>
-      )}
+      )} */}
 
-      {downloadReportsData && !scanQrMessage && (
+      {medicationDetailsForReminder && (
         <div className="w-full max-w-6xl space-y-6">
-          {/* Consultation Details with Download Options */}
-          <ConsultationDetailsPrint
-            apptId={downloadReportsData?.visit_note?.appointment_id}
-          />
-        </div>
-      )}
-
-      {patientDetails && !scanQrMessage && !downloadReportsData && (
-        <div className="w-full max-w-4xl space-y-6">
-          {/* Lab orders & patient info */}
-          <ScannedPatientLabOrders />
+          <ScannedPatientMedication />
         </div>
       )}
     </div>
   );
 };
 
-export default PrintScannedPatientQr;
+export default SetMedicationReminders;

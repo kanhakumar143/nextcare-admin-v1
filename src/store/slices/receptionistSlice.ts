@@ -5,6 +5,7 @@ import {
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 import { toast } from "sonner";
+import { Medication } from "@/types/doctor.types";
 
 // Async thunk to fetch QR details
 export const fetchQrDetailsAsync = createAsyncThunk(
@@ -25,6 +26,7 @@ export const fetchQrDetailsAsync = createAsyncThunk(
 const initialState: staffSliceInitialState = {
   patientDetails: null,
   appoinmentDetails: null,
+  medicationDetailsForReminder: null,
   patientVerifiedModalVisible: false,
   imageModalVisible: false,
   checkinSuccessModalVisible: false,
@@ -65,6 +67,12 @@ const receptionistSlice = createSlice({
       state.error = null;
       state.scanQrMessage = null;
     },
+    setMedicationDetailsForReminder: (
+      state,
+      action: PayloadAction<any | null>
+    ) => {
+      state.medicationDetailsForReminder = action.payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -103,6 +111,7 @@ export const {
   setCheckinSuccessModal,
   setVerifiedPatientModal,
   setImageModalVisible,
+  setMedicationDetailsForReminder,
   clearError,
   setDownloadReportsData,
 } = receptionistSlice.actions;

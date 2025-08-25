@@ -58,13 +58,17 @@ const initialState: doctorSliceInitialStates = {
   practitionerData: null,
   practitionerDataLoading: false,
   practitionerDataError: null,
+  consultationMode: "new", // "new" for new consultation, "edit" for editing existing
+  isEditingConsultation: false,
   visitNote: {
     summary: "",
     follow_up: "",
+    criticality_remark: "",
     chief_complaint: "",
     provisional_diagnosis: "",
     remarks: "",
     visit_care_plan: {
+      id: "",
       plan_type: "",
       goal: "",
       detail: "",
@@ -72,6 +76,7 @@ const initialState: doctorSliceInitialStates = {
       consultation_mode: "",
     },
     visit_assessment: {
+      id: "",
       description: "",
       severity: "mild",
     },
@@ -149,6 +154,7 @@ const doctorSlice = createSlice({
         chief_complaint: "",
         provisional_diagnosis: "",
         remarks: "",
+        criticality_remark: "",
         visit_care_plan: {
           plan_type: "",
           goal: "",
@@ -215,6 +221,7 @@ const doctorSlice = createSlice({
       state.visitNote = {
         summary: "",
         follow_up: "",
+        criticality_remark: "",
         chief_complaint: "",
         provisional_diagnosis: "",
         remarks: "",
@@ -231,6 +238,77 @@ const doctorSlice = createSlice({
         },
         critical: false,
       };
+    },
+    setConsultationMode: (state, action: PayloadAction<"new" | "edit">) => {
+      state.consultationMode = action.payload;
+      state.isEditingConsultation = action.payload === "edit";
+    },
+    populateConsultationData: (
+      state,
+      action: PayloadAction<{
+        visitNote?: any;
+        medicines?: any[];
+        labTests?: any[];
+      }>
+    ) => {
+      const { visitNote, medicines, labTests } = action.payload;
+
+      if (visitNote) {
+        state.visitNote = {
+          summary: visitNote.summary || "",
+          id: visitNote.id || "",
+          follow_up: visitNote.follow_up || "",
+          criticality_remark: visitNote.criticality_remark || "",
+          chief_complaint: visitNote.chief_complaint || "",
+          provisional_diagnosis: visitNote.provisional_diagnosis || "",
+          remarks: visitNote.remarks || "",
+          visit_care_plan: {
+            id: visitNote.care_plans?.[0]?.id || "",
+            plan_type: visitNote.care_plans?.[0]?.plan_type || "",
+            goal: visitNote.care_plans?.[0]?.goal || "",
+            detail: visitNote.care_plans?.[0]?.detail || "",
+            followup_date: "",
+            consultation_mode: "",
+          },
+          visit_assessment: {
+            id: visitNote.assessments?.[0]?.id || "",
+            description: visitNote.assessments?.[0]?.description || "",
+            severity: visitNote.assessments?.[0]?.severity || "mild",
+          },
+          critical: false,
+        };
+      }
+
+      if (medicines && medicines.length > 0) {
+        state.medicines = medicines.map((med: any) => ({
+          id: med.id,
+          medication_request_id: med.medication_request_id || "",
+          name: med.name || "",
+          form: med.form || "",
+          route: med.route || "",
+          frequency: med.frequency || "",
+          strength: med.strength || "",
+          duration: med.duration || "",
+          timing: med.timing || {
+            morning: false,
+            afternoon: false,
+            evening: false,
+            night: false,
+          },
+          dosage_instruction: med.dosage_instruction || "",
+          note: med.note || { info: "" },
+        }));
+      }
+
+      if (labTests && labTests.length > 0) {
+        state.labTests = labTests.map((lab: any) => ({
+          id: lab.id,
+          notes: lab.notes?.[0]?.text || "",
+          test_display: lab.test_display || "",
+          intent: lab.intent || "order",
+          priority: lab.priority || "routine",
+        }));
+      }
     },
   },
   extraReducers: (builder) => {
@@ -287,6 +365,8 @@ export const {
   clearLabTests,
   clearMedicines,
   clearConsultationOrders,
+  setConsultationMode,
+  populateConsultationData,
 } = doctorSlice.actions;
 
 export default doctorSlice.reducer;

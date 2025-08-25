@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X, Download, ZoomIn, ZoomOut } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ImageReportModalProps {
   isOpen: boolean;
@@ -26,7 +26,9 @@ export function ImageReportModal({
 }: ImageReportModalProps) {
   const [zoom, setZoom] = useState(1);
   const [imageError, setImageError] = useState(false);
-
+  useEffect(() => {
+    setImageError(false);
+  }, [imageUrl]);
   const handleZoomIn = () => {
     setZoom((prev) => Math.min(prev + 0.25, 3));
   };

@@ -97,6 +97,7 @@ export interface qrDecodedDetails {
 // Staff slice state
 export interface staffSliceInitialState {
   patientDetails: qrDecodedDetails | null;
+  medicationDetailsForReminder: any | null;
   appoinmentDetails: any | null;
   imageModalVisible: boolean;
   checkinSuccessModalVisible: boolean;
@@ -188,7 +189,7 @@ export interface EPrescriptionDetails {
 }
 
 interface Medication {
-  id: string;
+  id?: string;
   name: string;
   form: string;
   route: string;
@@ -202,7 +203,7 @@ interface Medication {
     night: boolean;
   };
   dosage_instruction: string;
-  note: {
+  note?: {
     info: string;
   };
 }

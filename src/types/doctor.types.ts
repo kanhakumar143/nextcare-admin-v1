@@ -1,6 +1,8 @@
 import { PractitionerData } from "@/types/doctorNew.types";
+import { qrDecodedDetails } from "./receptionist.types";
 
 export interface VisitCarePlan {
+  id?: string;
   plan_type: string;
   goal: string;
   detail: string;
@@ -9,13 +11,16 @@ export interface VisitCarePlan {
 }
 
 export interface VisitAssessment {
+  id?: string;
   description: string;
   severity: "mild" | "moderate" | "severe";
 }
 
 export interface VisitNote1 {
+  id?: string;
   summary: string;
   follow_up: string;
+  criticality_remark: string;
   chief_complaint: string;
   provisional_diagnosis: string;
   remarks: string;
@@ -73,6 +78,8 @@ export interface doctorSliceInitialStates {
   practitionerData: PractitionerData | null;
   practitionerDataLoading: boolean;
   practitionerDataError: string | null;
+  consultationMode: "new" | "edit";
+  isEditingConsultation: boolean;
   visitNote: VisitNote1;
 }
 
@@ -99,6 +106,7 @@ export interface AppointmentDetails {
 }
 
 export interface LabTest {
+  id?: string;
   notes: string;
   test_display: string;
   intent:
@@ -151,6 +159,7 @@ export interface PatientInfo {
   date: string;
   status: string;
   patient: {
+    patient_display_id: string;
     user: {
       name: string;
       phone: string;
@@ -188,6 +197,7 @@ export interface MedicationNote {
 // }
 
 export interface MedicationRequest {
+  id?: string;
   intent: "order" | "plan" | "proposal" | "reflex-order"; // standard FHIR values
   status: "active" | "completed" | "on-hold" | "cancelled"; // standard FHIR values
   note: string;
@@ -200,6 +210,7 @@ export interface VisitSummaryPayload {
   medication_request: MedicationRequest;
   medication: Medication[];
   visit_note: {
+    id?: string;
     summary: string;
     follow_up: string;
     chief_complaint: string;
@@ -210,11 +221,13 @@ export interface VisitSummaryPayload {
     criticality_remark: string;
   };
   visit_care_plan?: {
+    id?: string;
     plan_type: string;
     goal: string;
     detail: string;
   };
   visit_assessment?: {
+    id?: string;
     code?: {
       system: string;
       code: string;
@@ -224,6 +237,7 @@ export interface VisitSummaryPayload {
     severity: "mild" | "moderate" | "severe";
   };
   lab_test_order: {
+    id?: string;
     test_code: string;
     test_display: string;
     status:
@@ -326,6 +340,7 @@ export interface EPrescription {
 
 export interface Medication {
   id?: string;
+  medication_request_id?: string;
   name: string;
   form: string;
   route: string;
