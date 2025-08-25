@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,8 @@ import DentalProcedureEntry from "./DentalProcedureEntry";
 import { DataTable } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ConsultationRecorder from "./ConsultationRecorder";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
