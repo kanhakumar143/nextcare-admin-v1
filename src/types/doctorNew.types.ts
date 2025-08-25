@@ -23,6 +23,7 @@ export interface QuestionarySymptomNCData {
   expires_at: string;
   symptom_data: SymptomQuestionary[];
   ai_summary: null | string;
+  diagnosis: null | string;
 }
 
 export interface AppointmentDtlsForDoctor {

@@ -42,16 +42,16 @@ export default function PreConsultationAnswers({
         <ScrollArea className="pb-6 pr-4 h-[52vh]">
           <div className="space-y-3 text-sm">
             {apptDtls?.source === "nextcare" &&
-              apptDtls?.symptom_data_nc?.remark && (
+              apptDtls?.symptom_data_nc?.diagnosis && (
                 <div className="bg-orange-50 border-l-4 border-orange-400 p-3 rounded-r-lg mb-4">
                   <div className="flex items-center mb-2">
                     <span className="font-semibold text-orange-800 text-sm">
-                      Nurse Remarks:
+                      Preliminary Symptom Diagnosis:
                     </span>
                   </div>
                   <div className="bg-white p-3 rounded border border-orange-200">
                     <p className="text-gray-900 font-medium">
-                      {apptDtls.symptom_data_nc.remark}
+                      {apptDtls.symptom_data_nc.diagnosis}
                     </p>
                   </div>
                 </div>
