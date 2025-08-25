@@ -128,7 +128,7 @@ export default function ConfirmConsultationModal() {
         status: "completed",
       });
       toast.success("Successfully Uploaded Reports");
-      getPrescriptionDetails();
+      router.push("/dashboard/doctor/portal");
     } catch (error) {
       toast.error("Failed to upload reports. Please try again.");
     }
