@@ -1,7 +1,7 @@
-import { adminSliceInitialStates } from "@/types/admin.types";
+import { AdminSliceInitialStates } from "@/types/admin.types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-const initialState: adminSliceInitialStates = {
+const initialState: AdminSliceInitialStates = {
   isLocationAddModal: false,
 };
 

@@ -29,6 +29,7 @@ const initialState: PractitionerState = {
   error: null,
 };
 
+// ================== FETCH ==================
 export const fetchPractitioners = createAsyncThunk(
   "practitioner/fetchByRole",
   async (role: Role, { rejectWithValue }) => {
@@ -41,36 +42,43 @@ export const fetchPractitioners = createAsyncThunk(
   }
 );
 
-export const createPractitioner = createAsyncThunk(
-  "practitioner/add",
-  async (
-    payload: AddDoctorPayload | (AddNursePayload & { role: Role }),
-    { rejectWithValue }
-  ) => {
-    try {
-      const newData = await addPractitioner(payload);
-      return { role: payload.role, data: newData };
-    } catch (error: any) {
-      return rejectWithValue(error.message || "Failed to add practitioner");
+// ================== CREATE ==================
+export const createPractitioner = createAsyncThunk<
+  { role: Role; data: DoctorData | NurseData },
+  AddDoctorPayload | AddNursePayload
+>("practitioner/add", async (payload, { rejectWithValue }) => {
+  try {
+    let newData: DoctorData | NurseData;
+    if (payload.user.user_role === "doctor") {
+      newData = await addPractitioner(payload as AddDoctorPayload);
+    } else {
+      newData = await addPractitioner(payload as AddDoctorPayload);
     }
-  }
-);
 
+    return { role: payload.user.user_role, data: newData };
+  } catch (error: any) {
+    return rejectWithValue(error.message || "Failed to add practitioner");
+  }
+});
+
+// ================== UPDATE ==================
 export const editPractitioner = createAsyncThunk(
   "practitioner/update",
   async (
-    payload: UpdateDoctorPayload & { role: Role },
+    payload: UpdateDoctorPayload | UpdateNursePayload,
     { rejectWithValue }
   ) => {
     try {
       const updatedData = await updatePractitioner(payload);
-      return { role: payload.role, data: updatedData };
+      const role = (payload as UpdateDoctorPayload).user_role || "doctor";
+      return { role, data: updatedData };
     } catch (error: any) {
       return rejectWithValue(error.message || "Failed to update practitioner");
     }
   }
 );
 
+// ================== SLICE ==================
 const practitionerSlice = createSlice({
   name: "practitioner",
   initialState,
@@ -85,52 +93,49 @@ const practitionerSlice = createSlice({
       .addCase(fetchPractitioners.fulfilled, (state, action) => {
         state.loading = false;
         const { role, data } = action.payload;
-        if (role === "doctor") {
-          state.doctors = data as DoctorData[];
-        } else {
-          state.nurses = data as NurseData[];
-        }
+        if (role === "doctor") state.doctors = data as DoctorData[];
+        else state.nurses = data as NurseData[];
       })
       .addCase(fetchPractitioners.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
 
-      // Add (instant update)
+      // Add
       .addCase(createPractitioner.pending, (state) => {
         state.loading = true;
       })
       .addCase(createPractitioner.fulfilled, (state, action) => {
         state.loading = false;
         const { role, data } = action.payload;
-        if (role === "doctor") {
-          state.doctors.push(data as DoctorData);
-        } else {
-          state.nurses.push(data as NurseData);
-        }
+        if (role === "doctor") state.doctors.push(data as DoctorData);
+        else state.nurses.push(data as NurseData);
       })
       .addCase(createPractitioner.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
 
-      // Update (instant update)
+      // Update
       .addCase(editPractitioner.pending, (state) => {
         state.loading = true;
       })
       .addCase(editPractitioner.fulfilled, (state, action) => {
         state.loading = false;
         const { role, data } = action.payload;
+
         if (role === "doctor") {
+          const updated = data as DoctorData;
           state.doctors = state.doctors.map((doc) =>
-            doc.practitioner_display_id === data.practitioner_display_id
-              ? (data as DoctorData)
+            doc.practitioner_display_id === updated?.practitioner_display_id
+              ? updated
               : doc
           );
         } else {
+          const updated = data as NurseData;
           state.nurses = state.nurses.map((nurse) =>
-            nurse.practitioner_display_id === data.practitioner_display_id
-              ? (data as NurseData)
+            nurse.practitioner_display_id === updated?.practitioner_display_id
+              ? updated
               : nurse
           );
         }

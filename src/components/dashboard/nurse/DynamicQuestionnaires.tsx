@@ -11,46 +11,81 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useRouter } from "next/navigation";
 import {
-  fetchAllQuestionnairesByTenantServiceId,
   submitQuestionariesAnswersBulk,
+  updateNCSymptomData,
 } from "@/services/nurse.api";
 import ConfirmSubmissionModal from "./modals/ConfirmSubmissionModal";
 import { ArrowRight } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "sonner";
-import { AppDispatch } from "@/store";
-import { setNurseStepCompleted } from "@/store/slices/nurseSlice";
+import { AppDispatch, RootState } from "@/store";
+import {
+  fetchListAllQuestionnaires,
+  setNurseStepCompleted,
+} from "@/store/slices/nurseSlice";
 import { Question, SubmitQuestionPayload } from "@/types/nurse.types";
 import { Slider } from "@/components/ui/slider";
 
 export default function DynamicQuestionnaires() {
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(true);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
-  const dispatch: AppDispatch = useDispatch();
-  const { qrDtls } = useSelector((state: any) => state.nurse);
+  const dispatch = useDispatch<AppDispatch>();
+  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [nextcareAnswers, setNextcareAnswers] = useState<Record<string, any>>(
+    {}
+  );
+  const [nextcareRemark, setNextcareRemark] = useState<string>("");
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const { qrDtls, preAppQuestionnaires } = useSelector(
+    (state: RootState) => state.nurse
+  );
 
   useEffect(() => {
-    const fetchQuestions = async () => {
-      try {
-        const response = await fetchAllQuestionnairesByTenantServiceId(
-          qrDtls.appointment.service_id
-        );
-        setQuestions(response.data || []);
-      } catch (error) {
-        console.error("Error fetching questions:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (qrDtls && qrDtls.appointment.id) {
+      dispatch(fetchListAllQuestionnaires(qrDtls.appointment.id));
+    } else {
+      toast.error("Please scan again.");
+      router.push("/dashboard/nurse/check-in");
+    }
+  }, [qrDtls]);
 
-    fetchQuestions();
-  }, []);
+  useEffect(() => {
+    if (
+      qrDtls?.appointment.source === "nextcare" &&
+      preAppQuestionnaires.response?.data
+    ) {
+      const initialAnswers: Record<string, any> = {};
+      preAppQuestionnaires.response.data.forEach((questionData, index) => {
+        initialAnswers[`question_${index}`] = questionData.answer;
+      });
+      setNextcareAnswers(initialAnswers);
+    }
+  }, [preAppQuestionnaires.response, qrDtls?.appointment.source]);
 
   const handleChange = (id: string, value: any) => {
     setAnswers((prev) => ({ ...prev, [id]: value }));
+  };
+
+  const handleNextcareAnswerChange = (
+    questionIndex: number,
+    value: any,
+    key?: string
+  ) => {
+    const questionKey = `question_${questionIndex}`;
+    if (key) {
+      setNextcareAnswers((prev) => ({
+        ...prev,
+        [questionKey]: {
+          ...prev[questionKey],
+          [key]: value,
+        },
+      }));
+    } else {
+      setNextcareAnswers((prev) => ({
+        ...prev,
+        [questionKey]: value,
+      }));
+    }
   };
 
   const handleCheckbox = (id: string, option: string) => {
@@ -246,19 +281,45 @@ export default function DynamicQuestionnaires() {
   const handleSubmit = () => {
     const result: SubmitQuestionPayload[] = [];
 
-    questions.forEach((question) => {
-      result.push({
-        questionary_id: question.id,
-        appointment_id: qrDtls.appointment.id,
-        answer: answers[question.id] || "",
-        note: {
-          submitted_by: "patient",
-        },
-      });
-    });
+    if (qrDtls?.appointment.source === "nextcare") {
+      const updatedData = preAppQuestionnaires.response.data.map(
+        (questionData, index) => {
+          const questionKey = `question_${index}`;
+          const editedAnswer = nextcareAnswers[questionKey];
 
-    console.log("All Answers (Formatted):", result);
-    handleConfirmAnswerSubmit(result);
+          return {
+            question: questionData.question,
+            answer:
+              editedAnswer !== undefined ? editedAnswer : questionData.answer,
+          };
+        }
+      );
+
+      // API call to update nextcare symptom data
+      const nc_symptom_id = preAppQuestionnaires.response.id;
+      const payload = {
+        symptom_data: updatedData,
+        remark: nextcareRemark.trim() || null,
+      };
+      if (!nc_symptom_id) {
+        return toast.error("Symptom id is missing");
+      }
+
+      handleNextcareSubmit(nc_symptom_id, payload);
+    } else {
+      preAppQuestionnaires.response?.data.forEach((question) => {
+        result.push({
+          questionary_id: question.id,
+          appointment_id: qrDtls?.appointment.id,
+          answer: answers[question.id] || "",
+          note: {
+            submitted_by: "patient",
+          },
+        });
+      });
+
+      handleConfirmAnswerSubmit(result);
+    }
   };
 
   const handleConfirmAnswerSubmit = async (payload: any) => {
@@ -268,8 +329,18 @@ export default function DynamicQuestionnaires() {
       router.push("/dashboard/nurse/check-in");
       dispatch(setNurseStepCompleted({ step1: true }));
       toast.success("Questionnaire submitted successfully.");
+    } catch (error) {}
+  };
+
+  const handleNextcareSubmit = async (nc_symptom_id: string, payload: any) => {
+    try {
+      const response = await updateNCSymptomData(nc_symptom_id, payload);
+      console.log("Nextcare Update Response:", response);
+      router.push("/dashboard/nurse/check-in");
+      dispatch(setNurseStepCompleted({ step1: true }));
+      toast.success("Nextcare symptom data updated successfully.");
     } catch (error) {
-      console.error("Error submitting answers:", error);
+      toast.error("Failed to update data.");
     }
   };
 
@@ -285,7 +356,8 @@ export default function DynamicQuestionnaires() {
   const handleCancelSubmit = () => {
     setShowConfirmModal(false);
   };
-  if (loading) {
+
+  if (preAppQuestionnaires.loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="text-center space-y-4">
@@ -300,7 +372,6 @@ export default function DynamicQuestionnaires() {
     <div className="flex justify-center px-4 py-6">
       <div className="max-w-4xl w-full">
         <CardContent className="space-y-8 py-8">
-          {/* Header Section */}
           <div className="text-center space-y-3">
             <h1 className="text-3xl font-bold text-gray-800">
               Patient Pre-Consultation Questionnaire
@@ -309,9 +380,10 @@ export default function DynamicQuestionnaires() {
               Please answer the following questions to help us provide better
               care
             </p>
-            {questions.length > 0 && (
+            {preAppQuestionnaires.response?.data.length > 0 && (
               <p className="text-sm text-gray-500">
-                {questions.length} question{questions.length !== 1 ? "s" : ""} •
+                {preAppQuestionnaires.response?.data.length} question
+                {preAppQuestionnaires.response?.data.length !== 1 ? "s" : ""} •
                 All questions are optional
               </p>
             )}
@@ -319,8 +391,7 @@ export default function DynamicQuestionnaires() {
 
           <Separator className="my-8" />
 
-          {/* Questions Section */}
-          {questions.length === 0 ? (
+          {preAppQuestionnaires.response?.data.length === 0 ? (
             <div className="text-center py-12">
               <div className="space-y-3">
                 <p className="text-gray-500 text-lg">
@@ -333,63 +404,199 @@ export default function DynamicQuestionnaires() {
             </div>
           ) : (
             <div className="space-y-8">
-              {questions.map((question, index) => (
-                <div
-                  key={question.id}
-                  className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
-                >
-                  {/* Question Header */}
-                  <div className="space-y-3 mb-6">
-                    <div className="flex items-start gap-3">
-                      <span className="text-md font-semibold text-black bg-white mt-0.5">
-                        Q{index + 1}
-                      </span>
-                      <div className="flex-1 space-y-2">
-                        {question.title && (
-                          <h3 className="font-semibold text-gray-900 text-lg">
-                            {question.title}
-                          </h3>
-                        )}
-                        <Label className="text-gray-700 font-medium text-base leading-relaxed block">
-                          {question.question}
-                        </Label>
-                        {question.note && (
-                          <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
-                            <p className="text-sm text-gray-700 italic">
-                              <span className="font-medium">Note:</span>{" "}
-                              {question.note}
-                            </p>
+              {qrDtls?.appointment.source !== "nextcare"
+                ? preAppQuestionnaires.response?.data.map((question, index) => (
+                    <div
+                      key={question.id}
+                      className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="space-y-3 mb-6">
+                        <div className="flex items-start gap-3">
+                          <span className="text-md font-semibold text-black bg-white mt-0.5">
+                            Q{index + 1}
+                          </span>
+                          <div className="flex-1 space-y-2">
+                            {question?.title && (
+                              <h3 className="font-semibold text-gray-900 text-lg">
+                                {question?.title}
+                              </h3>
+                            )}
+                            <Label className="text-gray-700 font-medium text-base leading-relaxed block">
+                              {question?.question}
+                            </Label>
+                            {question?.note && (
+                              <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
+                                <p className="text-sm text-gray-700 italic">
+                                  <span className="font-medium">Note:</span>{" "}
+                                  {question?.note}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="ml-12 space-y-4">
+                        {renderQuestionInput(question)}
+                      </div>
+
+                      <div className="ml-12 mt-4 flex items-center justify-between">
+                        {answers[question.id] && (
+                          <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                            ✓ Answered
                           </div>
                         )}
                       </div>
                     </div>
-                  </div>
+                  ))
+                : preAppQuestionnaires.response?.data.map(
+                    (questionData, index) => (
+                      <div
+                        key={index}
+                        className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="space-y-4">
+                          <div className="flex items-start gap-3">
+                            <span className="text-md font-semibold text-black bg-white mt-0.5">
+                              Q{index + 1}
+                            </span>
+                            <div className="flex-1 space-y-3">
+                              {typeof questionData.question === "string" ? (
+                                <Label className="text-gray-700 font-medium text-base leading-relaxed block">
+                                  {questionData.question}
+                                </Label>
+                              ) : Array.isArray(questionData.question) ? (
+                                <div className="space-y-3">
+                                  {(questionData.question as any[]).map(
+                                    (scenario: any, scenarioIndex: number) => (
+                                      <div
+                                        key={scenarioIndex}
+                                        className="bg-gray-50 p-4 rounded-lg"
+                                      >
+                                        <h4 className="font-semibold text-gray-800 mb-2">
+                                          {scenario.scenario_title}
+                                        </h4>
+                                        <p className="text-gray-700 mb-3">
+                                          {scenario.scenario_question}
+                                        </p>
+                                        {scenario.associated_title && (
+                                          <div className="border-l-4 border-blue-400 pl-3">
+                                            <h5 className="font-medium text-gray-800">
+                                              {scenario.associated_title}
+                                            </h5>
+                                            <p className="text-gray-600 text-sm">
+                                              {scenario.associated_question}
+                                            </p>
+                                          </div>
+                                        )}
+                                      </div>
+                                    )
+                                  )}
+                                </div>
+                              ) : null}
 
-                  {/* Question Input */}
-                  <div className="ml-12 space-y-4">
-                    {renderQuestionInput(question)}
-                  </div>
-
-                  {/* Question Meta Info */}
-                  <div className="ml-12 mt-4 flex items-center justify-between">
-                    {/* <div className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded">
-                      Type: {question.type.replace("_", " ")}
-                    </div> */}
-                    {answers[question.id] && (
-                      <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                        ✓ Answered
+                              <div className="ml-4 space-y-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <span className="text-sm font-medium text-gray-700">
+                                    Patient Response (Editable):
+                                  </span>
+                                </div>
+                                {typeof questionData.answer === "string" ? (
+                                  <Input
+                                    type="text"
+                                    className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
+                                    value={
+                                      nextcareAnswers[`question_${index}`] || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleNextcareAnswerChange(
+                                        index,
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="No answer provided"
+                                  />
+                                ) : typeof questionData.answer === "object" &&
+                                  questionData.answer !== null ? (
+                                  <div className="space-y-3">
+                                    {Object.entries(questionData.answer).map(
+                                      ([key, value]) => (
+                                        <div key={key} className="space-y-1">
+                                          <Label className="text-sm text-gray-600 capitalize">
+                                            {key.replace(/_/g, " ")}:
+                                          </Label>
+                                          <Input
+                                            type="text"
+                                            className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
+                                            value={
+                                              nextcareAnswers[
+                                                `question_${index}`
+                                              ]?.[key] || ""
+                                            }
+                                            onChange={(e) =>
+                                              handleNextcareAnswerChange(
+                                                index,
+                                                e.target.value,
+                                                key
+                                              )
+                                            }
+                                            placeholder="Not provided"
+                                          />
+                                        </div>
+                                      )
+                                    )}
+                                  </div>
+                                ) : (
+                                  <Input
+                                    type="text"
+                                    className="border-gray-300 focus:border-black focus:ring-1 focus:ring-black"
+                                    value={
+                                      nextcareAnswers[`question_${index}`] || ""
+                                    }
+                                    onChange={(e) =>
+                                      handleNextcareAnswerChange(
+                                        index,
+                                        e.target.value
+                                      )
+                                    }
+                                    placeholder="No answer provided"
+                                  />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                    )
+                  )}
             </div>
           )}
 
-          {/* Submit Section */}
-          {questions.length > 0 && (
+          {preAppQuestionnaires.response?.data.length > 0 && (
             <div className="pt-8">
               <Separator className="mb-8" />
+
+              {/* Remark field for nextcare appointments */}
+              {qrDtls?.appointment.source === "nextcare" && (
+                <div className="max-w-2xl mx-auto mb-6">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <Label className="text-sm font-medium text-orange-800 mb-2 block">
+                      Remarks (Optional)
+                    </Label>
+                    <Textarea
+                      placeholder="Add any additional observations, concerns, or notes about the patient's responses..."
+                      className="border-orange-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 min-h-[100px] resize-none"
+                      value={nextcareRemark}
+                      onChange={(e) => setNextcareRemark(e.target.value)}
+                    />
+                    <p className="text-xs text-orange-600 mt-2">
+                      These remarks will be visible to the doctor during
+                      consultation.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col items-center space-y-4">
                 <Button
                   onClick={handleSubmitClick}
@@ -418,17 +625,25 @@ export default function DynamicQuestionnaires() {
             </div>
           )}
 
-          {/* Confirmation Modal */}
           <ConfirmSubmissionModal
             isOpen={showConfirmModal}
             onClose={handleCancelSubmit}
             onConfirm={handleConfirmSubmit}
-            totalQuestions={questions.length}
+            totalQuestions={preAppQuestionnaires.response?.data.length}
             answeredQuestions={
-              Object.keys(answers).filter((key) => {
-                const answer = answers[key];
-                return answer !== "" && answer !== null && answer !== undefined;
-              }).length
+              qrDtls?.appointment.source === "nextcare"
+                ? Object.keys(nextcareAnswers).filter((key) => {
+                    const answer = nextcareAnswers[key];
+                    return (
+                      answer !== "" && answer !== null && answer !== undefined
+                    );
+                  }).length
+                : Object.keys(answers).filter((key) => {
+                    const answer = answers[key];
+                    return (
+                      answer !== "" && answer !== null && answer !== undefined
+                    );
+                  }).length
             }
           />
         </CardContent>

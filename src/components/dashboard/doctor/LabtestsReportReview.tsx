@@ -467,7 +467,7 @@ export default function LabtestsReportReview() {
                         {note.care_plans.map((plan) => (
                           <div key={plan.id} className="bg-blue-50 p-3 rounded">
                             <div className="font-medium text-blue-800 capitalize mb-1">
-                              {plan.plan_type.replace("_", " ")}
+                              {/* {plan.plan_type.replace("_", " ")} */}
                             </div>
                             <div className="text-sm">
                               <strong>Goal:</strong> {plan.goal}

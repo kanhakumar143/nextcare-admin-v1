@@ -1,4 +1,4 @@
-export interface adminSliceInitialStates {
+export interface AdminSliceInitialStates {
   isLocationAddModal: boolean;
 }
 
@@ -65,42 +65,24 @@ export type AddServicePayload = {
   active?: boolean;
 };
 
+// ================= DOCTOR PAYLOAD =================
 export type AddDoctorPayload = {
   user: {
     tenant_id: string;
     name: string;
     email: string;
     hashed_password?: string;
-    user_role: string;
+    user_role: "doctor";
     phone?: string;
   };
   practitioner: {
-    identifiers: {
-      system: string;
-      value: string;
-    }[];
-    name: {
-      prefix?: string[];
-      given: string[];
-      family: string;
-    };
-    telecom?: {
-      system: string;
-      value: string;
-      use: string;
-    }[];
+    identifiers: { system: string; value: string }[];
+    name: { prefix?: string[]; given: string[]; family: string };
+    telecom?: { system: string; value: string; use: string }[];
     gender: string;
     birth_date: string;
-    qualification: {
-      degree: string;
-      institution: string;
-      year: string;
-    }[];
-    license_details: {
-      number: string;
-      issued_by: string;
-      expiry: string;
-    };
+    qualification: { degree: string; institution: string; year: string }[];
+    license_details: { number: string; issued_by: string; expiry: string };
     profile_picture_url: string;
     license_url: string;
     is_active: boolean;
@@ -108,47 +90,26 @@ export type AddDoctorPayload = {
   role: {
     tenant_id: string;
     code: {
-      coding: {
-        system: string;
-        code: string;
-        display: string;
-      }[];
+      coding: { system: string; code: string; display: string }[];
       text: string;
     }[];
-    specialty: {
-      text: string;
-    }[];
-    location: {
-      reference: string;
-      display: string;
-    }[];
-    healthcare_service: {
-      reference: string;
-      display: string;
-    }[];
-    period: {
-      start: string;
-      end: string;
-    };
+    specialty: { text: string }[];
+    location: { reference: string; display: string }[];
+    healthcare_service: { reference: string; display: string }[];
+    period: { start: string; end: string };
     availability: {
       daysOfWeek: string[];
-      availableTime: {
-        start: string;
-        end: string;
-      }[];
+      availableTime: { start: string; end: string }[];
     }[];
     not_available: {
       description: string;
-      during: {
-        start: string;
-        end: string;
-      };
+      during: { start: string; end: string };
     }[];
   };
 };
 
 export interface DoctorData {
-  practitioner_display_id: null | string;
+  practitioner_display_id: string | null;
   is_active: boolean;
   gender: string | null;
   birth_date: string | null;
@@ -159,7 +120,7 @@ export interface DoctorData {
     name: string;
     email?: string;
     phone?: string | null;
-    user_role?: string;
+    user_role?: "doctor";
   };
   license_details: {
     issued_by?: string | null;
@@ -176,60 +137,39 @@ export interface DoctorData {
 export type UpdateDoctorPayload = {
   id: string;
   user_id: string;
+  user_role?: "doctor" | "nurse";
   practitioner_display_id: string;
   gender: string;
   birth_date: string;
   is_active: boolean;
-  license_details: {
-    number: string;
-    issued_by: string;
-    expiry: string;
-  } | null;
+  license_details: { number: string; issued_by: string; expiry: string } | null;
   profile_picture_url: string;
   license_url: string;
   qualification?: {
     degree: string;
     institution: string;
-    graduation_year: string; // ✅ match API
+    graduation_year: string;
   }[];
 };
 
+// ================= NURSE PAYLOAD =================
 export type AddNursePayload = {
   user: {
     tenant_id: string;
     name: string;
     email: string;
     hashed_password?: string;
-    user_role: string; // should be "nurse"
+    user_role: "nurse";
     phone?: string;
   };
   practitioner: {
-    identifiers: {
-      system: string;
-      value: string;
-    }[];
-    name: {
-      prefix?: string[];
-      given: string[];
-      family: string;
-    };
-    telecom?: {
-      system: string;
-      value: string;
-      use: string;
-    }[];
+    identifiers: { system: string; value: string }[];
+    name: { prefix?: string[]; given: string[]; family: string };
+    telecom?: { system: string; value: string; use: string }[];
     gender: string;
     birth_date: string;
-    qualification: {
-      degree: string;
-      institution: string;
-      year: string;
-    }[];
-    license_details: {
-      number: string;
-      issued_by: string;
-      expiry: string;
-    };
+    qualification: { degree: string; institution: string; year: string }[];
+    license_details: { number: string; issued_by: string; expiry: string };
     profile_picture_url: string;
     license_url: string;
     is_active: boolean;
@@ -237,47 +177,26 @@ export type AddNursePayload = {
   role: {
     tenant_id: string;
     code: {
-      coding: {
-        system: string;
-        code: string;
-        display: string;
-      }[];
+      coding: { system: string; code: string; display: string }[];
       text: string;
     }[];
-    specialty: {
-      text: string;
-    }[];
-    location: {
-      reference: string;
-      display: string;
-    }[];
-    healthcare_service: {
-      reference: string;
-      display: string;
-    }[];
-    period: {
-      start: string;
-      end: string;
-    };
+    specialty: { text: string }[];
+    location: { reference: string; display: string }[];
+    healthcare_service: { reference: string; display: string }[];
+    period: { start: string; end: string };
     availability: {
       daysOfWeek: string[];
-      availableTime: {
-        start: string;
-        end: string;
-      }[];
+      availableTime: { start: string; end: string }[];
     }[];
     not_available: {
       description: string;
-      during: {
-        start: string;
-        end: string;
-      };
+      during: { start: string; end: string };
     }[];
   };
 };
 
 export interface NurseData {
-  practitioner_display_id: null | string;
+  practitioner_display_id: string | null;
   is_active: boolean;
   gender: string | null;
   birth_date: string | null;
@@ -288,7 +207,7 @@ export interface NurseData {
     name: string;
     email?: string;
     phone?: string | null;
-    user_role?: string; // will be "nurse"
+    user_role?: "nurse";
   };
   license_details: {
     issued_by?: string | null;
@@ -300,11 +219,12 @@ export interface NurseData {
 export type UpdateNursePayload = {
   id: string;
   user_id: string;
+  user_role?: "nurse";
   practitioner_display_id: string;
   gender: string;
   birth_date: string;
   is_active: boolean;
-  license_details: string | null;
+  license_details: { number: string; issued_by: string; expiry: string } | null;
   profile_picture_url: string;
   license_url: string;
 };

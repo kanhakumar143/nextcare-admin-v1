@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import DoctorMedicineLabEntry from "./DoctorMedicineLabEntry";
 import {
   Select,
@@ -19,7 +18,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft,
   Edit,
   Info,
   Ruler,
@@ -260,11 +258,14 @@ export default function PatientConsultation() {
               </div>
             )}
           </div>
-          <div className="">
+          <div className="flex gap-3">
             <Button onClick={() => setIsPatientDetailsDrawerOpen(true)}>
               <Info className="h-4 w-4" />
               View Patient Details
             </Button>
+            <ConsultationRecorder
+              appointmentId={apptDtls?.appointment_display_id}
+            />
           </div>
         </div>
       </div>
@@ -339,7 +340,6 @@ export default function PatientConsultation() {
         </div>
       </div>
       <div className="flex p-4 bg-background gap-4">
-        {/* Left Side */}
         <div className="w-full lg:w-5/12 space-y-4 min-h-full">
           {/* Pre-consultation QnA */}
           <Card className="border-border p-0">

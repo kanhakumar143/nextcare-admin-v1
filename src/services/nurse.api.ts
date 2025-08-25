@@ -67,3 +67,38 @@ export const submitQuestionariesAnswersBulk = async (
     throw new Error("Unexpected error occurred.");
   }
 };
+
+export const fetchAllQuestionnairesByAppointmentId = async (
+  appointment_id: string
+) => {
+  try {
+    const { data } = await api.get(
+      `pre-questionary/by-appointment?appointment_id=${appointment_id}`
+    );
+
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch questionnaires";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const updateNCSymptomData = async (
+  nc_symptom_id: string,
+  payload: any
+) => {
+  try {
+    const { data } = await api.put(`symptom-data/${nc_symptom_id}`, payload);
+
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update symptom data";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};

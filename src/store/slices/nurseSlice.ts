@@ -1,42 +1,38 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { fetchAllQuestionnairesByAppointmentId } from "@/services/nurse.api";
+import { NurseInitialState } from "@/types/nurse.types";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-interface NurseState {
-  qrDtls: null | {
-    appointment: {
-      slot_info: {
-        start: string;
-        end: string;
-      };
-      id: string;
-      service_category: {
-        text: string;
-      }[];
-      status: string;
-      description: string;
-    };
-    patient: {
-      user_id: string;
-      phone: string;
-      name: string;
-      patient_profile: {
-        id: string;
-        gender: string;
-      };
-    };
-  };
-  nurseStepCompleted: {
-    step1: boolean;
-    step2: boolean;
-  };
-  isConfirmModal: boolean;
-}
+export const fetchListAllQuestionnaires = createAsyncThunk(
+  "doctor/fetchListAllQuestionnaires",
+  async (appointmentId: string, { rejectWithValue }) => {
+    try {
+      const response = await fetchAllQuestionnairesByAppointmentId(
+        appointmentId
+      );
 
-const initialState: NurseState = {
+      return response;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.message || "Failed to fetch practitioner details"
+      );
+    }
+  }
+);
+
+const initialState: NurseInitialState = {
   qrDtls: null,
   isConfirmModal: false,
   nurseStepCompleted: {
     step1: false,
     step2: false,
+  },
+  preAppQuestionnaires: {
+    loading: false,
+    error: null,
+    response: {
+      data: [],
+      id: null,
+    },
   },
 };
 
@@ -59,6 +55,26 @@ export const nurseSlice = createSlice({
         step2: action.payload.step2 ?? state.nurseStepCompleted.step2,
       };
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchListAllQuestionnaires.pending, (state) => {
+        state.preAppQuestionnaires.loading = true;
+        state.preAppQuestionnaires.error = null;
+        state.preAppQuestionnaires.response.data = [];
+        state.preAppQuestionnaires.response.id = null;
+      })
+      .addCase(fetchListAllQuestionnaires.fulfilled, (state, action) => {
+        state.preAppQuestionnaires.loading = false;
+        state.preAppQuestionnaires.error = null;
+        state.preAppQuestionnaires.response = action.payload?.data;
+      })
+      .addCase(fetchListAllQuestionnaires.rejected, (state, action) => {
+        state.preAppQuestionnaires.loading = false;
+        state.preAppQuestionnaires.error = action.payload as string;
+        state.preAppQuestionnaires.response.data = [];
+        state.preAppQuestionnaires.response.id = null;
+      });
   },
 });
 
