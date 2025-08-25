@@ -54,6 +54,7 @@ import { Badge } from "@/components/ui/badge";
 import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ConsultationRecorder from "./ConsultationRecorder";
+import PreConsultationAnswers from "./PreConsultationAnswers";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
@@ -343,79 +344,7 @@ export default function PatientConsultation() {
       </div>
       <div className="flex p-4 bg-background gap-4">
         <div className="w-full lg:w-5/12 space-y-4 min-h-full">
-          {/* Pre-consultation QnA */}
-          <Card className="border-border p-0">
-            <div className="px-6 pt-7 flex items-start justify-between">
-              <div>
-                <p className="text-xl font-bold">Pre-Consultation Summary</p>
-              </div>
-            </div>
-            <CardContent>
-              <ScrollArea className="pb-6 pr-4 h-[52vh]">
-                <div className="space-y-3 text-sm">
-                  {apptDtls?.questionary_answers &&
-                  apptDtls.questionary_answers.length > 0 ? (
-                    apptDtls.questionary_answers.map((q: any, i: number) => (
-                      <div key={i}>
-                        <p className="font-medium text-foreground">
-                          Q{i + 1}: {q?.questionary?.question}
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : {q.answer || ""}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    // Dummy data when no questionary answers are available
-                    <>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          Q1: What is the primary reason for your visit today?
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : Regular check-up and consultation
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          Q2: Are you currently experiencing any pain or
-                          discomfort?
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : Mild headache occasionally
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          Q3: Are you currently taking any medications?
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : No regular medications
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          Q4: Do you have any known allergies?
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : No known allergies
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">
-                          Q5: How would you rate your overall health on a scale
-                          of 1-10?
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : 8/10 - Generally good health
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+          <PreConsultationAnswers apptDtls={apptDtls} />
         </div>
 
         <Card className="w-full space-y-1 p-4">
