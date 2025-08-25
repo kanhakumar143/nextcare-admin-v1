@@ -33,6 +33,7 @@ export default function DynamicQuestionnaires() {
   const [nextcareAnswers, setNextcareAnswers] = useState<Record<string, any>>(
     {}
   );
+  const [nextcareRemark, setNextcareRemark] = useState<string>("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const { qrDtls, preAppQuestionnaires } = useSelector(
@@ -298,6 +299,7 @@ export default function DynamicQuestionnaires() {
       const nc_symptom_id = preAppQuestionnaires.response.id;
       const payload = {
         symptom_data: updatedData,
+        remark: nextcareRemark.trim() || null,
       };
       if (!nc_symptom_id) {
         return toast.error("Symptom id is missing");
@@ -573,6 +575,28 @@ export default function DynamicQuestionnaires() {
           {preAppQuestionnaires.response?.data.length > 0 && (
             <div className="pt-8">
               <Separator className="mb-8" />
+
+              {/* Remark field for nextcare appointments */}
+              {qrDtls?.appointment.source === "nextcare" && (
+                <div className="max-w-2xl mx-auto mb-6">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <Label className="text-sm font-medium text-orange-800 mb-2 block">
+                      Remarks (Optional)
+                    </Label>
+                    <Textarea
+                      placeholder="Add any additional observations, concerns, or notes about the patient's responses..."
+                      className="border-orange-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 min-h-[100px] resize-none"
+                      value={nextcareRemark}
+                      onChange={(e) => setNextcareRemark(e.target.value)}
+                    />
+                    <p className="text-xs text-orange-600 mt-2">
+                      These remarks will be visible to the doctor during
+                      consultation.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col items-center space-y-4">
                 <Button
                   onClick={handleSubmitClick}
