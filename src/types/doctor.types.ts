@@ -6,7 +6,7 @@ export interface VisitCarePlan {
   plan_type: string;
   goal: string;
   detail: string;
-  followup_date?: string;
+  followup_date?: string | null;
   consultation_mode?: string;
 }
 
@@ -217,7 +217,7 @@ export interface VisitSummaryPayload {
     critical: boolean;
     provisional_diagnosis: string;
     consultation_mode: string;
-    followup_date: string;
+    followup_date: string | null;
     criticality_remark: string;
   };
   visit_care_plan?: {

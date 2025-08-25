@@ -75,7 +75,7 @@ export default function ConfirmConsultationModal() {
         provisional_diagnosis: visitNote.provisional_diagnosis,
         critical: visitNote.critical,
         consultation_mode: visitNote.visit_care_plan.plan_type,
-        followup_date: visitNote.visit_care_plan.followup_date || "",
+        followup_date: visitNote.visit_care_plan.followup_date || null,
         criticality_remark: visitNote.criticality_remark,
       },
       // visit_care_plan: {

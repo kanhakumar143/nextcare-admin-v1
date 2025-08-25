@@ -407,7 +407,7 @@ export default function PatientConsultation() {
                     onChange={(e) =>
                       dispatch(
                         updateVisitNote({
-                          field: "remarks",
+                          field: "criticality_remark",
                           value: e.target.value,
                         })
                       )

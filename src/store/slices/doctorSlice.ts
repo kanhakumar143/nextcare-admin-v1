@@ -72,7 +72,7 @@ const initialState: doctorSliceInitialStates = {
       plan_type: "",
       goal: "",
       detail: "",
-      followup_date: "",
+      followup_date: null,
       consultation_mode: "",
     },
     visit_assessment: {
