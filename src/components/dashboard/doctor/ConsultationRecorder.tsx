@@ -21,7 +21,7 @@ export default function ConsultationRecorder({
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   const textDrNote =
-    "Patient presents with dull continuous morning headaches, poor sleep, high stress, minimal activity, high-salt processed diet, and family history of hypertension and stroke.";
+    "The patient experiences a dull, continuous headache that is worse in the morning but persists through the day. There is no nausea, suggesting the pain is more likely related to tension or lifestyle factors than migraine. Sleep quality is reported as poor, which can aggravate headaches, reduce daily energy, and increase long-term health risks. The family history is significant: the patient’s father had hypertension and suffered a stroke at age 60. This indicates a strong genetic risk for cardiovascular disease. Combined with lifestyle habits, this raises concern for developing high blood pressure or related complications. The patient’s diet is high in salt and processed food, both of which are linked to hypertension and poor cardiovascular outcomes. Minimal physical activity is also noted, which worsens sleep quality, stress, and vascular health. Stress levels are high, further contributing to headaches and overall health risk.";
 
   const startRecording = async () => {
     try {

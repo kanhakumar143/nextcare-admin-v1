@@ -123,12 +123,9 @@ export default function PatientConsultation() {
 
   const populateExistingConsultationData = () => {
     if (!apptDtls) return;
-    console.log("apptDtls===", apptDtls, visitNote);
     const existingVisitNote = apptDtls.visit_notes?.[0];
     const existingMedications = apptDtls.prescriptions?.[0]?.medications || [];
     const existingLabTests = apptDtls.lab_test_orders || [];
-    console.log("existingVisitNote===", existingVisitNote);
-    console.log("existingLabTests===", existingLabTests);
 
     dispatch(
       populateConsultationData({
@@ -246,12 +243,10 @@ export default function PatientConsultation() {
         <BackButton />
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
-            {/* <div> */}
             <Label className="text-md font-light">Appointment ID :</Label>
             <p className="text-xl font-semibold text-foreground px-4">
               {apptDtls?.appointment_display_id}
             </p>
-            {/* </div> */}
             {isEditingConsultation && (
               <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
                 <Edit className="h-4 w-4" />
