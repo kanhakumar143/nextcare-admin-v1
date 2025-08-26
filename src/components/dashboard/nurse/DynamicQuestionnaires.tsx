@@ -404,7 +404,7 @@ export default function DynamicQuestionnaires() {
             </div>
           ) : (
             <div className="space-y-8">
-              {qrDtls?.appointment.source !== "nextcare"
+              {qrDtls?.appointment.source === "nextcare"
                 ? preAppQuestionnaires.response?.data.map((question, index) => (
                     <div
                       key={question.id}
