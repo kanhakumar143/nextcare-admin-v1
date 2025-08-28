@@ -157,3 +157,27 @@ export const getAllAppointmentsByPractitioner = async (practitionerId: string) =
     throw new Error("Unexpected error occurred.");
   }
 };
+
+
+// Send Notification to the patient
+
+export const sendPatientNotifications = async (
+  notifications: {
+    patient_id: string;
+    title: string;
+    body: string;
+  }[]
+) => {
+  try {
+    const response = await api.post(
+      "fcm/send-patient-notifications",
+      { notifications }
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error?.message || "Failed to send notifications");
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};

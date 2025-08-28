@@ -102,6 +102,7 @@ export type AddDoctorPayload = {
 export interface DoctorData {
   practitioner_display_id: string | null;
   is_active: boolean;
+  status: string | null;
   gender: string | null;
   birth_date: string | null;
   license_url: string | null;
@@ -125,6 +126,7 @@ export type UpdateDoctorPayload = {
   gender: string;
   birth_date: string;
   is_active: boolean;
+  status:string;
   license_details: { number: string; issued_by: string; expiry: string } | null;
   profile_picture_url: string;
   license_url: string;
@@ -168,6 +170,7 @@ export type AddNursePayload = {
 export interface NurseData {
   practitioner_display_id: string | null;
   is_active: boolean;
+  status: string | null;
   gender: string | null;
   birth_date: string | null;
   license_url: string | null;

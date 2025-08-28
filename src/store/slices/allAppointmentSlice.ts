@@ -6,6 +6,7 @@ export interface Appointment {
   id: string;
   appointment_display_id: string;
   patient_name: string;
+  patient_id: string;
   patient_phone: string;
   created_at: string;
   status: string;

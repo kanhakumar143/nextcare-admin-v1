@@ -1,15 +1,25 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Plus, Pencil } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  ShieldCheck,
+  ShieldX,
+  MoveLeft,
+  ArrowLeft,
+  MoreHorizontal,
+} from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
@@ -24,181 +34,197 @@ import {
   updatePractitioner,
 } from "@/services/admin.api";
 import { toast } from "sonner";
-import PractitionerFormModal from "@/components/common/FormModal";
+import FormModal from "@/components/common/FormModal";
+import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAuthInfo } from "@/hooks/useAuthInfo"; 
+
+
+enum PractitionerStatus {
+  UNVERIFIED = "unverified",
+  UNDER_REVIEW = "under_review",
+  VERIFIED = "verified",
+  REJECTED = "rejected",
+  RESUBMIT_REQUIRED = "resubmit_required",
+}
 
 type ExtendedDoctorData = DoctorData & {
   name: string;
   id: string;
   user_id: string;
+  status: PractitionerStatus;
   license_details: {
-    number?: string;
-    issued_by?: string;
-    expiry?: string;
+    number: string;
+    issued_by: string;
+    expiry: string;
   };
-  qualification: {
-    degree?: string;
-    institution?: string;
-    year?: string;
-  }[];
 };
 
 // ✅ helper: doctor → flat form defaults
-function mapDoctorToFormDefaults(doctor: ExtendedDoctorData) {
-  return {
-    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
-    name: doctor.name ?? "",
-    email: doctor.user?.email ?? "",
-    phone: doctor.user?.phone ?? "",
-    license_number: doctor.license_details?.number ?? "",
-    license_issued_by: doctor.license_details?.issued_by ?? "",
-    license_expiry: doctor.license_details?.expiry ?? "",
-    is_active: doctor.is_active ?? true,
-    gender: doctor.gender ?? "",
-    birth_date: doctor.birth_date ?? "",
-    profile_picture_url: doctor.profile_picture_url ?? "",
-    license_url: doctor.license_url ?? "",
-    degree: doctor.qualification?.[0]?.degree ?? "",
-    institution: doctor.qualification?.[0]?.institution ?? "",
-    graduation_year: doctor.qualification?.[0]?.year ?? "",
-  };
-}
+// function mapDoctorToFormDefaults(doctor: ExtendedDoctorData) {
+//   return {
+//     tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+//     name: doctor.name ?? "",
+//     email: doctor.user?.email ?? "",
+//     phone: doctor.user?.phone ?? "",
+//     license_number: doctor.license_details?.number ?? "",
+//     license_issued_by: doctor.license_details?.issued_by ?? "",
+//     license_expiry: doctor.license_details?.expiry ?? "",
+//     is_active: doctor.is_active ?? true,
+//     gender: doctor.gender ?? "",
+//     birth_date: doctor.birth_date ?? "",
+//     profile_picture_url: doctor.profile_picture_url ?? "",
+//     license_url: doctor.license_url ?? "",
+//     degree: doctor.qualification?.[0]?.degree ?? "",
+//     institution: doctor.qualification?.[0]?.institution ?? "",
+//     graduation_year: doctor.qualification?.[0]?.year ?? "",
+//   };
+// }
 
 // ✅ helper: flat form → API shape for adding
-function mapFormToAddDoctorPayload(formData: any): AddDoctorPayload {
-  return {
-    user: {
-      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
-      name: formData.name,
-      email: formData.email,
-      user_role: "doctor",
-      phone: formData.phone,
-    },
-    practitioner: {
-      identifiers: [
-        {
-          system: "practitioner_id",
-          value: formData.practitioner_display_id || "",
-        },
-      ],
-      name: {
-        given: [formData.name],
-        family: "",
-      },
-      gender: formData.gender,
-      birth_date: formData.birth_date,
-      qualification: [
-        {
-          degree: formData.degree,
-          institution: formData.institution,
-          year: formData.graduation_year,
-        },
-      ],
-      license_details: {
-        number: formData.license_number,
-        issued_by: formData.license_issued_by,
-        expiry: formData.license_expiry,
-      },
-      profile_picture_url: formData.profile_picture_url,
-      license_url: formData.license_url,
-      is_active: formData.is_active ?? true,
-    },
-    role: {
-      tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
-      code: [
-        {
-          coding: [
-            {
-              system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
-              code: "doctor",
-              display: "Doctor",
-            },
-          ],
-          text: "Doctor",
-        },
-      ],
-      specialty: [
-        {
-          text: formData.specialty || "General Practice",
-        },
-      ],
-      location: [],
-      healthcare_service: [],
-      period: {
-        start: new Date().toISOString(),
-        end: "",
-      },
-      availability: [],
-      not_available: [],
-    },
-  };
-}
+// function mapFormToAddDoctorPayload(formData: any): AddDoctorPayload {
+//   return {
+//     user: {
+//       tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
+//       name: formData.name,
+//       email: formData.email,
+//       user_role: "doctor",
+//       phone: formData.phone,
+//     },
+//     practitioner: {
+//       identifiers: [
+//         {
+//           system: "practitioner_id",
+//           value: formData.practitioner_display_id || "",
+//         },
+//       ],
+//       name: {
+//         given: [formData.name],
+//         family: "",
+//       },
+//       gender: formData.gender,
+//       birth_date: formData.birth_date,
+//       qualification: [
+//         {
+//           degree: formData.degree,
+//           institution: formData.institution,
+//           year: formData.graduation_year,
+//         },
+//       ],
+//       license_details: {
+//         number: formData.license_number,
+//         issued_by: formData.license_issued_by,
+//         expiry: formData.license_expiry,
+//       },
+//       profile_picture_url: formData.profile_picture_url,
+//       license_url: formData.license_url,
+//       is_active: formData.is_active ?? true,
+//     },
+//     role: {
+//       tenant_id: formData.tenant_id || "4896d272-e201-4dce-9048-f93b1e3ca49f",
+//       code: [
+//         {
+//           coding: [
+//             {
+//               system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
+//               code: "doctor",
+//               display: "Doctor",
+//             },
+//           ],
+//           text: "Doctor",
+//         },
+//       ],
+//       specialty: [
+//         {
+//           text: formData.specialty || "General Practice",
+//         },
+//       ],
+//       location: [],
+//       healthcare_service: [],
+//       period: {
+//         start: new Date().toISOString(),
+//         end: "",
+//       },
+//       availability: [],
+//       not_available: [],
+//     },
+//   };
+// }
 
 // ✅ helper: flat form → API shape
-function mapFormToDoctorPayload(
-  formData: any,
-  id?: string,
-  user_id?: string
-): UpdateDoctorPayload {
-  return {
-    id: id ?? "",
-    user_id: user_id ?? "",
-    practitioner_display_id: formData.practitioner_display_id,
-    gender: formData.gender,
-    birth_date: formData.birth_date,
-    is_active: formData.is_active,
-    profile_picture_url: formData.profile_picture_url,
-    license_url: formData.license_url,
-    license_details: {
-      number: formData.license_number,
-      issued_by: formData.license_issued_by,
-      expiry: formData.license_expiry,
-    },
-    qualification: [
-      {
-        degree: formData.degree,
-        institution: formData.institution,
-        graduation_year: formData.graduation_year,
-      },
-    ],
-  };
-}
+// function mapFormToDoctorPayload(
+//   formData: any,
+//   id?: string,
+//   user_id?: string
+// ): UpdateDoctorPayload {
+//   return {
+//     id: id ?? "",
+//     user_id: user_id ?? "",
+//     practitioner_display_id: formData.practitioner_display_id,
+//     gender: formData.gender,
+//     birth_date: formData.birth_date,
+//     is_active: formData.is_active,
+//     profile_picture_url: formData.profile_picture_url,
+//     license_url: formData.license_url,
+//     license_details: {
+//       number: formData.license_number,
+//       issued_by: formData.license_issued_by,
+//       expiry: formData.license_expiry,
+//     },
+//     qualification: [
+//       {
+//         degree: formData.degree,
+//         institution: formData.institution,
+//         graduation_year: formData.graduation_year,
+//       },
+//     ],
+//   };
+// }
 
 export default function DoctorManagement() {
   const [open, setOpen] = useState(false);
   const [filterValue, setFilterValue] = useState("");
-  const [editDoctor, setEditDoctor] = useState<ExtendedDoctorData | null>(null);
+  const [editDoctorId, setEditDoctorId] = useState<string | null>(null);
   const [formDefaults, setFormDefaults] = useState<any>({});
-  const [practitioners, setPractitioners] = useState<ExtendedDoctorData[]>([]);
+  const [selectedDoctor, setSelectedDoctor] =
+    useState<ExtendedDoctorData | null>(null);
+  const [doctors, setDoctors] = useState<ExtendedDoctorData[]>([]);
+  const { role } = useAuthInfo();
 
-  const fetchPractitionerByRole = async () => {
+  const fetchDoctors = async () => {
     try {
       const res = await getPractitionerByRole("doctor");
       const data = (res?.data || []).map((doc: DoctorData) => ({
         ...doc,
-        name: doc.user?.name ?? "",
+        name: doc.user?.name,
       }));
-      setPractitioners(data);
+      setDoctors(data);
     } catch (error) {
       console.error("Failed to fetch practitioners:", error);
     }
   };
 
   useEffect(() => {
-    fetchPractitionerByRole();
+    fetchDoctors();
   }, []);
 
   const handleAddDoctor = async (formData: any) => {
     try {
-      const payload = mapFormToAddDoctorPayload(formData);
-      const res = await addPractitioner(payload);
-
-      // Add new doctor to local state immediately
-      const newDoctor: ExtendedDoctorData = {
-        ...res.data,
-        name: res.data.user?.name ?? formData.name,
+      console.log(formData);
+      const payload = {
+        ...formData,
+        role: {
+          ...formData.role,
+          tenantId: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+        },
       };
-      setPractitioners((prev) => [...prev, newDoctor]);
-
+      await addPractitioner(payload);
+      await fetchDoctors();
       setOpen(false);
       toast.success("Doctor added successfully.");
     } catch (error) {
@@ -207,40 +233,59 @@ export default function DoctorManagement() {
     }
   };
 
-  const handleEditDoctor = async (formData: any) => {
-    if (!editDoctor) return;
-
+  const handleToggleStatus = async (doctor: ExtendedDoctorData) => {
     try {
-      const payload = mapFormToDoctorPayload(
-        formData,
-        editDoctor.id,
-        editDoctor.user_id
-      );
-      const res = await updatePractitioner(payload); // res.data contains updated doctor
-
-      const updatedDoctor: ExtendedDoctorData = {
-        ...res.data,
-        name: res.data.user?.name ?? editDoctor.name,
-        license_details: {
-          number: res.data.license_details?.number ?? "",
-          issued_by: res.data.license_details?.issued_by ?? "",
-          expiry: res.data.license_details?.expiry ?? "",
-        },
-        qualification: res.data.qualification?.length
-          ? res.data.qualification
-          : [{ degree: "", institution: "", year: "" }],
+      const updatePayload: UpdateDoctorPayload = {
+        id: doctor.id,
+        user_id: doctor.user_id,
+        practitioner_display_id: doctor.practitioner_display_id ?? "",
+        gender: doctor.gender ?? "",
+        birth_date: doctor.birth_date ?? "",
+        is_active: !doctor.is_active,
+        license_details: doctor.license_details,
+        profile_picture_url: doctor.profile_picture_url ?? "",
+        license_url: doctor.license_url ?? "",
+        status: doctor.status,
       };
 
-      setPractitioners((prev) =>
-        prev.map((doc) => (doc.id === editDoctor.id ? updatedDoctor : doc))
-      );
+      await updatePractitioner(updatePayload);
 
+      toast.success(
+        `Doctor ${!doctor.is_active ? "activated" : "deactivated"} successfully`
+      );
+      setSelectedDoctor(null);
       setOpen(false);
-      setEditDoctor(null);
-      toast.success("Doctor updated successfully.");
+      await fetchDoctors();
     } catch (error) {
-      console.error("Error updating doctor:", error);
-      toast.error("Failed to update doctor.");
+      console.error("Status toggle failed:", error);
+      toast.error("Failed to update doctor status");
+    }
+  };
+
+  const handleUpdateVerificationStatus = async (
+    doctor: ExtendedDoctorData,
+    status: PractitionerStatus
+  ) => {
+    try {
+      const updatePayload: UpdateDoctorPayload = {
+        id: doctor.id,
+        user_id: doctor.user_id,
+        practitioner_display_id: doctor.practitioner_display_id ?? "",
+        gender: doctor.gender ?? "",
+        birth_date: doctor.birth_date ?? "",
+        is_active: doctor.is_active,
+        license_details: doctor.license_details,
+        profile_picture_url: doctor.profile_picture_url ?? "",
+        license_url: doctor.license_url ?? "",
+        status,
+      };
+
+      await updatePractitioner(updatePayload);
+      toast.success(`Nurse status updated to ${status}`);
+      await fetchDoctors();
+    } catch (error) {
+      console.error("Verification update failed:", error);
+      toast.error("Failed to update verification status");
     }
   };
 
@@ -266,7 +311,7 @@ export default function DoctorManagement() {
     //       : "N/A",
     // },
     {
-      header: "Status",
+      header: "Active Status",
       accessorFn: (row) => row.is_active,
       cell: ({ getValue }) => {
         const isActive = getValue() as boolean;
@@ -284,28 +329,141 @@ export default function DoctorManagement() {
       },
     },
     {
-      header: "Actions",
-      cell: ({ row }) => {
-        const doctor = row.original;
-        return (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="icon"
-              onClick={() => {
-                setEditDoctor(doctor);
-                setFormDefaults(mapDoctorToFormDefaults(doctor));
-                setOpen(true);
-              }}
-            >
-              <Pencil className="w-3 h-3" />
-            </Button>
-          </div>
-        );
+      header: "Verification Status",
+      accessorKey: "status",
+      cell: ({ getValue }) => {
+        const status = getValue() as PractitionerStatus;
+
+        switch (status) {
+          case PractitionerStatus.VERIFIED:
+            return <Badge className="bg-green-500 text-white">Verified</Badge>;
+          case PractitionerStatus.UNDER_REVIEW:
+            return (
+              <Badge className="bg-blue-500 text-white">Under Review</Badge>
+            );
+          case PractitionerStatus.REJECTED:
+            return <Badge className="bg-red-500 text-white">Rejected</Badge>;
+          case PractitionerStatus.RESUBMIT_REQUIRED:
+            return (
+              <Badge className="bg-yellow-500 text-black">
+                Resubmit Required
+              </Badge>
+            );
+          case PractitionerStatus.UNVERIFIED:
+          default:
+            return <Badge className="bg-gray-500 text-white">Unverified</Badge>;
+        }
       },
     },
+   {
+         header: "Actions",
+         cell: ({ row }) => {
+           const nurse = row.original;
+   
+           return (
+             <div className="flex items-center gap-2">
+               {/* Edit Button (any admin can see) */}
+               <Button
+                 variant="secondary"
+                 size="icon"
+                 onClick={() => {
+                   setEditDoctorId(nurse.id);
+                   setOpen(true);
+                 }}
+               >
+                 <Pencil className="w-3 h-3" />
+               </Button>
+   
+               {/* Activate/Deactivate (any admin can see) */}
+               <Button
+                 variant="ghost"
+                 className={
+                   nurse.is_active
+                     ? "text-red-500 hover:text-red-700"
+                     : "text-green-500 hover:text-green-700"
+                 }
+                 onClick={() => {
+                   setSelectedDoctor(nurse);
+                   setOpen(true);
+                 }}
+               >
+                 <div className="flex h-8 w-8 items-center justify-center">
+                   {nurse.is_active ? (
+                     <ShieldCheck className="w-8 h-8" />
+                   ) : (
+                     <ShieldX className="w-8 h-8" />
+                   )}
+                 </div>
+               </Button>
+   
+               {/* Verification Dropdown → only for super-admin */}
+               {role === "super_admin" && (
+                 <DropdownMenu>
+                   <DropdownMenuTrigger asChild>
+                     <Button variant="ghost" className="h-8 w-8 p-0">
+                       <MoreHorizontal className="h-5 w-5" />
+                     </Button>
+                   </DropdownMenuTrigger>
+                   <DropdownMenuContent align="end">
+                     <DropdownMenuItem
+                       onClick={() =>
+                         handleUpdateVerificationStatus(
+                           nurse,
+                           PractitionerStatus.VERIFIED
+                         )
+                       }
+                     >
+                       Verify
+                     </DropdownMenuItem>
+                     <DropdownMenuItem
+                       onClick={() =>
+                         handleUpdateVerificationStatus(
+                           nurse,
+                           PractitionerStatus.UNDER_REVIEW
+                         )
+                       }
+                     >
+                       Mark as Under Review
+                     </DropdownMenuItem>
+                     <DropdownMenuItem
+                       onClick={() =>
+                         handleUpdateVerificationStatus(
+                           nurse,
+                           PractitionerStatus.REJECTED
+                         )
+                       }
+                     >
+                       Reject
+                     </DropdownMenuItem>
+                     <DropdownMenuItem
+                       onClick={() =>
+                         handleUpdateVerificationStatus(
+                           nurse,
+                           PractitionerStatus.RESUBMIT_REQUIRED
+                         )
+                       }
+                     >
+                       Request Resubmission
+                     </DropdownMenuItem>
+                     <DropdownMenuItem
+                       onClick={() =>
+                         handleUpdateVerificationStatus(
+                           nurse,
+                           PractitionerStatus.UNVERIFIED
+                         )
+                       }
+                     >
+                       Unverify
+                     </DropdownMenuItem>
+                   </DropdownMenuContent>
+                 </DropdownMenu>
+               )}
+             </div>
+           );
+         },
+       },
   ];
-
+  const router = useRouter();
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -316,21 +474,99 @@ export default function DoctorManagement() {
           className="max-w-sm"
         />
 
-        <Button
-          onClick={() => {
-            setEditDoctor(null);
-            setFormDefaults({});
-            setOpen(true);
+        <Dialog
+          open={open}
+          onOpenChange={(val) => {
+            setOpen(val);
+            if (!val) {
+              setEditDoctorId(null);
+              setSelectedDoctor(null);
+            }
           }}
         >
-          <Plus className="w-4 h-4 mr-1" />
-          Add Doctor
-        </Button>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="w-4 h-4 mr-1" />
+              Add Doctor
+            </Button>
+          </DialogTrigger>
+
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedDoctor
+                  ? selectedDoctor?.is_active
+                    ? "Deactivate Doctor"
+                    : "Activate Doctor"
+                  : editDoctorId
+                  ? "Edit Doctor"
+                  : "Add New Doctor"}
+              </DialogTitle>
+            </DialogHeader>
+
+            {selectedDoctor ? (
+              <>
+                <div className="mt-2 text-sm text-muted-foreground">
+                  Are you sure you want to{" "}
+                  <span
+                    className={
+                      selectedDoctor?.is_active
+                        ? "text-red-600 font-medium"
+                        : "text-green-600 font-medium"
+                    }
+                  >
+                    {selectedDoctor?.is_active ? "deactivate" : "activate"}
+                  </span>{" "}
+                  the doctor{" "}
+                  <span className="text-foreground font-semibold">
+                    {selectedDoctor?.name}
+                  </span>
+                  ?
+                </div>
+                <DialogFooter className="p-4 flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setOpen(false);
+                      setSelectedDoctor(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant={
+                      selectedDoctor?.is_active ? "destructive" : "default"
+                    }
+                    onClick={() => handleToggleStatus(selectedDoctor)}
+                    className={
+                      selectedDoctor?.is_active
+                        ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
+                        : "bg-green-500 text-white hover:bg-green-700 hover:text-white"
+                    }
+                  >
+                    {selectedDoctor?.is_active ? "Deactivate" : "Activate"}
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : (
+              <FormModal
+                role="doctor"
+                onSubmit1={handleAddDoctor}
+                editPractitionerId={editDoctorId}
+                open={open}
+                onOpenChange={(val) => {
+                  setOpen(val);
+                  if (!val) setEditDoctorId(null);
+                }}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
 
       <DataTable<ExtendedDoctorData>
         columns={columns}
-        data={practitioners}
+        data={doctors}
         filterColumn="name"
         externalFilterValue={filterValue}
       />
@@ -340,34 +576,46 @@ export default function DoctorManagement() {
         onOpenChange={(val) => {
           setOpen(val);
           if (!val) {
-            setEditDoctor(null);
+            setEditDoctorId(null);
             setFormDefaults({});
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        {/* <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editDoctor ? "Edit Doctor" : "Add New Doctor"}
+              {editDoctorId ? "Edit Doctor" : "Add New Doctor"}
             </DialogTitle>
           </DialogHeader>
 
           <PractitionerFormModal
             role="doctor"
-            onSubmit1={editDoctor ? handleEditDoctor : handleAddDoctor}
-            editPractitionerId={editDoctor?.id ?? null}
+            onSubmit1={handleAddDoctor}
+            editPractitionerId={editDoctorId}
             open={open}
             defaultValues={formDefaults}
             onOpenChange={(val) => {
               setOpen(val);
               if (!val) {
-                setEditDoctor(null);
+                setEditDoctorId(null);
                 setFormDefaults({});
               }
             }}
           />
-        </DialogContent>
+        </DialogContent> */}
       </Dialog>
+      <div className="flex justify-start">
+        <Button
+          variant="secondary"
+          onClick={() => {
+            router.push(`/dashboard/super-admin`);
+          }}
+          className="flex items-center cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4 mr-1" />
+          Back
+        </Button>
+      </div>
     </div>
   );
 }

@@ -202,6 +202,20 @@ export const receptionistRoutes: Route[] = [
   },
 ];
 
+// Pharmacist Navigation Routes
+export const pharmacistRoutes: Route[] = [
+  {
+    href: "/dashboard/pharmacy",
+    name: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/pharmacy/patient-medicine",
+    name: "Patient Medicine",
+    icon: FileText,
+  },
+];
+
 // Function to get routes based on user role
 export const getRoutesByRole = (role: string | null): Route[] => {
   switch (role?.toLowerCase()) {
@@ -217,6 +231,8 @@ export const getRoutesByRole = (role: string | null): Route[] => {
       return receptionistRoutes;
     case "lab_technician":
       return labTechnicianRoutes;
+    case "pharmacist":
+      return pharmacistRoutes;
     default:
       return [];
   }
@@ -237,6 +253,8 @@ export const getSidebarLabel = (role: string | null): string => {
       return "Receptionist Panel";
     case "lab_technician":
       return "Lab Technician Panel";
+    case "pharmacist":
+      return "Pharmacist Panel";
     default:
       return "Dashboard";
   }
