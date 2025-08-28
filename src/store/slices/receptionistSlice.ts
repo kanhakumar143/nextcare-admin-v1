@@ -1,10 +1,12 @@
 import {
   qrDecodedDetails,
   staffSliceInitialState,
+  PractitionerAttendanceData,
 } from "@/types/receptionist.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 import { toast } from "sonner";
+import { Medication } from "@/types/doctor.types";
 
 // Async thunk to fetch QR details
 export const fetchQrDetailsAsync = createAsyncThunk(
@@ -25,6 +27,8 @@ export const fetchQrDetailsAsync = createAsyncThunk(
 const initialState: staffSliceInitialState = {
   patientDetails: null,
   appoinmentDetails: null,
+  medicationDetailsForReminder: null,
+  practitionerAttendanceData: null,
   patientVerifiedModalVisible: false,
   imageModalVisible: false,
   checkinSuccessModalVisible: false,
@@ -46,6 +50,12 @@ const receptionistSlice = createSlice({
       state.patientDetails = action.payload;
       state.appoinmentDetails = action.payload?.appointment || null;
     },
+    setPractitionerAttendanceData: (
+      state,
+      action: PayloadAction<PractitionerAttendanceData | null>
+    ) => {
+      state.practitionerAttendanceData = action.payload;
+    },
     setQrToken: (state, action: PayloadAction<string | null>) => {
       state.storedAccessToken = action.payload;
     },
@@ -64,6 +74,15 @@ const receptionistSlice = createSlice({
     clearError: (state) => {
       state.error = null;
       state.scanQrMessage = null;
+    },
+    setMedicationDetailsForReminder: (
+      state,
+      action: PayloadAction<any | null>
+    ) => {
+      state.medicationDetailsForReminder = action.payload;
+    },
+    clearPractitionerAttendanceData: (state) => {
+      state.practitionerAttendanceData = null;
     },
   },
   extraReducers: (builder) => {
@@ -99,12 +118,15 @@ const receptionistSlice = createSlice({
 
 export const {
   setDecodedDetails,
+  setPractitionerAttendanceData,
   setQrToken,
   setCheckinSuccessModal,
   setVerifiedPatientModal,
   setImageModalVisible,
+  setMedicationDetailsForReminder,
   clearError,
   setDownloadReportsData,
+  clearPractitionerAttendanceData,
 } = receptionistSlice.actions;
 
 export default receptionistSlice.reducer;

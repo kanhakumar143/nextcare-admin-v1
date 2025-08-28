@@ -185,7 +185,7 @@ const EprescriptionPage = () => {
         </h3>
 
         <div className="border border-gray-200 rounded-lg p-4 space-y-3 bg-gray-50">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <span className="font-medium text-gray-700">
                 Chief Complaint:{" "}
@@ -203,34 +203,13 @@ const EprescriptionPage = () => {
                   ?.provisional_diagnosis || "Not specified"}
               </span>
             </div>
+          </div>
 
-            <div>
-              <span className="font-medium text-gray-700">
-                Next Follow-up:{" "}
-              </span>
-              <span className="text-gray-900">
-                {(EprescriptionDetails?.visit_note as any)?.followup_date
-                  ? moment(
-                      (EprescriptionDetails?.visit_note as any)?.followup_date
-                    ).format("DD/MM/YYYY")
-                  : "Not scheduled"}
-              </span>
-            </div>
-
-            <div>
-              <span className="font-medium text-gray-700">Status: </span>
-              <span
-                className={`font-medium ${
-                  (EprescriptionDetails?.visit_note as any)?.critical
-                    ? "text-red-600"
-                    : "text-green-600"
-                }`}
-              >
-                {(EprescriptionDetails?.visit_note as any)?.critical
-                  ? "Critical"
-                  : "Stable"}
-              </span>
-            </div>
+          <div>
+            <span className="font-medium text-gray-700">Doctor Remarks: </span>
+            <span className="text-gray-900">
+              {(EprescriptionDetails?.visit_note as any)?.criticality_remark}
+            </span>
           </div>
 
           {EprescriptionDetails?.visit_note?.summary && (
@@ -244,12 +223,23 @@ const EprescriptionPage = () => {
             </div>
           )}
 
-          {EprescriptionDetails?.visit_note?.follow_up && (
+          {EprescriptionDetails?.visit_note?.follow_up === "followup" && (
             <div>
-              <span className="font-medium text-gray-700">Instructions: </span>
-              <span className="text-gray-900">
-                {EprescriptionDetails.visit_note.follow_up}
+              <span className="font-medium text-gray-700">
+                Follow-Up consultation required{" "}
               </span>
+              <div>
+                <span className="font-medium text-gray-700">
+                  Next Follow-up:{" "}
+                </span>
+                <span className="text-gray-900">
+                  {(EprescriptionDetails?.visit_note as any)?.followup_date
+                    ? moment(
+                        (EprescriptionDetails?.visit_note as any)?.followup_date
+                      ).format("DD/MM/YYYY")
+                    : "Not scheduled"}
+                </span>
+              </div>
             </div>
           )}
         </div>
@@ -378,43 +368,6 @@ const EprescriptionPage = () => {
           </TableBody>
         </Table>
       </div>
-
-      {/* <div className="mb-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
-          <Shield className="h-5 w-5 text-primary" />
-          <span>Care Plans</span>
-        </h3>
-        <Table className="table-fixed w-full">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-1/4 break-words">Type</TableHead>
-              <TableHead className="w-1/4 break-words">Goal</TableHead>
-              <TableHead className="w-1/2 break-words">Detail</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {EprescriptionDetails?.visit_note?.care_plans?.map(
-              (carePlan, index) => (
-                <TableRow key={`care-plan-${index}`}>
-                  <TableCell className="break-words whitespace-normal">
-                    <div className="flex items-center gap-2">
-                      <Badge className="status-badge status-active">
-                        {carePlan?.plan_type || "N/A"}
-                      </Badge>
-                    </div>
-                  </TableCell>
-                  <TableCell className="break-words whitespace-normal">
-                    {carePlan?.goal || "N/A"}
-                  </TableCell>
-                  <TableCell className="break-words whitespace-normal">
-                    {carePlan?.detail || "N/A"}
-                  </TableCell>
-                </TableRow>
-              )
-            )}
-          </TableBody>
-        </Table>
-      </div> */}
 
       <div className="border-t-2 border-primary pt-6 mb-6">
         <div className="flex justify-end items-start">

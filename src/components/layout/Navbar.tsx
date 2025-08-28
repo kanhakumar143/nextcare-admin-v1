@@ -22,7 +22,9 @@ const Navbar = () => {
   if (!hasMounted) return null;
 
   const handleLogout = () => {
-    localStorage.clear();
+    if (typeof window !== "undefined") {
+      localStorage.clear();
+    }
     // dispatch(deleteUserDetails());
     // dispatch(setUserDetails(null));
     router.push("/");

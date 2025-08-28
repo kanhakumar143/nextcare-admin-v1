@@ -6,13 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ArrowLeft,
   Edit,
   Info,
@@ -519,7 +512,7 @@ export default function LabtestsReportReview() {
       <ImageReportModal
         isOpen={imageModalOpen}
         onClose={() => setImageModalOpen(false)}
-        imageUrl={selectedImage}
+        fileUrl={selectedImage}
         title="Lab Test Report"
       />
     </div>

@@ -1,9 +1,30 @@
 import { EPrescriptionDetails } from "@/types/receptionist.types";
 import moment from "moment";
 
+// Helper function to convert image to base64 for reliable printing
+const getImageAsBase64 = async (imageUrl: string): Promise<string> => {
+  try {
+    const response = await fetch(imageUrl);
+    const blob = await response.blob();
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error("Error converting image to base64:", error);
+    return "";
+  }
+};
+
 export const generatePrescriptionHTML = (
-  prescriptionData: EPrescriptionDetails
+  prescriptionData: EPrescriptionDetails,
+  logoBase64?: string
 ): string => {
+  const logoUrl = logoBase64 || `${window.location.origin}/mm.svg`;
+  console.log(logoUrl);
+
   return `
     <html>
       <head>
@@ -28,12 +49,27 @@ export const generatePrescriptionHTML = (
           }
           
           .prescription-header {
-            text-align: center;
-            border: 3px solid oklch(0.7568 0.1624 51.44);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e5e7eb;
+          }
+          
+          .header-left {
+            display: flex;
+            align-items: center;
+          }
+          
+          .clinic-logo {
+            width: 120px;
+            height: 120px;
+            margin-right: 20px;
+          }
+          
+          .clinic-info {
+            text-align: left;
           }
           
           .clinic-name {
@@ -41,7 +77,7 @@ export const generatePrescriptionHTML = (
             font-weight: bold;
             color: oklch(0.7568 0.1624 51.44);
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             margin-bottom: 5px;
           }
           
@@ -49,12 +85,13 @@ export const generatePrescriptionHTML = (
             font-size: 12px;
             font-style: italic;
             color: #64748b;
-            margin-bottom: 10px;
           }
           
-          .clinic-details {
+          .header-right {
+            text-align: right;
             font-size: 11px;
             color: #374151;
+            line-height: 1.5;
           }
           
           .prescription-id {
@@ -63,142 +100,145 @@ export const generatePrescriptionHTML = (
             padding: 10px;
             background: oklch(0.7568 0.1624 51.44);
             color: white;
-            border-radius: 25px;
+            border-radius: 8px;
             font-weight: bold;
             font-size: 14px;
             letter-spacing: 1px;
           }
           
-          .patient-doctor-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-          }
-          
-          .info-box {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
+          .patient-section {
+            margin-bottom: 25px;
             padding: 15px;
-            background: #f8fafc;
-          }
-          
-          .info-title {
-            font-size: 14px;
-            font-weight: bold;
-            color: oklch(0.7568 0.1624 51.44);
-            border-bottom: 2px solid oklch(0.7568 0.1624 51.44);
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-          }
-          
-          .info-content {
-            font-size: 12px;
-            line-height: 1.6;
-          }
-          
-          .info-label {
-            font-weight: bold;
-            color: #374151;
-            display: inline-block;
-            width: 80px;
-          }
-          
-          .prescription-symbol {
-            font-size: 72px;
-            font-weight: bold;
-            color: oklch(0.7568 0.1624 51.44);
-            text-align: center;
-            margin: 20px 0;
-            font-family: 'Times New Roman', serif;
+            background: #f9fafb;
+            border-radius: 8px;
           }
           
           .section-title {
             font-size: 16px;
             font-weight: bold;
             color: oklch(0.7568 0.1624 51.44);
-            border-bottom: 3px solid oklch(0.7568 0.1624 51.44);
-            padding: 8px 0;
             margin-bottom: 15px;
             text-transform: uppercase;
             letter-spacing: 1px;
           }
           
-          .diagnosis-section, .investigations-section, .medications-section {
+          .patient-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+          }
+          
+          .detail-item {
+            display: flex;
+            margin-bottom: 8px;
+          }
+          
+          .detail-label {
+            font-weight: bold;
+            color: #374151;
+            min-width: 100px;
+            margin-right: 10px;
+          }
+          
+          .detail-value {
+            color: #1f2937;
+          }
+          
+          .clinical-info-section {
             margin-bottom: 25px;
-            page-break-inside: avoid;
-            break-inside: avoid;
           }
           
-          .diagnosis-item {
-            background: #fef2f2;
-            border-left: 4px solid #ef4444;
+          .clinical-item {
+            margin-bottom: 15px;
             padding: 10px;
-            margin-bottom: 10px;
+            background: #f8fafc;
+            border-left: 4px solid oklch(0.7568 0.1624 51.44);
             border-radius: 0 5px 5px 0;
-            page-break-inside: avoid;
-            break-inside: avoid;
           }
           
-          /* Table Styles */
-          .prescription-table {
+          .clinical-label {
+            font-weight: bold;
+            color: oklch(0.7568 0.1624 51.44);
+            margin-bottom: 5px;
+            font-size: 13px;
+          }
+          
+          .clinical-value {
+            color: #1f2937;
+            font-size: 12px;
+            line-height: 1.5;
+          }
+          
+          .followup-item {
+            background: #f0f9ff;
+            border-left-color: #3b82f6;
+          }
+          
+          .investigations-section {
+            margin-bottom: 25px;
+          }
+          
+          .test-list {
+            padding: 0;
+            margin-top: 15px;
+          }
+          
+          .test-item {
+            padding: 8px 0;
+            font-size: 13px;
+            display: flex;
+            align-items: flex-start;
+          }
+          
+          .test-item:last-child {
+            border-bottom: none;
+          }
+          
+          .test-name {
+            font-weight: normal;
+            color: #000;
+            margin-left: 10px;
+          }
+          
+          .medications-section {
+            margin-bottom: 25px;
+          }
+          
+          .medication-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 15px;
             border: 2px solid oklch(0.7568 0.1624 51.44);
             border-radius: 8px;
             overflow: hidden;
-            page-break-inside: auto;
-            break-inside: auto;
           }
           
-          .prescription-table th {
+          .medication-table th {
             background: oklch(0.7568 0.1624 51.44);
             color: white;
             padding: 12px 8px;
             text-align: left;
             font-weight: bold;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            page-break-inside: avoid;
-            break-inside: avoid;
-            page-break-after: avoid;
-            break-after: avoid;
+            font-size: 12px;
+            border-bottom: 1px solid #e5e7eb;
           }
           
-          .prescription-table td {
+          .medication-table td {
             padding: 10px 8px;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e5e7eb;
             font-size: 11px;
             vertical-align: top;
-            page-break-inside: avoid;
-            break-inside: avoid;
           }
           
-          .prescription-table tr {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          
-          .prescription-table thead {
-            display: table-header-group;
-          }
-          
-          .prescription-table tbody {
-            display: table-row-group;
-          }
-          
-          .prescription-table tr:nth-child(even) {
+          .medication-table tr:nth-child(even) {
             background: #f8fafc;
           }
           
-          .prescription-table tr:hover {
-            background: #f1f5f9;
+          .medication-table tr:last-child td {
+            border-bottom: none;
           }
           
-          .medication-name {
+          .medication-name-cell {
             font-weight: bold;
             color: oklch(0.7568 0.1624 51.44);
             font-size: 12px;
@@ -213,209 +253,87 @@ export const generatePrescriptionHTML = (
             font-size: 10px;
           }
           
-          .investigation-status {
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 9px;
-            font-weight: bold;
-            text-transform: uppercase;
+          .doctor-section {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid oklch(0.7568 0.1624 51.44);
           }
           
-          .status-verified {
-            background: #dcfce7;
-            color: #166534;
-          }
-          
-          .status-pending {
-            background: #fef3c7;
-            color: #92400e;
-          }
-          
-          .status-completed {
-            background: #dbeafe;
-            color: oklch(0.7568 0.1624 51.44);
-          }
-          
-          .signature-section {
+          .doctor-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 30px;
-            margin-top: 30px;
-            border-top: 2px solid oklch(0.7568 0.1624 51.44);
-            padding-top: 20px;
-            page-break-inside: avoid;
-            break-inside: avoid;
+            margin-bottom: 30px;
           }
           
-          .doctor-signature {
-            text-align: center;
-          }
-          
-          .signature-line {
-            border-top: 2px solid #374151;
-            margin: 40px 0 10px 0;
-            position: relative;
-          }
-          
-          .signature-text {
-            font-size: 11px;
-            color: #6b7280;
+          .doctor-info {
+            text-align: left;
           }
           
           .doctor-name {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
             color: oklch(0.7568 0.1624 51.44);
             margin-bottom: 5px;
           }
           
-          .date-time {
-            text-align: right;
+          .doctor-license {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 3px;
+          }
+          
+          .doctor-email {
             font-size: 11px;
             color: #6b7280;
           }
+          
+          .signature-date {
+            text-align: right;
+          }
+          
+          .signature-line {
+            border-top: 2px solid #374151;
+            margin: 20px 0 10px 0;
+            width: 200px;
+            margin-left: auto;
+          }
+          
+          .signature-text {
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+          }
+          
+          .date-time-info {
+            font-size: 12px;
+            color: #374151;
+            text-align: right;
+          }
+          
           
           .prescription-footer {
             text-align: center;
             margin-top: 30px;
             padding: 15px;
-            border: 2px dashed oklch(0.7568 0.1624 51.44);
-            border-radius: 10px;
+            border: 1px dashed oklch(0.7568 0.1624 51.44);
+            border-radius: 8px;
             background: #f0f9ff;
-          }
-          
-          .verification-text {
             font-size: 10px;
             color: oklch(0.7568 0.1624 51.44);
+          }
+          
+          .prescription-symbol {
+            font-size: 24px;
             font-weight: bold;
-          }
-          
-          .care-instructions {
-            background: #f0fdf4;
-            border: 1px solid #22c55e;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          
-          .care-title {
-            font-weight: bold;
-            color: #166534;
-            margin-bottom: 8px;
-          }
-          
-          /* Visit Summary Styles */
-          .visit-summary-section {
-            margin-bottom: 25px;
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          
-          .visit-summary-content {
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 20px;
-            background: #f8fafc;
-          }
-          
-          .visit-item {
-            padding: 12px 0;
-            border-bottom: 1px solid #e2e8f0;
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          
-          .visit-item:last-child {
-            border-bottom: none;
-          }
-          
-          .visit-label {
-            font-weight: bold;
-            color: #374151;
-            margin-bottom: 6px;
-            font-size: 12px;
-          }
-          
-          .visit-value {
-            color: #1f2937;
-            font-size: 11px;
-            line-height: 1.5;
-          }
-          
-          .critical-section {
-            background: #fef2f2;
-            border: 1px solid #fca5a5;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-          }
-          
-          .critical-section .visit-item {
-            border-bottom: none;
-            padding: 0;
-          }
-          
-          .critical-status {
+            color: oklch(0.7568 0.1624 51.44);
+            text-align: left;
+            margin: 10px 0 5px 0;
+            font-family: 'Times New Roman', serif;
             display: inline-block;
-            margin-right: 20px;
-            vertical-align: top;
           }
           
-          .critical-remarks {
-            display: inline-block;
-            vertical-align: top;
-            flex: 1;
-          }
-          
-          .critical-badge {
-            background: #dc2626;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-          }
-          
-          .followup-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            background: #f0f9ff;
-            border: 1px solid #bfdbfe;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 10px 0;
-          }
-          
-          .followup-date, .followup-instructions {
-            margin: 0;
-          }
-          
-          .followup-section .visit-item {
-            border-bottom: none;
-            padding: 0;
-          }
-          
-          /* Page break utilities */
-          .page-break-before {
-            page-break-before: always;
-            break-before: page;
-          }
-          
-          .page-break-after {
-            page-break-after: always;
-            break-after: page;
-          }
-          
-          .page-break-avoid {
-            page-break-inside: avoid;
-            break-inside: avoid;
-          }
-          
+          /* Print styles */
           @media print {
             @page {
               size: A4;
@@ -432,108 +350,71 @@ export const generatePrescriptionHTML = (
               color-adjust: exact;
             }
             
-            /* Ensure content doesn't break inappropriately */
             .prescription-header {
-              border: 3px solid oklch(0.7568 0.1624 51.44) !important;
-              background: #f8fafc !important;
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            
+            .patient-section,
+            .clinical-info-section,
+            .investigations-section,
+            .medications-section,
+            .doctor-section {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            
+            .clinical-item,
+            .medication-item {
+              page-break-inside: avoid;
+              break-inside: avoid;
+            }
+            
+            .section-title {
+              page-break-after: avoid;
+              break-after: avoid;
+            }
+            
+            .clinic-name {
+              color: oklch(0.7568 0.1624 51.44) !important;
               -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-              page-break-after: avoid;
-              break-after: avoid;
             }
             
-            .patient-doctor-section {
-              page-break-inside: avoid;
-              break-inside: avoid;
+            .prescription-id {
+              background: oklch(0.7568 0.1624 51.44) !important;
+              color: white !important;
+              -webkit-print-color-adjust: exact;
             }
             
-            .prescription-symbol {
-              page-break-before: avoid;
-              page-break-after: avoid;
-              break-before: avoid;
-              break-after: avoid;
+            .patient-section {
+              background: #f9fafb !important;
+              -webkit-print-color-adjust: exact;
             }
             
-            /* Table print optimizations */
-            .prescription-table {
-              page-break-before: auto;
-              page-break-after: auto;
+            .clinical-item {
+              background: #f8fafc !important;
+              border-left-color: oklch(0.7568 0.1624 51.44) !important;
+              -webkit-print-color-adjust: exact;
+            }
+            
+            .followup-item {
+              background: #f0f9ff !important;
+              border-left-color: #3b82f6 !important;
+              -webkit-print-color-adjust: exact;
+            }
+            
+            .medication-table {
               page-break-inside: auto;
-              break-before: auto;
-              break-after: auto;
               break-inside: auto;
             }
             
-            .prescription-table thead {
-              display: table-header-group;
-            }
-            
-            .prescription-table tr {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .prescription-table th {
+            .medication-table th {
               background: oklch(0.7568 0.1624 51.44) !important;
               color: white !important;
               -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
             }
             
-            /* Section specific page breaks */
-            .section-title {
-              color: oklch(0.7568 0.1624 51.44) !important;
-              border-bottom-color: oklch(0.7568 0.1624 51.44) !important;
-              -webkit-print-color-adjust: exact;
-              page-break-after: avoid;
-              break-after: avoid;
-              orphans: 3;
-              widows: 3;
-            }
-            
-            .diagnosis-section,
-            .medications-section,
-            .investigations-section {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .diagnosis-item {
-              background: #fef2f2 !important;
-              border-left-color: #ef4444 !important;
-              -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .clinic-name {
-              color: #1e40af !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            .prescription-id {
-              background: #1e40af !important;
-              color: white !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            .clinic-name {
-              color: oklch(0.7568 0.1624 51.44) !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            .prescription-id {
-              background: oklch(0.7568 0.1624 51.44) !important;
-              color: white !important;
-              -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .prescription-table tr:nth-child(even) {
-              background: #f8fafc !important;
+            .test-list {
               -webkit-print-color-adjust: exact;
             }
             
@@ -541,120 +422,32 @@ export const generatePrescriptionHTML = (
               background: #fef3c7 !important;
               border-color: #f59e0b !important;
               -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .care-instructions {
-              background: #f0fdf4 !important;
-              border-color: #22c55e !important;
-              -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            /* Visit Summary Print Styles */
-            .visit-summary-section {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .visit-summary-content {
-              background: #f8fafc !important;
-              border-color: #e2e8f0 !important;
-              -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .visit-item {
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .critical-section {
-              background: #fef2f2 !important;
-              border-color: #fca5a5 !important;
-              -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .critical-badge {
-              background: #dc2626 !important;
-              color: white !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            .followup-section {
-              background: #f0f9ff !important;
-              border-color: #bfdbfe !important;
-              -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
             }
             
             .prescription-footer {
               background: #f0f9ff !important;
               border-color: oklch(0.7568 0.1624 51.44) !important;
               -webkit-print-color-adjust: exact;
-              page-break-inside: avoid;
-              break-inside: avoid;
-            }
-            
-            .signature-section {
-              page-break-inside: avoid;
-              break-inside: avoid;
-              page-break-before: auto;
-              break-before: auto;
-            }
-            
-            .status-verified {
-              background: #dcfce7 !important;
-              color: #166534 !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            .status-pending {
-              background: #fef3c7 !important;
-              color: #92400e !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            .status-completed {
-              background: #dbeafe !important;
-              color: oklch(0.7568 0.1624 51.44) !important;
-              -webkit-print-color-adjust: exact;
-            }
-            
-            /* Orphans and widows control */
-            p, div {
-              orphans: 2;
-              widows: 2;
-            }
-            
-            h1, h2, h3, h4, h5, h6, .section-title {
-              orphans: 3;
-              widows: 3;
             }
           }
           }
         </style>
       </head>
       <body>
-        <!-- Clinic Header -->
+        <!-- Header with Logo and Clinic Details -->
         <div class="prescription-header">
-          <div class="clinic-name">${
-            prescriptionData.practitioner?.user?.tenant?.name ||
-            "Medical Clinic"
-          }</div>
-          <div class="clinic-tagline">Complete Healthcare Solutions</div>
-          <div class="clinic-details">
-            ${
+          <div class="header-left">
+            <img src="${logoUrl}" alt="Clinic Logo" class="clinic-logo" />
+          </div>
+          <div class="header-right">
+            <div><strong>Contact:</strong> ${
               prescriptionData.practitioner?.user?.tenant?.contact?.[0]?.telecom
-                ?.map((contact) => contact.value)
+                ?.map((contact: any) => contact.value)
                 .join(" | ") || "Contact Information"
-            }
+            }</div>
+            <div><strong>Email:</strong> ${
+              prescriptionData.practitioner?.user?.email || "Email Address"
+            }</div>
           </div>
         </div>
 
@@ -670,209 +463,134 @@ export const generatePrescriptionHTML = (
           </div>
         </div>
 
-        <!-- Patient and Doctor Information -->
-        <div class="patient-doctor-section">
-          <div class="info-box">
-            <div class="info-title">Patient Information</div>
-            <div class="info-content">
-              <div><span class="info-label">Name:</span> ${
-                prescriptionData.patient?.user?.name || "N/A"
-              }</div>
-              <div><span class="info-label">Gender:</span> ${
-                prescriptionData.patient?.gender || "N/A"
-              }</div>
-              <div><span class="info-label">Patient ID:</span> ${
-                prescriptionData.patient?.patient_display_id || "N/A"
-              }</div>
-              <div><span class="info-label">Date:</span> ${moment().format(
-                "DD/MM/YYYY"
-              )}</div>
+        <!-- Patient Details -->
+        <div class="patient-section">
+          <div class="section-title">Patient Information</div>
+          <div class="patient-details">
+            <div>
+              <div class="detail-item">
+                <div class="detail-label">Name:</div>
+                <div class="detail-value">${
+                  prescriptionData.patient?.user?.name || "N/A"
+                }</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Gender:</div>
+                <div class="detail-value">${
+                  prescriptionData.patient?.gender || "N/A"
+                }</div>
+              </div>
             </div>
-          </div>
-          
-          <div class="info-box">
-            <div class="info-title">Doctor Information</div>
-            <div class="info-content">
-              <div><span class="info-label">Dr.</span> ${
-                prescriptionData.practitioner?.user?.name || "N/A"
-              }</div>
-              <div><span class="info-label">License:</span> ${
-                prescriptionData.practitioner?.practitioner_display_id || "N/A"
-              }</div>
-              <div><span class="info-label">Email:</span> ${
-                prescriptionData.practitioner?.user?.email || "N/A"
-              }</div>
+            <div>
+              <div class="detail-item">
+                <div class="detail-label">Patient ID:</div>
+                <div class="detail-value">${
+                  prescriptionData.patient?.patient_display_id || "N/A"
+                }</div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Date:</div>
+                <div class="detail-value">${moment().format("DD/MM/YYYY")}</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Visit Summary Section -->
-        ${
-          prescriptionData.visit_note?.summary ||
-          prescriptionData.visit_note?.chief_complaint ||
-          prescriptionData.visit_note?.provisional_diagnosis ||
-          prescriptionData.visit_note?.critical ||
-          prescriptionData.visit_note?.criticality_remark ||
-          prescriptionData.visit_note?.followup_date ||
-          prescriptionData.visit_note?.follow_up
-            ? `
-        <div class="visit-summary-section">
-          <div class="section-title">Visit Summary</div>
-          <div class="visit-summary-content">
-            ${
-              prescriptionData.visit_note.summary
-                ? `
-              <div class="visit-item">
-                <div class="visit-label">Summary:</div>
-                <div class="visit-value">${prescriptionData.visit_note.summary}</div>
-              </div>
-            `
-                : ""
-            }
-            
-            ${
-              prescriptionData.visit_note.chief_complaint
-                ? `
-              <div class="visit-item">
-                <div class="visit-label">Patient's Reported Problem:</div>
-                <div class="visit-value">${prescriptionData.visit_note.chief_complaint}</div>
-              </div>
-            `
-                : ""
-            }
-            
-            ${
-              prescriptionData.visit_note.provisional_diagnosis
-                ? `
-              <div class="visit-item">
-                <div class="visit-label">Provisional Diagnosis:</div>
-                <div class="visit-value">${prescriptionData.visit_note.provisional_diagnosis}</div>
-              </div>
-            `
-                : ""
-            }
-            
-            ${
-              prescriptionData.visit_note.critical ||
-              prescriptionData.visit_note.criticality_remark
-                ? `
-              <div class="visit-item critical-section">
-                ${
-                  prescriptionData.visit_note.critical
-                    ? `
-                  <div class="critical-status">
-                    <div class="visit-label">Status:</div>
-                    <div class="critical-badge">CRITICAL CASE</div>
-                  </div>
-                `
-                    : ""
-                }
-                ${
-                  prescriptionData.visit_note.criticality_remark
-                    ? `
-                  <div class="critical-remarks">
-                    <div class="visit-label">Remarks:</div>
-                    <div class="visit-value">${prescriptionData.visit_note.criticality_remark}</div>
-                  </div>
-                `
-                    : ""
-                }
-              </div>
-            `
-                : ""
-            }
-            
-            ${
-              prescriptionData.visit_note.followup_date ||
-              prescriptionData.visit_note.follow_up
-                ? `
-              <div class="visit-item followup-section">
-                ${
-                  prescriptionData.visit_note.followup_date
-                    ? `
-                  <div class="followup-date">
-                    <div class="visit-label">Next Visit:</div>
-                    <div class="visit-value">${moment(
-                      prescriptionData.visit_note.followup_date
-                    ).format("MMMM DD, YYYY")}</div>
-                  </div>
-                `
-                    : ""
-                }
-                ${
-                  prescriptionData.visit_note.follow_up
-                    ? `
-                  <div class="followup-instructions">
-                    <div class="visit-label">Follow-up Instructions:</div>
-                    <div class="visit-value">${prescriptionData.visit_note.follow_up}</div>
-                  </div>
-                `
-                    : ""
-                }
-              </div>
-            `
-                : ""
-            }
-          </div>
-        </div>
-        `
-            : ""
-        }
-
-        <!-- Diagnosis -->
-        ${
-          prescriptionData.visit_note?.assessments?.length
-            ? `
-        <div class="diagnosis-section">
-          <div class="section-title">Diagnosis</div>
-          ${prescriptionData.visit_note.assessments
-            .map(
-              (assessment) => `
-            <div class="diagnosis-item">
-              <strong>Condition:</strong> ${
-                assessment.description || "No description"
-              }<br>
-              <strong>Severity:</strong> ${assessment.severity || "N/A"}
+        <!-- Clinical Information -->
+        <div class="clinical-info-section">
+          ${
+            prescriptionData.visit_note?.provisional_diagnosis
+              ? `
+            <div class="clinical-item">
+              <div class="clinical-label">Provisional Diagnosis:</div>
+              <div class="clinical-value">${prescriptionData.visit_note.provisional_diagnosis}</div>
             </div>
           `
-            )
-            .join("")}
+              : ""
+          }
+          
+          ${
+            prescriptionData.visit_note?.chief_complaint
+              ? `
+            <div class="clinical-item">
+              <div class="clinical-label">Patient's Reported Problem:</div>
+              <div class="clinical-value">${prescriptionData.visit_note.chief_complaint}</div>
+            </div>
+          `
+              : ""
+          }
+          
+          ${
+            prescriptionData.visit_note?.followup_date
+              ? `
+            <div class="clinical-item followup-item">
+              <div class="clinical-label">Follow-up Date:</div>
+              <div class="clinical-value">${moment(
+                prescriptionData.visit_note.followup_date
+              ).format("MMMM DD, YYYY")}</div>
+            </div>
+          `
+              : ""
+          }
+        </div>
+
+        <!-- Investigations -->
+        ${
+          prescriptionData.lab_tests?.length
+            ? `
+        <div class="investigations-section">
+          <div class="section-title">Investigations Ordered</div>
+          <div class="test-list">
+            ${prescriptionData.lab_tests
+              .map(
+                (test: any, index: number) => `
+              <div class="test-item">
+                <span style="font-weight: bold; color: #000; margin-right: 10px;">${
+                  index + 1
+                }.</span>
+                <span class="test-name">${test.test_display}</span>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
         </div>
         `
             : ""
         }
 
-        <!-- Medications Table -->
+        <!-- Medications -->
         ${
           prescriptionData.medication_request?.medications?.length
             ? `
         <div class="medications-section">
+          <div class="prescription-symbol">℞</div>
           <div class="section-title">Prescribed Medications</div>
-          <table class="prescription-table">
+          <table class="medication-table">
             <thead>
               <tr>
                 <th style="width: 5%;">#</th>
-                <th style="width: 20%;">Medication Name</th>
-                <th style="width: 10%;">Strength</th>
+                <th style="width: 25%;">Medication Name</th>
+                <th style="width: 12%;">Strength</th>
                 <th style="width: 10%;">Form</th>
                 <th style="width: 10%;">Route</th>
                 <th style="width: 12%;">Frequency</th>
-                <th style="width: 10%;">Duration</th>
-                <th style="width: 23%;">Instructions & Notes</th>
+                <th style="width: 8%;">Duration</th>
+                <th style="width: 18%;">Instructions</th>
               </tr>
             </thead>
             <tbody>
               ${prescriptionData.medication_request.medications
                 .map(
-                  (medication, index) => `
+                  (medication: any, index: number) => `
                 <tr>
                   <td style="text-align: center; font-weight: bold;">${
                     index + 1
                   }</td>
-                  <td>
-                    <div class="medication-name">${medication.name}</div>
-                    <div style="font-size: 10px; color: #6b7280; margin-top: 2px;">
-                      Timing: ${
+                  <td class="medication-name-cell">
+                    ${medication.name}
+                    <div style="font-size: 10px; color: #6b7280; margin-top: 3px; font-weight: normal;">
+                      ${
                         [
                           medication.timing?.morning && "Morning",
                           medication.timing?.afternoon && "Afternoon",
@@ -880,7 +598,7 @@ export const generatePrescriptionHTML = (
                           medication.timing?.night && "Night",
                         ]
                           .filter(Boolean)
-                          .join(", ") || "N/A"
+                          .join(", ") || "As directed"
                       }
                     </div>
                   </td>
@@ -889,94 +607,8 @@ export const generatePrescriptionHTML = (
                   <td>${medication.route || "N/A"}</td>
                   <td>${medication.frequency || "N/A"}</td>
                   <td>${medication.duration || "N/A"} days</td>
-                  <td>
-                    ${
-                      medication.dosage_instruction
-                        ? `<div style="font-size: 10px; margin-bottom: 3px;"><strong>Instructions:</strong> ${medication.dosage_instruction}</div>`
-                        : ""
-                    }
-                    ${
-                      medication.note?.info
-                        ? `
-                      <div class="medication-instructions">
-                        <strong>Note:</strong> ${medication.note.info}
-                      </div>
-                    `
-                        : ""
-                    }
-                  </td>
-                </tr>
-              `
-                )
-                .join("")}
-            </tbody>
-          </table>
-        </div>
-        `
-            : ""
-        }
-
-        <!-- Investigations Table -->
-        ${
-          prescriptionData.lab_tests?.length
-            ? `
-        <div class="investigations-section">
-          <div class="section-title">Investigations Ordered</div>
-          <table class="prescription-table">
-            <thead>
-              <tr>
-                <th style="width: 5%;">#</th>
-                <th style="width: 30%;">Test Name</th>
-                <th style="width: 15%;">Priority</th>
-                <th style="width: 15%;">Status</th>
-                <th style="width: 20%;">Ordered On</th>
-                <th style="width: 15%;">Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${prescriptionData.lab_tests
-                .map(
-                  (test, index) => `
-                <tr>
-                  <td style="text-align: center; font-weight: bold;">${
-                    index + 1
-                  }</td>
-                  <td>
-                    <div style="font-weight: bold; color: oklch(0.7568 0.1624 51.44);">${
-                      test.test_display
-                    }</div>
-                  </td>
-                  <td style="text-transform: capitalize;">${
-                    test.priority || "N/A"
-                  }</td>
-                  <td>
-                    <span class="investigation-status ${
-                      test.status === "verified"
-                        ? "status-verified"
-                        : test.status === "pending"
-                        ? "status-pending"
-                        : "status-completed"
-                    }">
-                      ${test.status || "N/A"}
-                    </span>
-                  </td>
-                  <td>
-                    ${
-                      test.authored_on
-                        ? moment(test.authored_on).format(
-                            "DD MMM YYYY, hh:mm A"
-                          )
-                        : "N/A"
-                    }
-                  </td>
                   <td style="font-size: 10px;">
-                    ${
-                      test.notes?.length
-                        ? test.notes
-                            .map((note) => note.text || "N/A")
-                            .join(", ")
-                        : "-"
-                    }
+                    ${medication.dosage_instruction || "Take as directed"}
                   </td>
                 </tr>
               `
@@ -989,56 +621,90 @@ export const generatePrescriptionHTML = (
             : ""
         }
 
-        <!-- Signature Section -->
-        <div class="signature-section">
-          <div class="doctor-signature">
-            <div class="signature-line"></div>
-            <div class="doctor-name">Dr. ${
-              prescriptionData.practitioner?.user?.name || "N/A"
-            }</div>
-            <div class="signature-text">Doctor's Signature</div>
-          </div>
-          <div class="date-time">
-            <div>Date: ${moment(
-              prescriptionData.medication_request?.authored_on
-            ).format("DD/MM/YYYY")}</div>
-            <div>Time: ${moment(
-              prescriptionData.medication_request?.authored_on
-            ).format("hh:mm A")}</div>
+        <!-- Doctor Details and Signature -->
+        <div class="doctor-section">
+          <div class="doctor-details">
+            <div class="doctor-info">
+              <div class="doctor-name">Dr. ${
+                prescriptionData.practitioner?.user?.name || "N/A"
+              }</div>
+              <div class="doctor-license">License No: ${
+                prescriptionData.practitioner?.practitioner_display_id || "N/A"
+              }</div>
+              <div class="doctor-email">Email: ${
+                prescriptionData.practitioner?.user?.email || "N/A"
+              }</div>
+            </div>
+            <div class="signature-date">
+              <div class="signature-line"></div>
+              <div class="signature-text">Digital Signature</div>
+              <div class="date-time-info">
+                <div>Date: ${moment(
+                  prescriptionData.medication_request?.authored_on
+                ).format("DD/MM/YYYY")}</div>
+                <div>Time: ${moment(
+                  prescriptionData.medication_request?.authored_on
+                ).format("hh:mm A")}</div>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Footer -->
         <div class="prescription-footer">
-          <div class="verification-text">
-            This is a digitally generated prescription. For verification, contact the clinic.<br>
-            Prescription ID: ${
-              prescriptionData.medication_request?.medication_display_id ||
-              "N/A"
-            }
-          </div>
+          This is a digitally generated prescription. For verification, contact the clinic.<br>
+          Prescription ID: ${
+            prescriptionData.medication_request?.medication_display_id || "N/A"
+          }
         </div>
       </body>
     </html>
   `;
 };
 
-export const handlePrintPrescription = (
+export const handlePrintPrescription = async (
   prescriptionData: EPrescriptionDetails
-): void => {
+): Promise<void> => {
   if (!prescriptionData) {
     console.error("No prescription data available for printing");
     return;
   }
 
-  const printWindow = window.open("", "", "width=800,height=600");
+  try {
+    // Convert logo to base64 for reliable printing
+    const logoBase64 = await getImageAsBase64(
+      `${window.location.origin}/mm.svg`
+    );
 
-  if (printWindow) {
-    const htmlContent = generatePrescriptionHTML(prescriptionData);
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
-    printWindow.print();
-  } else {
-    console.error("Unable to open print window");
+    const printWindow = window.open("", "", "width=800,height=600");
+
+    if (printWindow) {
+      const htmlContent = generatePrescriptionHTML(
+        prescriptionData,
+        logoBase64
+      );
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+
+      // Wait for images to load before printing
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print();
+        }, 500);
+      };
+    } else {
+      console.error("Unable to open print window");
+    }
+  } catch (error) {
+    console.error("Error preparing prescription for printing:", error);
+
+    // Fallback: try printing without base64 conversion
+    const printWindow = window.open("", "", "width=800,height=600");
+    if (printWindow) {
+      const htmlContent = generatePrescriptionHTML(prescriptionData);
+      printWindow.document.write(htmlContent);
+      printWindow.document.close();
+      printWindow.print();
+    }
   }
 };

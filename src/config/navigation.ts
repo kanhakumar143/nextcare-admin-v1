@@ -15,6 +15,7 @@ import {
   FileQuestionMark,
   MapPinPlus,
   Ribbon,
+  AlarmClock,
   BellRing,
 } from "lucide-react";
 
@@ -111,8 +112,6 @@ export const superAdminRoutes: Route[] = [
     name: "Doctor Management",
     icon: Stethoscope,
   },
-   
-
 ];
 
 // Doctor Navigation Routes
@@ -161,7 +160,6 @@ export const nurseRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
-
 ];
 
 // Lab Technician Navigation Routes
@@ -195,9 +193,24 @@ export const receptionistRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
-    {
+  {
     href: "/dashboard/receptionist/print-prescription",
     name: "Print Prescription",
+    icon: LayoutDashboard,
+  },
+  {
+    href: "/dashboard/receptionist/set-reminders",
+    name: "Medication Reminder",
+    icon: AlarmClock,
+  },
+  {
+    href: "/dashboard/receptionist/plan-pricing",
+    name: "Pricing Plans",
+    icon: FileText,
+  },
+  {
+    href: "/dashboard/receptionist/attendance",
+    name: "Attendance",
     icon: LayoutDashboard,
   },
 ];

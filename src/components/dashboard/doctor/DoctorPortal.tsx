@@ -16,6 +16,7 @@ import { AppDispatch, RootState } from "@/store";
 import {
   fetchAssignedAppointments,
   setSinglePatientDetails,
+  setConsultationMode,
 } from "@/store/slices/doctorSlice";
 import { PatientInfo } from "@/types/doctor.types";
 
@@ -28,12 +29,14 @@ const DoctorPortal = () => {
   );
   const handlePatientInfo = (patient: PatientInfo) => {
     dispatch(setSinglePatientDetails(patient));
+    dispatch(setConsultationMode("new"));
     router.push(`/dashboard/doctor/consultation/${patient.id}`);
   };
 
   const handleLabTests = (patient: PatientInfo) => {
     dispatch(setSinglePatientDetails(patient));
-    router.push(`/dashboard/doctor/labtest-details/${patient.id}`);
+    dispatch(setConsultationMode("edit"));
+    router.push(`/dashboard/doctor/consultation/${patient.id}`);
   };
 
   const columns: ColumnDef<PatientInfo>[] = [
@@ -43,8 +46,8 @@ const DoctorPortal = () => {
       cell: ({ getValue }) => <div>{getValue() as string}</div>,
     },
     {
-      header: "Contact Number",
-      accessorFn: (row) => row.patient.user.phone || "",
+      header: "Patient ID",
+      accessorFn: (row) => row.patient.patient_display_id || "",
       cell: ({ getValue }) => <div>{getValue() as string}</div>,
     },
     {
@@ -86,8 +89,8 @@ const DoctorPortal = () => {
       cell: ({ getValue }) => <div>{getValue() as string}</div>,
     },
     {
-      header: "Contact Number",
-      accessorFn: (row) => row.patient.user.phone || "",
+      header: "Patient ID",
+      accessorFn: (row) => row.patient.patient_display_id || "",
       cell: ({ getValue }) => <div>{getValue() as string}</div>,
     },
     {

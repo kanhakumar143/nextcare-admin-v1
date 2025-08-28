@@ -49,6 +49,19 @@ export const submitVisitSummary = async (payload: VisitSummaryPayload) => {
   }
 };
 
+export const updateVisitSummary = async (payload: VisitSummaryPayload) => {
+  try {
+    const response = await api.put(`visit-note/`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Token generation failed";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
 export const updateAppointmentStatus = async (payload: {
   id: string;
   status: string;

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import DoctorMedicineLabEntry from "./DoctorMedicineLabEntry";
 import {
   Select,
@@ -19,7 +18,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowLeft,
   Edit,
   Info,
   Ruler,
@@ -40,6 +38,7 @@ import {
   setCurrentVitals,
   clearConsultationOrders,
   updateVisitNote,
+  populateConsultationData,
 } from "@/store/slices/doctorSlice";
 import { RootState } from "@/store";
 import { useParams, useRouter } from "next/navigation";
@@ -50,17 +49,30 @@ import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
 import { TooltipTrigger } from "@radix-ui/react-tooltip";
 import BackButton from "@/components/common/BackButton";
 import DentalProcedureEntry from "./DentalProcedureEntry";
+import { DataTable } from "@/components/common/DataTable";
+import { Badge } from "@/components/ui/badge";
+import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import ConsultationRecorder from "./ConsultationRecorder";
+import PreConsultationAnswers from "./PreConsultationAnswers";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
   const { patient_name } = useParams();
-  const { singlePatientDetails, visitNote, editVitalsModalVisible } =
-    useSelector((state: RootState) => state.doctor);
+  const {
+    singlePatientDetails,
+    visitNote,
+    editVitalsModalVisible,
+    consultationMode,
+    isEditingConsultation,
+  } = useSelector((state: RootState) => state.doctor);
   const [apptDtls, setApptDtls] = useState<AppointmentDtlsForDoctor | null>(
     null
   );
   const [isPatientDetailsDrawerOpen, setIsPatientDetailsDrawerOpen] =
     useState(false);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string>("");
   const router = useRouter();
 
   // Helper function to get vital icon based on code
@@ -87,19 +99,49 @@ export default function PatientConsultation() {
   };
 
   useEffect(() => {
-    dispatch(clearConsultationOrders());
+    if (consultationMode === "new") {
+      dispatch(clearConsultationOrders());
+    }
+
     if (!singlePatientDetails?.id && patient_name) {
       GetAssignedAppointmentDtlsById(patient_name);
     }
     GetAssignedAppointmentDtlsById(singlePatientDetails?.id);
-  }, [singlePatientDetails, dispatch, editVitalsModalVisible]);
+  }, [
+    singlePatientDetails,
+    dispatch,
+    editVitalsModalVisible,
+    consultationMode,
+  ]);
+
+  // Effect to populate data when in edit mode and appointment details are loaded
+  useEffect(() => {
+    if (consultationMode === "edit" && apptDtls) {
+      populateExistingConsultationData();
+    }
+  }, [consultationMode, apptDtls]);
+
+  const populateExistingConsultationData = () => {
+    if (!apptDtls) return;
+    const existingVisitNote = apptDtls.visit_notes?.[0];
+    const existingMedications = apptDtls.prescriptions?.[0]?.medications || [];
+    const existingLabTests = apptDtls.lab_test_orders || [];
+
+    dispatch(
+      populateConsultationData({
+        visitNote: existingVisitNote,
+        medicines: existingMedications,
+        labTests: existingLabTests,
+      })
+    );
+  };
 
   const GetAssignedAppointmentDtlsById = async (
     appointment_id: string | string[]
   ) => {
     try {
       const response = await getAssignedAppointmentDtlsById(appointment_id);
-      // console.log("response======", response);
+      console.log("response======", response);
       setApptDtls(response);
     } catch (error) {
       console.error("Error fetching appointment details:", error);
@@ -110,7 +152,9 @@ export default function PatientConsultation() {
   const handleConfirmConsultationCheck = () => {
     if (!visitNote.summary.trim()) {
       toast.error(
-        "Please provide a consultation summary before completing the consultation."
+        `Please provide a consultation summary before ${
+          isEditingConsultation ? "updating" : "completing"
+        } the consultation.`
       );
       return;
     }
@@ -125,22 +169,101 @@ export default function PatientConsultation() {
     dispatch(setEditVitalsModal(true));
   };
 
+  // Handle image view for lab reports
+  const handleViewImage = (imagePath: string) => {
+    console.log("Viewing image:", imagePath);
+    setSelectedImage(imagePath);
+    setImageModalOpen(true);
+  };
+
+  // Format date for lab test reports
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  // Define columns for lab tests table when in edit mode
+  const labTestColumns = [
+    {
+      accessorKey: "test_display",
+      header: "Test Name",
+    },
+    {
+      accessorKey: "test_code",
+      header: "Test Code",
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }: any) => (
+        <Badge
+          variant={
+            row.original.status === "completed" ? "default" : "secondary"
+          }
+          className={
+            row.original.status === "completed"
+              ? "bg-green-100 text-green-800 border-green-200"
+              : "bg-yellow-100 text-yellow-800 border-yellow-200"
+          }
+        >
+          {row.original.status}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: "priority",
+      header: "Priority",
+    },
+    {
+      accessorKey: "authored_on",
+      header: "Ordered Date",
+      cell: ({ row }: any) => formatDate(row.original.authored_on),
+    },
+    {
+      id: "actions",
+      header: "Actions",
+      cell: ({ row }: any) => (
+        <div className="flex gap-2">
+          {row.original.test_report_path && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleViewImage(row.original.test_report_path)}
+            >
+              View Report
+            </Button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <>
       <div className="mx-6 my-3 py-2 border-b-2">
         <BackButton />
         <div className="flex justify-between items-center">
-          <div className="flex items-center">
+          <div className="flex items-center gap-4">
             <Label className="text-md font-light">Appointment ID :</Label>
             <p className="text-xl font-semibold text-foreground px-4">
               {apptDtls?.appointment_display_id}
             </p>
+            {isEditingConsultation && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+                <Edit className="h-4 w-4" />
+                <span className="text-sm font-medium">
+                  Editing Consultation
+                </span>
+              </div>
+            )}
           </div>
-          <div className="">
+          <div className="flex gap-3">
             <Button onClick={() => setIsPatientDetailsDrawerOpen(true)}>
               <Info className="h-4 w-4" />
               View Patient Details
             </Button>
+            <ConsultationRecorder
+              appointmentId={apptDtls?.appointment_display_id}
+            />
           </div>
         </div>
       </div>
@@ -173,10 +296,7 @@ export default function PatientConsultation() {
                         <div className="flex-shrink-0">
                           {getVitalIcon(vital.vital_definition?.code)}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          {/* <div className="text-xs text-gray-500 font-medium uppercase tracking-wide truncate">
-                        {vital.vital_definition?.name}
-                      </div> */}
+                        <div className="flex gap-3 min-w-0">
                           <div className="text-sm font-bold text-gray-900">
                             {vital.vital_definition?.code === "BP" ? (
                               <span>
@@ -218,33 +338,8 @@ export default function PatientConsultation() {
         </div>
       </div>
       <div className="flex p-4 bg-background gap-4">
-        {/* Left Side */}
         <div className="w-full lg:w-5/12 space-y-4 min-h-full">
-          {/* Pre-consultation QnA */}
-          <Card className="border-border p-0">
-            <CardHeader className="bg-gray-200 rounded-t-lg">
-              <CardTitle className="text-lg py-3">
-                Pre-consultation Answers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="pb-6 pr-4 h-[52vh]">
-                <div className="space-y-3 text-sm">
-                  {apptDtls?.questionary_answers &&
-                    apptDtls.questionary_answers.map((q: any, i: number) => (
-                      <div key={i}>
-                        <p className="font-medium text-foreground">
-                          Q{i + 1}: {q?.questionary?.question}
-                        </p>
-                        <p className="pl-3 text-muted-foreground">
-                          A : {q.answer || ""}
-                        </p>
-                      </div>
-                    ))}
-                </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+          <PreConsultationAnswers apptDtls={apptDtls} />
         </div>
 
         <Card className="w-full space-y-1 p-4">
@@ -303,18 +398,18 @@ export default function PatientConsultation() {
                   <Label className="text-sm font-medium mb-2">Remarks</Label>
                   <Input
                     placeholder="Additional remarks or observations"
-                    value={visitNote.remarks}
+                    value={visitNote.remarks || visitNote.criticality_remark}
                     onChange={(e) =>
                       dispatch(
                         updateVisitNote({
-                          field: "remarks",
+                          field: "criticality_remark",
                           value: e.target.value,
                         })
                       )
                     }
                   />
                 </div>
-                <div className="flex space-x-2 pt-4">
+                <div className="flex items-center space-x-2 mt-7">
                   <Checkbox
                     className="h-5 w-5"
                     checked={visitNote.critical}
@@ -322,52 +417,44 @@ export default function PatientConsultation() {
                       dispatch(
                         updateVisitNote({
                           field: "critical",
-                          value: checked as boolean,
+                          value: checked ? true : false,
                         })
                       )
                     }
                   />
-                  <Label className="text-sm font-medium">Critical</Label>
+                  <Label className="text-sm font-medium">
+                    Critical Patient
+                  </Label>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm font-medium mb-2">
-                    Consultation Type
-                  </Label>
-                  <Select
-                    value={visitNote.visit_care_plan.plan_type}
-                    onValueChange={(value) =>
+              <div className="grid grid-cols-1 gap-4 mt-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    className="h-5 w-5"
+                    checked={visitNote.visit_care_plan.plan_type === "followup"}
+                    onCheckedChange={(checked) =>
                       dispatch(
                         updateVisitNote({
                           field: "visit_care_plan.plan_type",
-                          value,
+                          value: checked ? "followup" : "normal",
                         })
                       )
                     }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select plan type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Treatment Plan Type</SelectLabel>
-                        <SelectItem value="followup">Follow Up</SelectItem>
-                        <SelectItem value="medication">Medication</SelectItem>
-                        {/* <SelectItem value="lifestyle">Lifestyle</SelectItem> */}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                  />
+                  <Label className="text-sm font-medium">
+                    Requires Follow-up
+                  </Label>
                 </div>
                 {/* Conditional Follow-up Fields */}
                 {visitNote.visit_care_plan.plan_type === "followup" && (
-                  <div className="grid grid-cols-2   gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="flex-1">
                       <Label className="text-sm font-medium mb-2">
                         Follow-up Date
                       </Label>
                       <Input
                         type="date"
+                        value={visitNote.visit_care_plan.followup_date || ""}
                         onChange={(e) =>
                           dispatch(
                             updateVisitNote({
@@ -383,6 +470,9 @@ export default function PatientConsultation() {
                         Consultation Mode
                       </Label>
                       <Select
+                        value={
+                          visitNote.visit_care_plan.consultation_mode || ""
+                        }
                         onValueChange={(value) =>
                           dispatch(
                             updateVisitNote({
@@ -392,13 +482,15 @@ export default function PatientConsultation() {
                           )
                         }
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select mode" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectGroup>
                             <SelectLabel>Mode</SelectLabel>
-                            <SelectItem value="online">Online</SelectItem>
+                            <SelectItem value="online" disabled>
+                              Online
+                            </SelectItem>
                             <SelectItem value="in-clinic">In-Clinic</SelectItem>
                           </SelectGroup>
                         </SelectContent>
@@ -408,119 +500,34 @@ export default function PatientConsultation() {
                 )}
               </div>
             </div>
-
-            {/* <div className="flex flex-col gap-2 flex-grow px-3 py-2">
-              <Label className="text-sm font-medium">
-                Post-Visit Care Instructions
-              </Label>
-              <Input
-                placeholder="Provide clear instructions for patient care and next steps"
-                value={visitNote.follow_up}
-                onChange={(e) =>
-                  dispatch(
-                    updateVisitNote({
-                      field: "follow_up",
-                      value: e.target.value,
-                    })
-                  )
-                }
-              />
-            </div>
-
-            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
-              <Label className="text-sm font-medium">Treatment Plan</Label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-3">
-                <div className="flex flex-col gap-2">
-                  <Label className="text-sm font-medium">
-                    Treatment Objective
-                  </Label>
-                  <Input
-                    placeholder="Define the primary treatment goal."
-                    value={visitNote.visit_care_plan.goal}
-                    onChange={(e) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "visit_care_plan.goal",
-                          value: e.target.value,
-                        })
-                      )
-                    }
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label className="text-sm font-medium">
-                    Care Plan Specifics
-                  </Label>
-                  <Input
-                    placeholder="Specify how the treatment plan will be executed"
-                    value={visitNote.visit_care_plan.detail}
-                    onChange={(e) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "visit_care_plan.detail",
-                          value: e.target.value,
-                        })
-                      )
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 flex-grow px-3 py-2">
-              <Label className="text-sm font-medium">Clinical Assessment</Label>
-              <div className="grid grid-cols-2 gap-4 p-3">
-                <div className="flex flex-col gap-2">
-                  <Label className="text-sm font-medium">
-                    Assessment Notes
-                  </Label>
-                  <Input
-                    placeholder="Describe your clinical assessment and observations."
-                    value={visitNote.visit_assessment.description}
-                    onChange={(e) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "visit_assessment.description",
-                          value: e.target.value,
-                        })
-                      )
-                    }
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <Label className="text-sm font-medium">Severity Level</Label>
-                  <Select
-                    value={visitNote.visit_assessment.severity}
-                    onValueChange={(value) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "visit_assessment.severity",
-                          value,
-                        })
-                      )
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select severity Level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        <SelectLabel>Severity Level</SelectLabel>
-                        <SelectItem value="mild">Mild</SelectItem>
-                        <SelectItem value="moderate">Moderate</SelectItem>
-                        <SelectItem value="severe">Severe</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div> */}
           </div>
         </Card>
       </div>
 
+      {/* Lab Test Orders - Only show in edit mode */}
+      {isEditingConsultation &&
+        apptDtls?.lab_test_orders &&
+        apptDtls.lab_test_orders.length > 0 && (
+          <div className="px-4 mr-2 mb-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl font-bold">
+                  <Activity className="h-5 w-5" />
+                  Lab Test Orders & Reports
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <DataTable
+                  columns={labTestColumns}
+                  data={apptDtls.lab_test_orders}
+                />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
       <div className="px-4 mr-2">
-        <DoctorMedicineLabEntry />
+        <DoctorMedicineLabEntry appointmentDetails={apptDtls} />
       </div>
 
       {singlePatientDetails?.service_specialty.display === "Dentistry" && (
@@ -536,7 +543,9 @@ export default function PatientConsultation() {
           Cancel
         </Button>
         <Button onClick={handleConfirmConsultationCheck}>
-          Complete Consultation
+          {isEditingConsultation
+            ? "Update Consultation"
+            : "Complete Consultation"}
         </Button>
       </div>
 
@@ -548,6 +557,14 @@ export default function PatientConsultation() {
 
       <ConfirmConsultationModal />
       <EditVitalsModal />
+
+      {/* Image Report Modal for lab test reports */}
+      <ImageReportModal
+        isOpen={imageModalOpen}
+        onClose={() => setImageModalOpen(false)}
+        fileUrl={selectedImage}
+        title="Lab Test Report"
+      />
     </>
   );
 }

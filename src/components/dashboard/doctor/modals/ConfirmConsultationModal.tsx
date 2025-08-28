@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import {
-  fetchAssignedAppointments,
   setConfirmConsultationModal,
   setEprescriptionDetails,
 } from "@/store/slices/doctorSlice";
@@ -22,8 +21,9 @@ import {
   getEprescriptionDetails,
   submitVisitSummary,
   updateAppointmentStatus,
+  updateVisitSummary,
 } from "@/services/doctor.api";
-import { EPrescription, VisitSummaryPayload } from "@/types/doctor.types";
+import { VisitSummaryPayload } from "@/types/doctor.types";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -39,6 +39,8 @@ export default function ConfirmConsultationModal() {
     visitNote,
     labTests,
     medicines,
+    isEditingConsultation,
+    consultationMode,
   } = useSelector((state: RootState) => state.doctor);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -56,6 +58,7 @@ export default function ConfirmConsultationModal() {
       appointment_id: singlePatientDetails?.id,
       patient_id: singlePatientDetails?.patient_id,
       medication_request: {
+        id: medicines[0]?.medication_request_id,
         intent: "order",
         status: "active",
         note: `Prescribed for ${
@@ -65,49 +68,80 @@ export default function ConfirmConsultationModal() {
       },
       medication: medicines,
       visit_note: {
+        id: visitNote.id,
         summary: visitNote.summary,
         follow_up: visitNote.visit_care_plan.plan_type,
         chief_complaint: visitNote.chief_complaint,
         provisional_diagnosis: visitNote.provisional_diagnosis,
         critical: visitNote.critical,
         consultation_mode: visitNote.visit_care_plan.plan_type,
-        followup_date: visitNote.visit_care_plan.followup_date || "",
-        criticality_remark: visitNote.remarks,
+        followup_date: visitNote.visit_care_plan.followup_date || null,
+        criticality_remark: visitNote.criticality_remark,
       },
-      visit_care_plan: {
-        plan_type: visitNote.visit_care_plan.plan_type,
-        goal: visitNote.visit_care_plan.goal,
-        detail: visitNote.visit_care_plan.detail,
-      },
-      visit_assessment: {
-        description: visitNote.visit_assessment.description,
-        severity: visitNote.visit_assessment.severity,
-      },
+      // visit_care_plan: {
+      //   id: visitNote.visit_care_plan.id,
+      //   plan_type: visitNote.visit_care_plan.plan_type,
+      //   goal: visitNote.visit_care_plan.goal,
+      //   detail: visitNote.visit_care_plan.detail,
+      // },
+      // visit_assessment: {
+      //   id: visitNote.visit_assessment.id,
+      //   description: visitNote.visit_assessment.description,
+      //   severity: visitNote.visit_assessment.severity,
+      // },
       lab_test_order: labTests.map((test, ind) => ({
+        id: test.id,
         test_code: `1234${ind}`,
         note: test.notes,
         test_display: test.test_display,
         intent: test.intent,
         priority: test.priority,
-        status: "active",
+        status: "verified",
       })),
     };
 
-    console.log(payload, visitNote);
+    console.log("PayloadData", payload);
+    console.log("Redux Data", visitNote, labTests, medicines);
+    if (isEditingConsultation) {
+      try {
+        await updateVisitSummary(payload);
+        handleCompleteReview();
+      } catch (error) {
+        setLoading(false);
+        toast.error("Failed to update visit summary. Please try again.");
+      }
+    } else {
+      try {
+        await submitVisitSummary(payload);
+        getPrescriptionDetails();
+      } catch (error) {
+        setLoading(false);
+        toast.error("Failed to submit visit summary. Please try again.");
+      }
+    }
+  };
 
+  const handleCompleteReview = async () => {
     try {
-      await submitVisitSummary(payload);
-      getPrescriptionDetails();
+      await updateAppointmentStatus({
+        id: singlePatientDetails?.id || "",
+        status: "completed",
+      });
+      toast.success("Successfully Uploaded Reports");
+      router.push("/dashboard/doctor/portal");
     } catch (error) {
-      setLoading(false);
-      toast.error("Failed to submit visit summary. Please try again.");
+      toast.error("Failed to upload reports. Please try again.");
     }
   };
 
   const getPrescriptionDetails = async () => {
     try {
       const response = await getEprescriptionDetails(singlePatientDetails?.id);
-      toast.success("Consultation completed");
+      toast.success(
+        isEditingConsultation
+          ? "Consultation updated successfully"
+          : "Consultation completed"
+      );
       router.push(
         `/dashboard/doctor/consultation/${patient_name}/prescription-review`
       );
@@ -121,10 +155,15 @@ export default function ConfirmConsultationModal() {
     <Dialog open={confirmConsultationModalVisible} onOpenChange={handleCancel}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Finalize Consultation</DialogTitle>
+          <DialogTitle>
+            {isEditingConsultation
+              ? "Update Consultation"
+              : "Finalize Consultation"}
+          </DialogTitle>
           <DialogDescription>
-            You're about to finalize this consultation. Once confirmed, all
-            notes and prescriptions will be saved and cannot be edited further.
+            {isEditingConsultation
+              ? "You're about to update this consultation. All changes will be saved and the consultation will be updated."
+              : "You're about to finalize this consultation. Once confirmed, all notes and prescriptions will be saved and cannot be edited further."}
           </DialogDescription>
         </DialogHeader>
 
@@ -135,6 +174,8 @@ export default function ConfirmConsultationModal() {
           <Button variant="default" onClick={handleConfirm}>
             {loading ? (
               <Loader2 className="animate-spin" />
+            ) : isEditingConsultation ? (
+              "Update & Continue to Prescription Review"
             ) : (
               "Continue to Prescription Review"
             )}

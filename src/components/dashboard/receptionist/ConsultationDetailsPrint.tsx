@@ -142,9 +142,9 @@ const ConsultationDetailsPrint: React.FC<{ apptId: string }> = ({ apptId }) => {
       {/* Header Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900">
             Consultation Details
-          </h2>
+          </h3>
           <p className="text-gray-600">
             Patient:{" "}
             {

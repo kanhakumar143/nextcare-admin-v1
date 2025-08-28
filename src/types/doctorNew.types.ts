@@ -1,3 +1,31 @@
+export interface ScenarioQuestion {
+  scenario_title: string;
+  scenario_question: string;
+  associated_title: string;
+  associated_question: string;
+}
+
+export interface SymptomQuestionary {
+  question: string | ScenarioQuestion[];
+  answer: string | object;
+}
+export interface QuestionarySymptomNCData {
+  appointment_id?: string;
+  id?: string;
+  patient_id?: string;
+  remark?: string;
+  answer: string;
+  nc_patient_data: {
+    phone: string;
+  };
+  created_at: string;
+  updated_at: string;
+  expires_at: string;
+  symptom_data: SymptomQuestionary[];
+  ai_summary: null | string;
+  diagnosis: null | string;
+}
+
 export interface AppointmentDtlsForDoctor {
   id: string;
   appointment_display_id: string;
@@ -14,6 +42,8 @@ export interface AppointmentDtlsForDoctor {
   visit_notes: VisitNote[];
   cancellation_record: any;
   lab_test_orders: LabTestOrder[];
+  source: string;
+  symptom_data_nc: QuestionarySymptomNCData;
 }
 
 interface LabTestOrder {
