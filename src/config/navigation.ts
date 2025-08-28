@@ -223,7 +223,7 @@ export const pharmacistRoutes: Route[] = [
     icon: LayoutDashboard,
   },
   {
-    href: "/dashboard/pharmacy/patient-medicine",
+    href: "/dashboard/pharmacy/patient-medication",
     name: "Patient Medicine",
     icon: FileText,
   },
