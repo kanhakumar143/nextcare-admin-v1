@@ -22,7 +22,13 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
-import { NurseData, UpdateDoctorPayload } from "@/types/admin.types";
+import {
+  NurseData,
+  UpdateNursePayload,
+  AddNursePayload,
+  ExtendedNurseData,
+  PractitionerStatus,
+} from "@/types/admin.types";
 import {
   addPractitioner,
   getPractitionerByRole,
@@ -37,55 +43,150 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAuthInfo } from "@/hooks/useAuthInfo"; 
-
-
-// ---------------- Enum ----------------
-enum PractitionerStatus {
-  UNVERIFIED = "unverified",
-  UNDER_REVIEW = "under_review",
-  VERIFIED = "verified",
-  REJECTED = "rejected",
-  RESUBMIT_REQUIRED = "resubmit_required",
-}
-
-type ExtendedNurseData = NurseData & {
-  name: string;
-  id: string;
-  user_id: string;
-  status: PractitionerStatus;
-  license_details: {
-    number: string;
-    issued_by: string;
-    expiry: string;
-  };
-};
+import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState } from "@/store";
+import {
+  setEditNurseData,
+  clearEditNurseData,
+} from "@/store/slices/adminSlice";
 
 export default function NurseManagement() {
   const [open, setOpen] = useState(false);
   const [filterValue, setFilterValue] = useState("");
   const [editNurseId, setEditNurseId] = useState<string | null>(null);
+  const [formDefaults, setFormDefaults] = useState<any>({});
   const [selectedNurse, setSelectedNurse] = useState<ExtendedNurseData | null>(
     null
   );
-  const [selectedAction, setSelectedAction] =
-    useState<PractitionerStatus | null>(null);
   const [nurses, setNurses] = useState<ExtendedNurseData[]>([]);
+  const { role } = useAuthInfo();
+  const dispatch = useDispatch();
+  const { editNurseData } = useSelector((state: RootState) => state.admin);
+
+  // Function to transform nurse data for form
+  const transformNurseDataForForm = (nurse: ExtendedNurseData) => {
+    console.log(nurse);
+
+    // Handle qualification array - use first element (index 0)
+    const firstQualification =
+      Array.isArray(nurse.qualification) && nurse.qualification.length > 0
+        ? nurse.qualification[0]
+        : nurse.qualification || {};
+
+    return {
+      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      name: nurse.name || "",
+      email: nurse.user?.email || "",
+      phone: nurse.user?.phone || "",
+      gender:
+        (nurse.gender as "male" | "female" | "other" | "unknown") || "unknown",
+      birth_date: nurse.birth_date || "",
+      license_number: nurse.license_details?.number || "",
+      license_issued_by: nurse.license_details?.issued_by || "",
+      license_expiry: nurse.license_details?.expiry || "",
+      profile_picture_url: nurse.profile_picture_url || "",
+      license_url: nurse.license_url || "",
+      is_active: nurse.is_active || true,
+      degree: (firstQualification as any)?.degree || "",
+      institution: (firstQualification as any)?.institution || "",
+      graduation_year:
+        (firstQualification as any)?.graduation_year ||
+        (firstQualification as any)?.year ||
+        "",
+      specialty: "General Nursing",
+      availability_days: ["mon", "tue", "wed", "thu", "fri"],
+      available_times: [{ start: "09:00", end: "17:00" }],
+      role_code_system:
+        "http://terminology.hl7.org/CodeSystem/practitioner-role",
+      role_code: "nurse",
+      role_display: "Nurse",
+      role_text: "Nurse",
+    };
+  };
+
+  // Helper function to create a complete UpdateNursePayload from ExtendedNurseData
+  const createUpdatePayloadFromNurse = (
+    nurse: ExtendedNurseData,
+    overrides: Partial<UpdateNursePayload> = {}
+  ): UpdateNursePayload => {
+    const fullName = nurse.name || nurse.user?.name || "";
+    const nameParts = fullName.split(" ");
+    const givenNames =
+      nameParts.length > 1 ? nameParts.slice(0, -1) : [fullName];
+    const familyName =
+      nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+
+    return {
+      id: nurse.id,
+      user_id: nurse.user_id,
+      practitioner_display_id: nurse.practitioner_display_id ?? "",
+      identifiers: [
+        {
+          system: "practitioner_id",
+          value: nurse.practitioner_display_id ?? "",
+        },
+      ],
+      name: {
+        use: null,
+        text: null,
+        family: familyName,
+        given: givenNames,
+        prefix: ["Nurse"],
+        suffix: null,
+        period: null,
+      },
+      telecom: [
+        {
+          system: "phone",
+          value: nurse.user?.phone || "",
+          use: "mobile",
+          rank: null,
+          period: null,
+        },
+        {
+          system: "email",
+          value: nurse.user?.email || "",
+          use: "work",
+          rank: null,
+          period: null,
+        },
+      ],
+      gender: nurse.gender ?? "",
+      birth_date: nurse.birth_date ?? "",
+      qualification: [
+        {
+          degree: nurse.qualification?.[0]?.degree || "",
+          institution: nurse.qualification?.[0]?.institution || "",
+          graduation_year: nurse.qualification?.[0]?.graduation_year || "",
+        },
+      ],
+      is_active: nurse.is_active,
+      license_details: nurse.license_details || {
+        number: "",
+        issued_by: "",
+        expiry: "",
+      },
+      profile_picture_url: nurse.profile_picture_url ?? "",
+      license_url: nurse.license_url ?? "",
+      e_sign_path: null,
+      status: nurse.status,
+      ...overrides,
+    };
+  };
 
   const fetchNurses = async () => {
     try {
       const res = await getPractitionerByRole("nurse");
       const data = (res?.data || []).map((nurse: NurseData) => ({
         ...nurse,
-        name: nurse.user.name,
+        name: nurse.user?.name,
       }));
       setNurses(data);
     } catch (error) {
       console.error("Failed to fetch nurses:", error);
     }
   };
-  const { role } = useAuthInfo();
-
 
   useEffect(() => {
     fetchNurses();
@@ -93,6 +194,7 @@ export default function NurseManagement() {
 
   const handleAddNurse = async (formData: any) => {
     try {
+      console.log(formData);
       const payload = {
         ...formData,
         role: {
@@ -110,20 +212,100 @@ export default function NurseManagement() {
     }
   };
 
+  const handleUpdateNurse = async (formData: any) => {
+    try {
+      console.log("Form DATA ------->", formData);
+      const payload: UpdateNursePayload = {
+        id: editNurseData?.id || "",
+        user_id: editNurseData?.user_id || "",
+        practitioner_display_id: editNurseData?.practitioner_display_id || "",
+        identifiers: formData.practitioner?.identifiers || [
+          {
+            system: "practitioner_id",
+            value: editNurseData?.practitioner_display_id || "",
+          },
+        ],
+        name: {
+          use: formData.practitioner?.name?.use || null,
+          text: formData.practitioner?.name?.text || null,
+          family:
+            formData.practitioner?.name?.family ||
+            formData.user?.name?.split(" ").pop() ||
+            "",
+          given:
+            formData.practitioner?.name?.given?.length > 0 &&
+            formData.practitioner.name.given[0] !== ""
+              ? formData.practitioner.name.given
+              : formData.user?.name?.split(" ").slice(0, -1) || [
+                  formData.user?.name || "",
+                ],
+          prefix: formData.practitioner?.name?.prefix || ["Nurse"],
+          suffix: formData.practitioner?.name?.suffix || null,
+          period: formData.practitioner?.name?.period || null,
+        },
+        telecom: formData.practitioner?.telecom?.map((tel: any) => ({
+          system: tel.system,
+          value:
+            tel.system === "phone"
+              ? formData.user?.phone || tel.value
+              : tel.system === "email"
+              ? formData.user?.email || tel.value
+              : tel.value,
+          use: tel.use,
+          rank: tel.rank || null,
+          period: tel.period || null,
+        })) || [
+          {
+            system: "phone",
+            value: formData.user?.phone || "",
+            use: "mobile",
+            rank: null,
+            period: null,
+          },
+          {
+            system: "email",
+            value: formData.user?.email || "",
+            use: "work",
+            rank: null,
+            period: null,
+          },
+        ],
+        gender: formData.practitioner?.gender || "",
+        birth_date: formData.practitioner?.birth_date || "",
+        qualification: formData.practitioner?.qualification || [
+          {
+            degree: "",
+            institution: "",
+            graduation_year: "",
+          },
+        ],
+        is_active: formData.practitioner?.is_active ?? true,
+        license_details: formData.practitioner?.license_details || {
+          number: "",
+          issued_by: "",
+          expiry: "",
+        },
+        profile_picture_url: formData.practitioner?.profile_picture_url || "",
+        license_url: formData.practitioner?.license_url || "",
+        e_sign_path: null,
+        status: editNurseData?.status || "unverified",
+      };
+      console.log("Update Payload -------->", payload);
+      await updatePractitioner(payload);
+      await fetchNurses();
+      setOpen(false);
+      toast.success("Nurse updated successfully.");
+    } catch (error) {
+      console.error("Error updating nurse:", error);
+      toast.error("Failed to update nurse.");
+    }
+  };
+
   const handleToggleStatus = async (nurse: ExtendedNurseData) => {
     try {
-      const updatePayload: UpdateDoctorPayload = {
-        id: nurse.id,
-        user_id: nurse.user_id,
-        practitioner_display_id: nurse.practitioner_display_id ?? "",
-        gender: nurse.gender ?? "",
-        birth_date: nurse.birth_date ?? "",
+      const updatePayload = createUpdatePayloadFromNurse(nurse, {
         is_active: !nurse.is_active,
-        license_details: nurse.license_details,
-        profile_picture_url: nurse.profile_picture_url ?? "",
-        license_url: nurse.license_url ?? "",
-        status: nurse.status,
-      };
+      });
 
       await updatePractitioner(updatePayload);
 
@@ -144,18 +326,9 @@ export default function NurseManagement() {
     status: PractitionerStatus
   ) => {
     try {
-      const updatePayload: UpdateDoctorPayload = {
-        id: nurse.id,
-        user_id: nurse.user_id,
-        practitioner_display_id: nurse.practitioner_display_id ?? "",
-        gender: nurse.gender ?? "",
-        birth_date: nurse.birth_date ?? "",
-        is_active: nurse.is_active,
-        license_details: nurse.license_details,
-        profile_picture_url: nurse.profile_picture_url ?? "",
-        license_url: nurse.license_url ?? "",
+      const updatePayload = createUpdatePayloadFromNurse(nurse, {
         status,
-      };
+      });
 
       await updatePractitioner(updatePayload);
       toast.success(`Nurse status updated to ${status}`);
@@ -237,6 +410,8 @@ export default function NurseManagement() {
               variant="secondary"
               size="icon"
               onClick={() => {
+                const nurse = row.original;
+                dispatch(setEditNurseData(nurse));
                 setEditNurseId(nurse.id);
                 setOpen(true);
               }}
@@ -352,6 +527,7 @@ export default function NurseManagement() {
             if (!val) {
               setEditNurseId(null);
               setSelectedNurse(null);
+              dispatch(clearEditNurseData());
             }
           }}
         >
@@ -366,7 +542,7 @@ export default function NurseManagement() {
             <DialogHeader>
               <DialogTitle>
                 {selectedNurse
-                  ? selectedNurse.is_active
+                  ? selectedNurse?.is_active
                     ? "Deactivate Nurse"
                     : "Activate Nurse"
                   : editNurseId
@@ -381,16 +557,16 @@ export default function NurseManagement() {
                   Are you sure you want to{" "}
                   <span
                     className={
-                      selectedNurse.is_active
+                      selectedNurse?.is_active
                         ? "text-red-600 font-medium"
                         : "text-green-600 font-medium"
                     }
                   >
-                    {selectedNurse.is_active ? "deactivate" : "activate"}
+                    {selectedNurse?.is_active ? "deactivate" : "activate"}
                   </span>{" "}
                   the nurse{" "}
                   <span className="text-foreground font-semibold">
-                    {selectedNurse.name}
+                    {selectedNurse?.name}
                   </span>
                   ?
                 </div>
@@ -406,16 +582,16 @@ export default function NurseManagement() {
                   </Button>
                   <Button
                     variant={
-                      selectedNurse.is_active ? "destructive" : "default"
+                      selectedNurse?.is_active ? "destructive" : "default"
                     }
                     onClick={() => handleToggleStatus(selectedNurse)}
                     className={
-                      selectedNurse.is_active
+                      selectedNurse?.is_active
                         ? "bg-red-500 text-white hover:bg-red-700 hover:text-white"
                         : "bg-green-500 text-white hover:bg-green-700 hover:text-white"
                     }
                   >
-                    {selectedNurse.is_active ? "Deactivate" : "Activate"}
+                    {selectedNurse?.is_active ? "Deactivate" : "Activate"}
                   </Button>
                 </DialogFooter>
               </>
@@ -423,11 +599,20 @@ export default function NurseManagement() {
               <FormModal
                 role="nurse"
                 onSubmit1={handleAddNurse}
+                onSubmit2={handleUpdateNurse}
                 editPractitionerId={editNurseId}
                 open={open}
+                defaultValues={
+                  editNurseData
+                    ? transformNurseDataForForm(editNurseData)
+                    : undefined
+                }
                 onOpenChange={(val) => {
                   setOpen(val);
-                  if (!val) setEditNurseId(null);
+                  if (!val) {
+                    setEditNurseId(null);
+                    dispatch(clearEditNurseData());
+                  }
                 }}
               />
             )}
@@ -441,6 +626,19 @@ export default function NurseManagement() {
         filterColumn="name"
         externalFilterValue={filterValue}
       />
+
+      <Dialog
+        open={open}
+        onOpenChange={(val) => {
+          setOpen(val);
+          if (!val) {
+            setEditNurseId(null);
+            setFormDefaults({});
+          }
+        }}
+      >
+        {/* Additional dialog placeholder for consistency with DoctorManagement */}
+      </Dialog>
 
       <div className="flex justify-start">
         <Button
