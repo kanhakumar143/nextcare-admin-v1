@@ -54,7 +54,10 @@ export const getServices = async () => {
   }
 };
 
-export const addService = async (payload: {tenant_id: string, name: string}) => {
+export const addService = async (payload: {
+  tenant_id: string;
+  name: string;
+}) => {
   try {
     const response = await api.post(`tenant-service/`, payload);
     return response.data;
@@ -82,9 +85,7 @@ export const addService = async (payload: {tenant_id: string, name: string}) => 
 //   }
 // };
 
-export const updateService = async (
-  payload: AddServicePayload
-) => {
+export const updateService = async (payload: AddServicePayload) => {
   try {
     const response = await api.put(
       `tenant-service/?service_id=${payload.service_id}`,
@@ -99,7 +100,6 @@ export const updateService = async (
     throw new Error("Unexpected error occurred.");
   }
 };
-
 
 export const addPractitioner = async (payload: AddDoctorPayload) => {
   try {
@@ -129,7 +129,9 @@ export const getPractitionerByRole = async (role: "doctor" | "nurse") => {
 };
 
 // Update Practitioner
-export const updatePractitioner = async (payload: UpdateDoctorPayload | UpdateNursePayload) => {
+export const updatePractitioner = async (
+  payload: UpdateDoctorPayload | UpdateNursePayload
+) => {
   try {
     const response = await api.put(`practitioner/`, payload);
     return response.data;
@@ -141,10 +143,10 @@ export const updatePractitioner = async (payload: UpdateDoctorPayload | UpdateNu
   }
 };
 
-
-
 // Fetch All Appointment of perticular practitioner
-export const getAllAppointmentsByPractitioner = async (practitionerId: string) => {
+export const getAllAppointmentsByPractitioner = async (
+  practitionerId: string
+) => {
   try {
     const { data } = await api.get(
       `practitioner/appointments?practitioner_id=${practitionerId}`
@@ -158,7 +160,6 @@ export const getAllAppointmentsByPractitioner = async (practitionerId: string) =
   }
 };
 
-
 // Send Notification to the patient
 
 export const sendPatientNotifications = async (
@@ -169,10 +170,9 @@ export const sendPatientNotifications = async (
   }[]
 ) => {
   try {
-    const response = await api.post(
-      "fcm/send-patient-notifications",
-      { notifications }
-    );
+    const response = await api.post("fcm/send-patient-notifications", {
+      notifications,
+    });
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

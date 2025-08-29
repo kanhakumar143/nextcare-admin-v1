@@ -123,6 +123,7 @@ interface PractitionerFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit1: (formData: any) => Promise<void>;
+  onSubmit2: (formData: any) => Promise<void>;
   editPractitionerId?: string | null;
   defaultValues?: Partial<PractitionerFormData>;
   onSuccess?: () => void;
@@ -158,6 +159,7 @@ export default function PractitionerFormModal({
   editPractitionerId = null,
   onSuccess,
   onSubmit1,
+  onSubmit2,
   defaultValues,
   role,
 }: PractitionerFormModalProps) {
@@ -290,8 +292,11 @@ export default function PractitionerFormModal({
       };
 
       console.log(payload);
-      // await onSubmit1(payload);
-
+      if (defaultValues) {
+        await onSubmit2(payload);
+      } else {
+        await onSubmit1(payload);
+      }
       onOpenChange(false);
       form.reset();
       onSuccess?.();
@@ -302,10 +307,22 @@ export default function PractitionerFormModal({
     }
   };
   useEffect(() => {
+    console.log("Default Values:", defaultValues);
     if (defaultValues) {
-      form.reset(defaultValues);
+      form.reset({
+        tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+        is_active: true,
+        available_times: [{ start: "09:00", end: "17:00" }],
+        role_code_system:
+          "http://terminology.hl7.org/CodeSystem/practitioner-role",
+        availability_days: ["mon", "tue", "wed", "thu", "fri"],
+        ...roleDefaults[role],
+        ...defaultValues,
+      });
+
+      console.log("Form Values After Reset:", form.getValues());
     }
-  }, [defaultValues]);
+  }, [defaultValues, form, role]);
 
   const handleClose = (open: boolean) => {
     onOpenChange(open);
