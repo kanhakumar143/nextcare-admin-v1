@@ -103,12 +103,12 @@ export const superAdminRoutes: Route[] = [
     icon: LayoutDashboard,
   },
   {
-    href: "/dashboard/admin/nurse-management",
+    href: "/dashboard/super-admin/verify-nurse",
     name: "Nurse Management",
     icon: Ribbon,
   },
   {
-    href: "/dashboard/admin/doctor-management",
+    href: "/dashboard/super-admin/verify-doctor",
     name: "Doctor Management",
     icon: Stethoscope,
   },

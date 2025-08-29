@@ -55,6 +55,7 @@ import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageRepo
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ConsultationRecorder from "./ConsultationRecorder";
 import PreConsultationAnswers from "./PreConsultationAnswers";
+import EhrModal from "./modals/ehrModal";
 
 export default function PatientConsultation() {
   const dispatch = useDispatch();
@@ -69,11 +70,15 @@ export default function PatientConsultation() {
   const [apptDtls, setApptDtls] = useState<AppointmentDtlsForDoctor | null>(
     null
   );
-  const [isPatientDetailsDrawerOpen, setIsPatientDetailsDrawerOpen] =
-    useState(false);
+  // const [isPatientDetailsDrawerOpen, setIsPatientDetailsDrawerOpen] =
+  //   useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const router = useRouter();
+
+  //
+    const [ehrModalOpen, setEhrModalOpen] = useState(false);
+  // const { singlePatientDetails } = useSelector((state: RootState) => state.doctor);
 
   // Helper function to get vital icon based on code
   const getVitalIcon = (code: string) => {
@@ -99,6 +104,7 @@ export default function PatientConsultation() {
   };
 
   useEffect(() => {
+    console.log("singlePatientDetails", singlePatientDetails);
     if (consultationMode === "new") {
       dispatch(clearConsultationOrders());
     }
@@ -167,6 +173,11 @@ export default function PatientConsultation() {
       dispatch(setCurrentVitals(apptDtls?.observations));
     }
     dispatch(setEditVitalsModal(true));
+  };
+
+  // Handle Health Record
+   const handlePatientHealthRecord = () => {
+    setEhrModalOpen(true);
   };
 
   // Handle image view for lab reports
@@ -257,10 +268,14 @@ export default function PatientConsultation() {
             )}
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => setIsPatientDetailsDrawerOpen(true)}>
+            {/* <Button onClick={() => setIsPatientDetailsDrawerOpen(true)}>
               <Info className="h-4 w-4" />
               View Patient Details
-            </Button>
+            </Button> */}
+            
+           <Button onClick={handlePatientHealthRecord}>
+          Patient Health Records
+        </Button>
             <ConsultationRecorder
               appointmentId={apptDtls?.appointment_display_id}
             />
@@ -549,11 +564,11 @@ export default function PatientConsultation() {
         </Button>
       </div>
 
-      <PatientDetailsDrawer
+      {/* <PatientDetailsDrawer
         isOpen={isPatientDetailsDrawerOpen}
         onClose={() => setIsPatientDetailsDrawerOpen(false)}
         appointmentDetails={apptDtls}
-      />
+      /> */}
 
       <ConfirmConsultationModal />
       <EditVitalsModal />
@@ -564,6 +579,11 @@ export default function PatientConsultation() {
         onClose={() => setImageModalOpen(false)}
         fileUrl={selectedImage}
         title="Lab Test Report"
+      />
+      <EhrModal
+        isOpen={ehrModalOpen}
+        onClose={() => setEhrModalOpen(false)}
+        patientId={singlePatientDetails?.patient?.id}
       />
     </>
   );

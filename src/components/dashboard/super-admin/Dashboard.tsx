@@ -21,7 +21,7 @@ export default function Dashboard() {
           }
           header="Verify Doctor"
           subText="Doctor verification process"
-          link="/dashboard/admin/doctor-management"
+          link="/dashboard/super-admin/verify-doctor"
         />
         {/* Nurse Verification Card */}
         <DashboardCards
@@ -36,7 +36,7 @@ export default function Dashboard() {
           }
           header="Verify Nurse"
           subText="Nurse verification process"
-          link="/dashboard/admin/nurse-management"
+          link="/dashboard/super-admin/verify-nurse"
         />
       </div>
     </div>
