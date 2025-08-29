@@ -6,21 +6,13 @@ export enum PractitionerStatus {
   RESUBMIT_REQUIRED = "resubmit_required",
 }
 
-// export interface ExtendedDoctorData extends DoctorData {
-//   name: string;
-//   id: string;
-//   user_id: string;
-//   status: PractitionerStatus;
-//   license_details: {
-//     number: string;
-//     issued_by: string;
-//     expiry: string;
-//   };
-// }
+export interface ExtendedDoctorData extends DoctorData {
+  name: any;
+}
 
 export interface AdminSliceInitialStates {
   isLocationAddModal: boolean;
-  editDoctorData: any;
+  editDoctorData: any | null;
   editNurseData: ExtendedNurseData | null;
 }
 
@@ -189,9 +181,10 @@ export interface DoctorData {
     expiry: string;
   };
   qualification: {
-    degree?: string;
-    institution?: string;
-    year?: string;
+    graduation_year?: string | null | undefined;
+    degree?: string | null | undefined;
+    institution?: string | null | undefined;
+    year?: string | null | undefined;
   }[];
   availability_status: {
     practitioner_id: string;

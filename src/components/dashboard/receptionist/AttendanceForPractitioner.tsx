@@ -116,7 +116,7 @@ const AttendanceForPractitioner = () => {
               {/* Profile Picture */}
               <Avatar className="h-24 w-24 border-4 border-gray-300 shadow-lg">
                 <AvatarImage
-                  src={practitionerData.profile_picture_url}
+                  src={practitionerData.profile_picture_url || ""}
                   alt={user.name}
                   className="object-cover"
                 />

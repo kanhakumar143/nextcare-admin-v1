@@ -27,8 +27,8 @@ import {
   DoctorData,
   UpdateDoctorPayload,
   AddDoctorPayload,
-  ExtendedDoctorData,
   PractitionerStatus,
+  ExtendedDoctorData,
 } from "@/types/admin.types";
 import {
   addPractitioner,
@@ -69,10 +69,10 @@ export default function DoctorManagement() {
     console.log(doctor);
 
     // Handle qualification array - use first element (index 0)
-    const firstQualification =
-      Array.isArray(doctor.qualification) && doctor.qualification.length > 0
-        ? doctor.qualification[0]
-        : doctor.qualification || {};
+    const firstQualification = doctor.qualification[0];
+    // Array.isArray(doctor.qualification) && doctor.qualification.length > 0
+    //   ? doctor.qualification[0]
+    //   : doctor.qualification || {};
 
     return {
       tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
@@ -88,10 +88,10 @@ export default function DoctorManagement() {
       profile_picture_url: doctor.profile_picture_url || "",
       license_url: doctor.license_url || "",
       is_active: doctor.is_active || true,
-      degree: firstQualification.degree || "",
-      institution: firstQualification.institution || "",
+      degree: firstQualification?.degree || "",
+      institution: firstQualification?.institution || "",
       graduation_year:
-        firstQualification.graduation_year || firstQualification.year || "",
+        firstQualification?.graduation_year || firstQualification?.year || "",
       specialty: "General Practice",
       availability_days: ["mon", "tue", "wed", "thu", "fri"],
       available_times: [{ start: "09:00", end: "17:00" }],
@@ -114,6 +114,7 @@ export default function DoctorManagement() {
       nameParts.length > 1 ? nameParts.slice(0, -1) : [fullName];
     const familyName =
       nameParts.length > 1 ? nameParts[nameParts.length - 1] : "";
+    const firstQualification = doctor.qualification[0]; // handle all list
 
     return {
       id: doctor.id,
@@ -154,9 +155,9 @@ export default function DoctorManagement() {
       birth_date: doctor.birth_date ?? "",
       qualification: [
         {
-          degree: doctor.qualification?.degree || "",
-          institution: doctor.qualification?.institution || "",
-          graduation_year: doctor.qualification?.graduation_year || "",
+          degree: firstQualification?.degree || "",
+          institution: firstQualification?.institution || "",
+          graduation_year: firstQualification?.graduation_year || "",
         },
       ],
       is_active: doctor.is_active,
