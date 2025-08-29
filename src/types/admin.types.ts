@@ -1,5 +1,39 @@
+export enum PractitionerStatus {
+  UNVERIFIED = "unverified",
+  UNDER_REVIEW = "under_review",
+  VERIFIED = "verified",
+  REJECTED = "rejected",
+  RESUBMIT_REQUIRED = "resubmit_required",
+}
+
+// export interface ExtendedDoctorData extends DoctorData {
+//   name: string;
+//   id: string;
+//   user_id: string;
+//   status: PractitionerStatus;
+//   license_details: {
+//     number: string;
+//     issued_by: string;
+//     expiry: string;
+//   };
+// }
+
 export interface AdminSliceInitialStates {
   isLocationAddModal: boolean;
+  editDoctorData: any;
+  editNurseData: ExtendedNurseData | null;
+}
+
+export interface ExtendedNurseData extends NurseData {
+  name: string;
+  id: string;
+  user_id: string;
+  status: PractitionerStatus;
+  license_details: {
+    number: string;
+    issued_by: string;
+    expiry: string;
+  };
 }
 
 export type Location = {
@@ -113,16 +147,16 @@ export interface DoctorData {
   user_id: string;
   practitioner_display_id: string;
   is_active: boolean;
-  gender: string;
-  birth_date: string;
-  license_url: string;
-  profile_picture_url: string;
   e_sign_path: string | null;
-  status: string;
   identifiers: {
     system: string;
     value: string;
   }[];
+  status: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  license_url: string | null;
+  profile_picture_url: string | null;
   user: {
     id: string;
     is_active: boolean;
@@ -194,41 +228,67 @@ export interface DoctorData {
   }[];
 }
 
-export type ExtendedDoctorData = DoctorData & {
-  name: string;
-  id: string;
-  user_id: string;
-  // license_details: {
-  //   number?: string;
-  //   issued_by?: string;
-  //   expiry?: string;
-  // };
-  // qualification: {
-  //   degree?: string;
-  //   institution?: string;
-  //   year?: string;
-  // }[];
-  // availability_status: {
-  //   availability_status: string;
-  // };
-};
+// export type ExtendedDoctorData = DoctorData & {
+//   name: string;
+//   id: string;
+//   user_id: string;
+//   // license_details: {
+//   //   number?: string;
+//   //   issued_by?: string;
+//   //   expiry?: string;
+//   // };
+//   // qualification: {
+//   //   degree?: string;
+//   //   institution?: string;
+//   //   year?: string;
+//   // }[];
+//   // availability_status: {
+//   //   availability_status: string;
+//   // };
+// };
 
 export type UpdateDoctorPayload = {
   id: string;
+  user_role?: string | null | undefined;
   user_id: string;
-  user_role?: "doctor" | "nurse";
   practitioner_display_id: string;
+  identifiers: {
+    system: string;
+    value: string;
+  }[];
+  name: {
+    use?: string | null;
+    text?: string | null;
+    family: string;
+    given: string[];
+    prefix?: string[];
+    suffix?: string | null;
+    period?: string | null;
+  };
+  telecom: {
+    system: string;
+    value: string;
+    use: string;
+    rank?: number | null;
+    period?: string | null;
+  }[];
   gender: string;
   birth_date: string;
+  qualification: {
+    degree?: string;
+    institution?: string;
+    graduation_year?: string;
+  }[];
   is_active: boolean;
-  license_details: { number: string; issued_by: string; expiry: string } | null;
+  license_details: {
+    number: string;
+    issued_by: string;
+    expiry: string;
+  };
   profile_picture_url: string;
   license_url: string;
-  qualification?: {
-    degree: string;
-    institution: string;
-    graduation_year: string;
-  }[];
+  e_sign_path?: string | null;
+  status: string;
 };
 
 // ================= NURSE PAYLOAD =================
@@ -277,6 +337,7 @@ export type AddNursePayload = {
 export interface NurseData {
   practitioner_display_id: string | null;
   is_active: boolean;
+  status: string | null;
   gender: string | null;
   birth_date: string | null;
   license_url: string | null;
@@ -293,17 +354,53 @@ export interface NurseData {
     number?: string | null;
     expiry?: string | null;
   };
+  qualification?: {
+    degree: string | null;
+    institution: string | null;
+    graduation_year: string | null;
+    year?: string | null;
+  }[];
 }
 
 export type UpdateNursePayload = {
   id: string;
   user_id: string;
-  user_role?: "nurse";
   practitioner_display_id: string;
+  identifiers: {
+    system: string;
+    value: string;
+  }[];
+  name: {
+    use?: string | null;
+    text?: string | null;
+    family: string;
+    given: string[];
+    prefix?: string[];
+    suffix?: string | null;
+    period?: string | null;
+  };
+  telecom: {
+    system: string;
+    value: string;
+    use: string;
+    rank?: number | null;
+    period?: string | null;
+  }[];
   gender: string;
   birth_date: string;
+  qualification: {
+    degree?: string;
+    institution?: string;
+    graduation_year?: string;
+  }[];
   is_active: boolean;
-  license_details: { number: string; issued_by: string; expiry: string } | null;
+  license_details: {
+    number: string;
+    issued_by: string;
+    expiry: string;
+  };
   profile_picture_url: string;
   license_url: string;
+  e_sign_path?: string | null;
+  status: string;
 };

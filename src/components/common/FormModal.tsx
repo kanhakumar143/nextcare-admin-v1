@@ -57,9 +57,12 @@ const practitionerFormSchema = z.object({
   telecom_phone: z.string().min(10).optional(),
   telecom_email: z.string().email().optional(),
   gender: z.enum(["male", "female", "other", "unknown"]).optional(),
-  birth_date: z.string().optional().refine((val) => !val || val <= today, {
-    message: "Birth date cannot be in the future",
-  }),
+  birth_date: z
+    .string()
+    .optional()
+    .refine((val) => !val || val <= today, {
+      message: "Birth date cannot be in the future",
+    }),
 
   // Qualification
   degree: z.string().min(1, "Degree is required"),
@@ -74,9 +77,12 @@ const practitionerFormSchema = z.object({
   // License
   license_number: z.string().min(1),
   license_issued_by: z.string().min(1),
-  license_expiry: z.string().min(1).refine((val) => val >= today, {
-    message: "License expiry cannot be in the past",
-  }),
+  license_expiry: z
+    .string()
+    .min(1)
+    .refine((val) => val >= today, {
+      message: "License expiry cannot be in the past",
+    }),
   profile_picture_url: z.string().url(),
   license_url: z.string().url(),
   is_active: z.boolean(),
@@ -117,6 +123,7 @@ interface PractitionerFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit1: (formData: any) => Promise<void>;
+  onSubmit2: (formData: any) => Promise<void>;
   editPractitionerId?: string | null;
   defaultValues?: Partial<PractitionerFormData>;
   onSuccess?: () => void;
@@ -152,117 +159,144 @@ export default function PractitionerFormModal({
   editPractitionerId = null,
   onSuccess,
   onSubmit1,
+  onSubmit2,
   defaultValues,
   role,
 }: PractitionerFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-const form = useForm<PractitionerFormData>({
-  resolver: zodResolver(practitionerFormSchema),
-  defaultValues: {
-    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
-    is_active: true,
-    available_times: [{ start: "09:00", end: "17:00" }],
-    role_code_system: "http://terminology.hl7.org/CodeSystem/practitioner-role",
-    availability_days: ["mon", "tue", "wed", "thu", "fri"],
-    ...roleDefaults[role],
-    ...defaultValues, // ✅ merge parent defaultValues here
-  },
-});
+  const form = useForm<PractitionerFormData>({
+    resolver: zodResolver(practitionerFormSchema),
+    defaultValues: {
+      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      is_active: true,
+      available_times: [{ start: "09:00", end: "17:00" }],
+      role_code_system:
+        "http://terminology.hl7.org/CodeSystem/practitioner-role",
+      availability_days: ["mon", "tue", "wed", "thu", "fri"],
+      ...roleDefaults[role],
+      ...defaultValues, // ✅ merge parent defaultValues here
+    },
+  });
 
-
-  const { fields: timeFields, append: appendTime, remove: removeTime } =
-    useFieldArray({
-      control: form.control,
-      name: "available_times",
-    });
+  const {
+    fields: timeFields,
+    append: appendTime,
+    remove: removeTime,
+  } = useFieldArray({
+    control: form.control,
+    name: "available_times",
+  });
 
   const onSubmit = async (data: PractitionerFormData) => {
     setIsSubmitting(true);
     try {
       const payload = {
-  user: {
-    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
-    name: data.name ?? "",
-    email: data.email ?? "",
-    phone: data.phone ?? "",
-    hashed_password: "default1234",
-    user_role: role === "nurse" ? "nurse" : "doctor",
+        user: {
+          tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+          name: data.name ?? "",
+          email: data.email ?? "",
+          phone: data.phone ?? "",
+          hashed_password: "default1234",
+          user_role: role === "nurse" ? "nurse" : "doctor",
+        },
+        practitioner: {
+          identifiers:
+            data.identifier_system && data.identifier_value
+              ? [
+                  {
+                    system: data.identifier_system,
+                    value: data.identifier_value,
+                  },
+                ]
+              : [],
 
-  },
-  practitioner: {
-    identifiers: data.identifier_system && data.identifier_value
-  ? [{ system: data.identifier_system, value: data.identifier_value }]
-  : [],
-
-    name: {
-      prefix: data.prefix ? [data.prefix] : [],
-      given: [data.given_name ?? ""],
-      family: data.family_name ?? "",
-    },
-    telecom: [
-      { system: "phone", value: data.telecom_phone ?? "", use: "mobile" },
-      { system: "email", value: data.telecom_email ?? "", use: "work" },
-    ],
-    gender: data.gender ?? "unknown",
-    birth_date: data.birth_date ?? "",
-    qualification: [
-      {
-        degree: data.degree ?? null,
-        institution: data.institution ?? null,
-        year: data.graduation_year ?? null,
-      },
-    ],
-    license_details: {
-      number: data.license_number ?? null,
-      issued_by: data.license_issued_by ?? null,
-      expiry: data.license_expiry ?? null,
-    },
-    profile_picture_url: data.profile_picture_url ?? null,
-    license_url: data.license_url ?? null,
-    is_active: data.is_active ?? true,
-  },
-  role: {
-    tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
-    code: [
-      {
-        coding: [
-          {
-            system: data.role_code_system ?? "",
-            code: data.role_code ?? "",
-            display: data.role_display ?? "",
+          name: {
+            prefix: data.prefix ? [data.prefix] : [],
+            given: [data.given_name ?? ""],
+            family: data.family_name ?? "",
           },
-        ],
-        text: data.role_text ?? "",
-      },
-    ],
-    specialty: [{ text: data.specialty ?? "" }],
-    location: [{ reference: data.location_reference ?? "", display: data.location_display ?? "" }],
-    healthcare_service: [
-      { reference: data.healthcare_service_reference ?? "", display: data.healthcare_service_display ?? "" },
-    ],
-    period: { start: data.period_start ?? "", end: data.period_end ?? "" },
-    availability: data.availability_days
-      ? [{ daysOfWeek: data.availability_days,
-         availableTime: data.available_times ?? [] }]
-      : [],
-    not_available: data.not_available_description
-      ? [
-          {
-            description: data.not_available_description,
-            during: {
-              start: data.not_available_start ?? "",
-              end: data.not_available_end ?? "",
+          telecom: [
+            { system: "phone", value: data.telecom_phone ?? "", use: "mobile" },
+            { system: "email", value: data.telecom_email ?? "", use: "work" },
+          ],
+          gender: data.gender ?? "unknown",
+          birth_date: data.birth_date ?? "",
+          qualification: [
+            {
+              degree: data.degree ?? null,
+              institution: data.institution ?? null,
+              year: data.graduation_year ?? null,
             },
+          ],
+          license_details: {
+            number: data.license_number ?? null,
+            issued_by: data.license_issued_by ?? null,
+            expiry: data.license_expiry ?? null,
           },
-        ]
-      : [],
-  },
-};
+          profile_picture_url: data.profile_picture_url ?? null,
+          license_url: data.license_url ?? null,
+          is_active: data.is_active ?? true,
+        },
+        role: {
+          tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+          code: [
+            {
+              coding: [
+                {
+                  system: data.role_code_system ?? "",
+                  code: data.role_code ?? "",
+                  display: data.role_display ?? "",
+                },
+              ],
+              text: data.role_text ?? "",
+            },
+          ],
+          specialty: [{ text: data.specialty ?? "" }],
+          location: [
+            {
+              reference: data.location_reference ?? "",
+              display: data.location_display ?? "",
+            },
+          ],
+          healthcare_service: [
+            {
+              reference: data.healthcare_service_reference ?? "",
+              display: data.healthcare_service_display ?? "",
+            },
+          ],
+          period: {
+            start: data.period_start ?? "",
+            end: data.period_end ?? "",
+          },
+          availability: data.availability_days
+            ? [
+                {
+                  daysOfWeek: data.availability_days,
+                  availableTime: data.available_times ?? [],
+                },
+              ]
+            : [],
+          not_available: data.not_available_description
+            ? [
+                {
+                  description: data.not_available_description,
+                  during: {
+                    start: data.not_available_start ?? "",
+                    end: data.not_available_end ?? "",
+                  },
+                },
+              ]
+            : [],
+        },
+      };
 
       console.log(payload);
-      await onSubmit1(payload);
-      
+      if (defaultValues) {
+        await onSubmit2(payload);
+      } else {
+        await onSubmit1(payload);
+      }
       onOpenChange(false);
       form.reset();
       onSuccess?.();
@@ -273,11 +307,22 @@ const form = useForm<PractitionerFormData>({
     }
   };
   useEffect(() => {
-  if (defaultValues) {
-    form.reset(defaultValues);
-  }
-}, [defaultValues]);
+    console.log("Default Values:", defaultValues);
+    if (defaultValues) {
+      form.reset({
+        tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+        is_active: true,
+        available_times: [{ start: "09:00", end: "17:00" }],
+        role_code_system:
+          "http://terminology.hl7.org/CodeSystem/practitioner-role",
+        availability_days: ["mon", "tue", "wed", "thu", "fri"],
+        ...roleDefaults[role],
+        ...defaultValues,
+      });
 
+      console.log("Form Values After Reset:", form.getValues());
+    }
+  }, [defaultValues, form, role]);
 
   const handleClose = (open: boolean) => {
     onOpenChange(open);
@@ -968,7 +1013,11 @@ const form = useForm<PractitionerFormData>({
             </div>
 
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={isSubmitting}>

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector, TypedUseSelectorHook } from "react-redux";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { fetchUpcomingAppointmentsByPractitioner } from "@/store/slices/allAppointmentSlice";
 import { DataTable } from "@/components/common/DataTable";
 import { ColumnDef } from "@tanstack/react-table";
@@ -12,11 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BellPlus } from "lucide-react";
-import { useRouter } from "next/navigation";
-import SendNotification from "@/components/dashboard/admin/notify-patient/modals/SendNotification"; // import your reusable component
+import SendNotification from "@/components/dashboard/admin/notify-patient/modals/SendNotification";
+import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Appointment {
   appointment_display_id: string;
+  patient_id: string;
   patient_name: string;
   patient_phone: string;
   created_at: string;
@@ -39,6 +41,8 @@ const statusColors: Record<string, string> = {
 
 export default function AllAppointments() {
   const [filterValue, setFilterValue] = useState("");
+  const [selectedPatients, setSelectedPatients] = useState<string[]>([]);
+
   const dispatch = useDispatch<AppDispatch>();
   const searchParams = useSearchParams();
   const practitionerId = searchParams.get("practitioner_id");
@@ -54,8 +58,29 @@ export default function AllAppointments() {
     }
   }, [practitionerId, dispatch]);
 
-  const columns = useMemo<ColumnDef<Appointment>[]>(
-    () => [
+  const toggleSelect = (patientId: string) => {
+    setSelectedPatients((prev) =>
+      prev.includes(patientId)
+        ? prev.filter((id) => id !== patientId)
+        : [...prev, patientId]
+    );
+  };
+
+  const columns = useMemo<ColumnDef<Appointment>[]>(() => {
+    return [
+      {
+        id: "select",
+        header: () => <span>Select</span>,
+        cell: ({ row }) => {
+          const appt = row.original;
+          return (
+            <Checkbox
+              checked={selectedPatients.includes(appt.patient_id)}
+              onCheckedChange={() => toggleSelect(appt.patient_id)}
+            />
+          );
+        },
+      },
       { header: "Appointment ID", accessorKey: "appointment_display_id" },
       { header: "Patient Name", accessorKey: "patient_name" },
       { header: "Patient Phone", accessorKey: "patient_phone" },
@@ -74,7 +99,6 @@ export default function AllAppointments() {
         cell: ({ getValue }) => {
           const status = getValue<string>();
           const classes = statusColors[status] || "bg-gray-200 text-gray-800";
-
           return (
             <Badge className={`${classes} w-20 text-center`}>
               {status.replaceAll("_", " ")}
@@ -82,15 +106,14 @@ export default function AllAppointments() {
           );
         },
       },
-    ],
-    []
-  );
+    ];
+  }, [selectedPatients]);
 
   const router = useRouter();
 
   return (
     <div className="p-2 space-y-4">
-      {/* Filter and Send Notification */}
+      {/* Filter + Global Send Notification */}
       <div className="flex items-center justify-between">
         <Input
           placeholder="Filter by Appointment ID..."
@@ -99,14 +122,13 @@ export default function AllAppointments() {
           className="max-w-sm"
         />
 
-        {/* Use your reusable SendNotification component */}
         <SendNotification
           icon={<BellPlus className="w-6 h-6 cursor-pointer" />}
           triggerText="Send Notification"
-          onSend={(data) => {
-            console.log("Notification sent:", data);
-            // TODO: dispatch Redux action or API call here
-          }}
+          patientIds={selectedPatients}
+          onSend={() =>
+            toast.success(`Sent to ${selectedPatients.length} patients.`)
+          }
         />
       </div>
 
