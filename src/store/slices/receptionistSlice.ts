@@ -5,8 +5,10 @@ import {
 } from "@/types/receptionist.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
+import { getPractitionerByRole } from "@/services/admin.api";
 import { toast } from "sonner";
 import { Medication } from "@/types/doctor.types";
+import { ExtendedDoctorData, DoctorData } from "@/types/admin.types";
 
 // Async thunk to fetch QR details
 export const fetchQrDetailsAsync = createAsyncThunk(
@@ -24,11 +26,27 @@ export const fetchQrDetailsAsync = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch practitioners by role
+export const fetchPractitionersByRoleAsync = createAsyncThunk(
+  "receptionist/fetchPractitionersByRole",
+  async (role: "doctor" | "nurse", { rejectWithValue }) => {
+    try {
+      const response = await getPractitionerByRole(role);
+      return response?.data || response || [];
+    } catch (error: any) {
+      return rejectWithValue(error.message || "Failed to fetch practitioners");
+    }
+  }
+);
+
 const initialState: staffSliceInitialState = {
   patientDetails: null,
   appoinmentDetails: null,
   medicationDetailsForReminder: null,
   practitionerAttendanceData: null,
+  practitionersList: [],
+  practitionersLoading: false,
+  practitionersError: null,
   patientVerifiedModalVisible: false,
   imageModalVisible: false,
   checkinSuccessModalVisible: false,
@@ -52,9 +70,12 @@ const receptionistSlice = createSlice({
     },
     setPractitionerAttendanceData: (
       state,
-      action: PayloadAction<PractitionerAttendanceData | null>
+      action: PayloadAction<ExtendedDoctorData | null>
     ) => {
       state.practitionerAttendanceData = action.payload;
+    },
+    setPractitionersList: (state, action: PayloadAction<DoctorData[]>) => {
+      state.practitionersList = action.payload;
     },
     setQrToken: (state, action: PayloadAction<string | null>) => {
       state.storedAccessToken = action.payload;
@@ -74,6 +95,7 @@ const receptionistSlice = createSlice({
     clearError: (state) => {
       state.error = null;
       state.scanQrMessage = null;
+      state.practitionersError = null;
     },
     setMedicationDetailsForReminder: (
       state,
@@ -83,6 +105,9 @@ const receptionistSlice = createSlice({
     },
     clearPractitionerAttendanceData: (state) => {
       state.practitionerAttendanceData = null;
+    },
+    clearPractitionersList: (state) => {
+      state.practitionersList = [];
     },
   },
   extraReducers: (builder) => {
@@ -112,6 +137,22 @@ const receptionistSlice = createSlice({
         state.patientDetails = null;
         state.appoinmentDetails = null;
         toast.error("Couldn’t fetch details!");
+      })
+      // Practitioners by role async thunk cases
+      .addCase(fetchPractitionersByRoleAsync.pending, (state) => {
+        state.practitionersLoading = true;
+        state.practitionersError = null;
+      })
+      .addCase(fetchPractitionersByRoleAsync.fulfilled, (state, action) => {
+        state.practitionersLoading = false;
+        state.practitionersList = action.payload;
+        state.practitionersError = null;
+      })
+      .addCase(fetchPractitionersByRoleAsync.rejected, (state, action) => {
+        state.practitionersLoading = false;
+        state.practitionersError = action.payload as string;
+        state.practitionersList = [];
+        toast.error("Failed to fetch practitioners!");
       });
   },
 });

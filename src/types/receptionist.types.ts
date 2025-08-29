@@ -1,3 +1,5 @@
+import { ExtendedDoctorData, DoctorData } from "./admin.types";
+
 // Lab test order interface
 export interface LabTestOrder {
   id: string;
@@ -26,6 +28,12 @@ export interface PractitionerIdentifier {
   system: string;
   value: string;
 }
+export type AttendanceStatus =
+  | "PRESENT"
+  | "ON_LEAVE"
+  | "HALF_DAY"
+  | "ABSENT"
+  | "ON_BREAK";
 
 // Practitioner name interface
 export interface PractitionerName {
@@ -207,7 +215,10 @@ export interface staffSliceInitialState {
   patientDetails: qrDecodedDetails | null;
   medicationDetailsForReminder: any | null;
   appoinmentDetails: any | null;
-  practitionerAttendanceData: PractitionerAttendanceData | null;
+  practitionerAttendanceData: ExtendedDoctorData | null;
+  practitionersList: DoctorData[];
+  practitionersLoading: boolean;
+  practitionersError: string | null;
   imageModalVisible: boolean;
   checkinSuccessModalVisible: boolean;
   patientVerifiedModalVisible: boolean;
@@ -217,6 +228,18 @@ export interface staffSliceInitialState {
   downloadReportsData: any | null;
   scanQrMessage?: string | null;
 }
+
+export type medicationReminderCreatePayload = {
+  patient_id: string;
+  medication_request_id: string;
+  medication_id: string;
+  reminder_time: string;
+  start_date: string;
+  end_date: string;
+  frequency_per_day: number | string;
+  created_by_id?: string;
+  creator_role: string;
+};
 
 // User profile response
 export interface UserPatientProfileResponse {
@@ -329,4 +352,22 @@ interface CarePlan {
   plan_type: string;
   goal: string;
   detail: string;
+}
+
+// Medication Reminder Interface
+export interface MedicationReminder {
+  patient_id: string;
+  medication_request_id: string;
+  medication_id: string;
+  reminder_time: string;
+  start_date: string;
+  end_date: string;
+  frequency_per_day: number;
+  id: string;
+  is_sent: boolean;
+  sent_at: string | null;
+  created_at: string;
+  updated_at: string | null;
+  created_by_id: string;
+  creator_role: string;
 }

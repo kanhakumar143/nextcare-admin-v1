@@ -1,5 +1,8 @@
 import { api, axios } from "@/lib/axios";
-import { UserPatientProfileResponse } from "@/types/receptionist.types";
+import {
+  medicationReminderCreatePayload,
+  UserPatientProfileResponse,
+} from "@/types/receptionist.types";
 const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 
 export const checkInPatient = async (payload: {
@@ -93,6 +96,100 @@ export const getAllPricingPlansByTenant = async () => {
     const response = await api.get(
       `subscription-plans/by-tenant/?tenant_id=${tenant_id}`
     );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const getAllMedicationReminders = async (payload: string) => {
+  try {
+    const response = await api.get(
+      `medication-reminders/patient/?patient_id=${payload}`
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const makeCheckinForDoctor = async (payload: {
+  practitioner_id: string;
+  status: string;
+}) => {
+  try {
+    const response = await api.post(`attendance/check-in`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const makeCheckoutForDoctor = async (payload: {
+  practitioner_id: string;
+}) => {
+  try {
+    const response = await api.post(`attendance/check-out`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const makeBreakForDoctor = async (payload: {
+  practitioner_id: string;
+  break_type: string; // EMERGENCY, PERSONAL, MEDICAL, LUNCH, OTHER
+  reason: string;
+}) => {
+  try {
+    const response = await api.post(`attendance/break/start`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const endBreakForDoctor = async (payload: {
+  practitioner_id: string;
+  notes: string;
+}) => {
+  try {
+    const response = await api.post(`attendance/break/end`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const reminderForMedication = async (
+  payload: medicationReminderCreatePayload
+) => {
+  try {
+    const response = await api.post(`medication-reminders/`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

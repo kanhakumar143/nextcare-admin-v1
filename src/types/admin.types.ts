@@ -109,30 +109,109 @@ export type AddDoctorPayload = {
 };
 
 export interface DoctorData {
-  practitioner_display_id: string | null;
+  id: string;
+  user_id: string;
+  practitioner_display_id: string;
   is_active: boolean;
-  gender: string | null;
-  birth_date: string | null;
-  license_url: string | null;
-  profile_picture_url: string | null;
+  gender: string;
+  birth_date: string;
+  license_url: string;
+  profile_picture_url: string;
+  e_sign_path: string | null;
+  status: string;
+  identifiers: {
+    system: string;
+    value: string;
+  }[];
   user: {
+    id: string;
     is_active: boolean;
     name: string;
-    email?: string;
-    phone?: string | null;
-    user_role?: "doctor";
+    email: string;
+    phone: string;
+    user_role: string;
+    created_at: string;
+    updated_at: string;
+    tenant: {
+      id: string;
+      active: boolean;
+      name: string;
+      alias: string[];
+      contact: {
+        name: string;
+        telecom: {
+          system: string;
+          value: string;
+          use: string | null;
+        }[];
+        address: any;
+        purpose: any;
+      }[];
+    };
   };
   license_details: {
-    issued_by?: string | null;
-    number?: string | null;
-    expiry?: string | null;
+    issued_by: string;
+    number: string;
+    expiry: string;
   };
   qualification: {
-    degree: string | null;
-    institution: string | null;
-    graduation_year: string | null;
+    degree?: string;
+    institution?: string;
+    year?: string;
+  }[];
+  availability_status: {
+    practitioner_id: string;
+    practitioner_name: string;
+    date: string;
+    availability_status: string;
+    attendance_details: {
+      attendance_id: string;
+      status: string;
+      check_in_time: string | null;
+      check_out_time: string | null;
+      total_hours: string | null;
+    } | null;
+    break_details: any;
+    check_in_time: string | null;
+    check_out_time: string | null;
+    total_hours: string | null;
   };
+  name: {
+    use: string | null;
+    text: string | null;
+    family: string;
+    given: string[];
+    prefix: string[];
+    suffix: string | null;
+    period: any;
+  };
+  telecom: {
+    system: string;
+    value: string;
+    use: string;
+    rank: number | null;
+    period: any;
+  }[];
 }
+
+export type ExtendedDoctorData = DoctorData & {
+  name: string;
+  id: string;
+  user_id: string;
+  // license_details: {
+  //   number?: string;
+  //   issued_by?: string;
+  //   expiry?: string;
+  // };
+  // qualification: {
+  //   degree?: string;
+  //   institution?: string;
+  //   year?: string;
+  // }[];
+  // availability_status: {
+  //   availability_status: string;
+  // };
+};
 
 export type UpdateDoctorPayload = {
   id: string;

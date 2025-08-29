@@ -312,7 +312,6 @@ const CaptureVitals = () => {
                         <div className="flex items-center space-x-2">
                           <Input
                             type="number"
-                            placeholder="Systolic (e.g., 120)"
                             value={bpValues[vital.code]?.systolic || ""}
                             onChange={(e) =>
                               handleBPChange(
@@ -328,7 +327,6 @@ const CaptureVitals = () => {
                           <span className="text-gray-500 font-medium">/</span>
                           <Input
                             type="number"
-                            placeholder="Diastolic (e.g., 80)"
                             value={bpValues[vital.code]?.diastolic || ""}
                             onChange={(e) =>
                               handleBPChange(
@@ -343,12 +341,7 @@ const CaptureVitals = () => {
                           />
                         </div>
                       ) : (
-                        <Input
-                          {...field}
-                          type="text"
-                          placeholder={`Enter ${vital.name} (${vital.normal_min}-${vital.normal_max*1.5})`}
-                          className="w-full"
-                        />
+                        <Input {...field} type="text" className="w-full" />
                       )}
                     </FormControl>
                     <FormMessage />
