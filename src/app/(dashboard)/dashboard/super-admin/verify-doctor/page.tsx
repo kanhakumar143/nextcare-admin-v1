@@ -1,8 +1,9 @@
-import VerifyDoctor from "@/components/dashboard/super-admin/verify-doctor/VerifyDoctor";
+// import VerifyDoctor from "@/components/dashboard/super-admin/verify-doctor/VerifyDoctor";
 export default function SuperAdminPage() {
   return (
     <>
-      <VerifyDoctor />
+      {/* <VerifyDoctor /> */}
+      <p>Verify doctor</p>
     </>
   );
 }

@@ -107,7 +107,7 @@ export default function DoctorManagement() {
   const createUpdatePayloadFromDoctor = (
     doctor: ExtendedDoctorData,
     overrides: Partial<UpdateDoctorPayload> = {}
-  ): UpdateDoctorPayload => {
+  ): any => {
     const fullName = doctor.name || doctor.user?.name || "";
     const nameParts = fullName.split(" ");
     const givenNames =

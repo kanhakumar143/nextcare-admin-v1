@@ -171,6 +171,7 @@ export interface DoctorData {
 
 export type UpdateDoctorPayload = {
   id: string;
+  user_role?: string | null | undefined;
   user_id: string;
   practitioner_display_id: string;
   identifiers: {
