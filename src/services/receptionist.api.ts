@@ -1,6 +1,7 @@
 import { api, axios } from "@/lib/axios";
 import {
   medicationReminderCreatePayload,
+  MedicationReminderUpdatePayload,
   UserPatientProfileResponse,
 } from "@/types/receptionist.types";
 const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
@@ -111,6 +112,21 @@ export const getAllMedicationReminders = async (payload: string) => {
     const response = await api.get(
       `medication-reminders/patient/?patient_id=${payload}`
     );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const editMedicationReminders = async (
+  payload: MedicationReminderUpdatePayload
+) => {
+  try {
+    const response = await api.put(`medication-reminders/`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

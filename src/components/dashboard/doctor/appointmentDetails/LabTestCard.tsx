@@ -13,7 +13,7 @@ type LabTestCardProps = {
 };
 
 const LabTestCard: React.FC<LabTestCardProps> = ({ labTests }) => {
-  if (!labTests || labTests.length === 0) return null;
+  if (!labTests || labTests?.length === 0) return null;
 
   const handleViewReport = async (test: LabTestOrder) => {
     if (test.status !== "completed" && test.status !== "verified") {
@@ -80,7 +80,7 @@ const LabTestCard: React.FC<LabTestCardProps> = ({ labTests }) => {
               </div>
             </div>
 
-            {test.notes.length > 0 && (
+            {test.notes?.length > 0 && (
               <div className="p-2 bg-yellow-50 rounded text-sm text-yellow-800">
                 <strong>Note:</strong>{" "}
                 {test.notes

@@ -2,6 +2,7 @@ import {
   qrDecodedDetails,
   staffSliceInitialState,
   PractitionerAttendanceData,
+  MedicationReminder,
 } from "@/types/receptionist.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
@@ -55,6 +56,7 @@ const initialState: staffSliceInitialState = {
   error: null,
   downloadReportsData: null,
   scanQrMessage: null,
+  editingMedicationReminder: null,
 };
 
 const receptionistSlice = createSlice({
@@ -108,6 +110,15 @@ const receptionistSlice = createSlice({
     },
     clearPractitionersList: (state) => {
       state.practitionersList = [];
+    },
+    setEditingMedicationReminder: (
+      state,
+      action: PayloadAction<MedicationReminder | null>
+    ) => {
+      state.editingMedicationReminder = action.payload;
+    },
+    clearEditingMedicationReminder: (state) => {
+      state.editingMedicationReminder = null;
     },
   },
   extraReducers: (builder) => {
@@ -168,6 +179,8 @@ export const {
   clearError,
   setDownloadReportsData,
   clearPractitionerAttendanceData,
+  setEditingMedicationReminder,
+  clearEditingMedicationReminder,
 } = receptionistSlice.actions;
 
 export default receptionistSlice.reducer;

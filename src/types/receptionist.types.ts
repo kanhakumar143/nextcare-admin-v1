@@ -227,6 +227,7 @@ export interface staffSliceInitialState {
   error?: string | null;
   downloadReportsData: any | null;
   scanQrMessage?: string | null;
+  editingMedicationReminder: MedicationReminder | null;
 }
 
 export type medicationReminderCreatePayload = {
@@ -356,6 +357,24 @@ interface CarePlan {
 
 // Medication Reminder Interface
 export interface MedicationReminder {
+  medication: {
+    medication_request_id: string;
+    name: string;
+    form: string;
+    route: string;
+    frequency: string;
+    strength: string;
+    duration: string;
+    timing: {
+      morning: boolean;
+      afternoon: boolean;
+      evening: boolean;
+      night: boolean;
+    };
+    dosage_instruction: string;
+    note: string | null;
+    id: string;
+  };
   patient_id: string;
   medication_request_id: string;
   medication_id: string;
@@ -370,4 +389,12 @@ export interface MedicationReminder {
   updated_at: string | null;
   created_by_id: string;
   creator_role: string;
+}
+
+export interface MedicationReminderUpdatePayload {
+  id: string;
+  reminder_time: string;
+  start_date: string;
+  end_date: string;
+  frequency_per_day: number;
 }

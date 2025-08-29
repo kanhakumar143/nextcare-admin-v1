@@ -174,7 +174,7 @@ export default function AppointmentHistoryDetails() {
                 handleOpenPrescription={handleOpenPrescription}
               />
             )}
-            {apptDtls.lab_test_orders.length > 0 && (
+            {apptDtls?.lab_test_orders?.length > 0 && (
               <LabTestCard labTests={apptDtls.lab_test_orders} />
             )}
             {apptDtls.questionary_answers.length > 0 && (

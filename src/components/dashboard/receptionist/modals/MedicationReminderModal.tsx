@@ -18,12 +18,18 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Clock } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import moment from "moment";
 import { Medication } from "@/types/doctor.types";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { toast } from "sonner";
-import { reminderForMedication } from "@/services/receptionist.api";
+import {
+  reminderForMedication,
+  editMedicationReminders,
+} from "@/services/receptionist.api";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/store";
+import { clearEditingMedicationReminder } from "@/store/slices/receptionistSlice";
 
 interface MedicationReminderModalProps {
   open: boolean;
@@ -39,38 +45,106 @@ export default function MedicationReminderModal({
   patientId,
 }: MedicationReminderModalProps) {
   const { role, userId } = useAuthInfo();
+  const dispatch = useDispatch();
+  const { editingMedicationReminder } = useSelector(
+    (state: RootState) => state.receptionistData
+  );
+
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const [frequencyPerDay, setFrequencyPerDay] = useState<string>("");
   const [reminderTime, setReminderTime] = useState<string>("");
 
-  const handleSaveReminder = async () => {
-    const payload = {
-      patient_id: patientId,
-      medication_request_id: medication?.medication_request_id || "",
-      medication_id: medication?.id || "",
-      reminder_time: reminderTime,
-      start_date: startDate,
-      end_date: endDate,
-      frequency_per_day: frequencyPerDay,
-      created_by_id: userId || "",
-      creator_role: role || "receptionist",
-    };
+  const isEditMode = !!editingMedicationReminder;
 
-    console.log("Medication Reminder Data:", payload);
-    try {
-      await reminderForMedication(payload);
-      toast.success("Medication reminder set successfully.");
-    } catch {
-      toast.error("Something went wrong while saving the reminder.");
+  // Pre-fill form data when editing
+  useEffect(() => {
+    if (isEditMode && editingMedicationReminder) {
+      setStartDate(editingMedicationReminder.start_date || "");
+      setEndDate(editingMedicationReminder.end_date || "");
+      setFrequencyPerDay(
+        editingMedicationReminder.frequency_per_day?.toString() || ""
+      );
+
+      // Convert reminder_time from HH:mm:ss format to HH:mm format for the Select component
+      const reminderTimeValue = editingMedicationReminder.reminder_time;
+      if (reminderTimeValue) {
+        // If the time includes seconds, remove them
+        const timeWithoutSeconds = reminderTimeValue.includes(":")
+          ? reminderTimeValue.substring(0, 5) // Get HH:mm part only
+          : reminderTimeValue;
+        setReminderTime(timeWithoutSeconds);
+      } else {
+        setReminderTime("");
+      }
+    } else {
+      // Clear form when creating new reminder
+      setStartDate("");
+      setEndDate("");
+      setFrequencyPerDay("");
+      setReminderTime("");
     }
-    // Here you can dispatch to Redux store or call API
-    // Reset form
+  }, [isEditMode, editingMedicationReminder, open]);
+
+  const handleModalClose = () => {
+    // Reset form and clear editing state
     setStartDate("");
     setEndDate("");
     setFrequencyPerDay("");
     setReminderTime("");
+    dispatch(clearEditingMedicationReminder());
     onOpenChange(false);
+  };
+
+  const handleSaveReminder = async () => {
+    // Convert reminder time to include seconds if needed (API might expect HH:mm:ss format)
+    const reminderTimeWithSeconds =
+      reminderTime.includes(":") && reminderTime.split(":").length === 2
+        ? `${reminderTime}:00`
+        : reminderTime;
+
+    if (isEditMode && editingMedicationReminder) {
+      // Update existing reminder
+      const updatePayload = {
+        id: editingMedicationReminder.id,
+        reminder_time: reminderTimeWithSeconds,
+        start_date: startDate,
+        end_date: endDate,
+        frequency_per_day: parseInt(frequencyPerDay) || 1,
+      };
+
+      console.log("Updating Medication Reminder:", updatePayload);
+      try {
+        await editMedicationReminders(updatePayload);
+        toast.success("Medication reminder updated successfully.");
+      } catch {
+        toast.error("Something went wrong while updating the reminder.");
+      }
+    } else {
+      // Create new reminder
+      const payload = {
+        patient_id: patientId,
+        medication_request_id: medication?.medication_request_id || "",
+        medication_id: medication?.id || "",
+        reminder_time: reminderTimeWithSeconds,
+        start_date: startDate,
+        end_date: endDate,
+        frequency_per_day: 1,
+        created_by_id: userId || "",
+        creator_role: role || "receptionist",
+      };
+
+      console.log("Creating Medication Reminder:", payload);
+      try {
+        await reminderForMedication(payload);
+        toast.success("Medication reminder set successfully.");
+      } catch {
+        toast.error("Something went wrong while saving the reminder.");
+      }
+    }
+
+    // Reset form and close modal
+    handleModalClose();
   };
 
   const generateTimeOptions = () => {
@@ -87,6 +161,18 @@ export default function MedicationReminderModal({
     return times;
   };
 
+  // Add debugging to see the actual reminder time value
+  useEffect(() => {
+    if (isEditMode && editingMedicationReminder) {
+      console.log("Editing Medication Reminder:", editingMedicationReminder);
+      console.log(
+        "Original reminder_time:",
+        editingMedicationReminder.reminder_time
+      );
+      console.log("Processed reminder_time:", reminderTime);
+    }
+  }, [isEditMode, editingMedicationReminder, reminderTime]);
+
   const frequencyOptions = [
     { value: "1", label: "Once a day" },
     { value: "2", label: "Twice a day" },
@@ -96,11 +182,13 @@ export default function MedicationReminderModal({
   ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleModalClose}>
       <DialogContent className="sm:max-w-lg rounded-xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-gray-800">
-            Set Medication Reminder
+            {isEditMode
+              ? "Edit Medication Reminder"
+              : "Set Medication Reminder"}
           </DialogTitle>
           {medication && (
             <div className="text-sm text-gray-600 mt-2">
@@ -142,7 +230,7 @@ export default function MedicationReminderModal({
           </div>
 
           {/* Frequency per Day */}
-          <div className="space-y-2">
+          {/* <div className="space-y-2">
             <Label htmlFor="frequency" className="text-sm font-medium">
               Frequency per Day
             </Label>
@@ -158,7 +246,7 @@ export default function MedicationReminderModal({
                 ))}
               </SelectContent>
             </Select>
-          </div>
+          </div> */}
 
           {/* Reminder Time */}
           <div className="space-y-2">
@@ -182,16 +270,14 @@ export default function MedicationReminderModal({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={handleModalClose}>
             Cancel
           </Button>
           <Button
             onClick={handleSaveReminder}
-            disabled={
-              !startDate || !endDate || !frequencyPerDay || !reminderTime
-            }
+            disabled={!startDate || !endDate || !reminderTime}
           >
-            Set Reminder
+            {isEditMode ? "Update Reminder" : "Set Reminder"}
           </Button>
         </DialogFooter>
       </DialogContent>
