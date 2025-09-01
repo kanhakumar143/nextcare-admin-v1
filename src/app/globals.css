@@ -128,3 +128,16 @@
     linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
   background-size: 20px 20px;
 }
+
+/* Prescription card styles */
+.prescription-card {
+  @apply p-4 bg-white border border-gray-200 rounded-lg shadow-sm;
+}
+
+.status-badge {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.status-active {
+  @apply bg-green-100 text-green-800;
+}

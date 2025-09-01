@@ -18,9 +18,13 @@ export default function PreConsultationAnswers({
 
   return (
     <Card className="border-border p-0">
-      <CardHeader className="bg-gray-200 rounded-t-lg">
+      <CardHeader className=" rounded-t-lg">
         <div className="flex items-center justify-between py-3">
-          <CardTitle className="text-lg">Patient Responses</CardTitle>
+          <CardTitle className="text-lg">
+            <div className="pt-4">
+              <p className="text-xl font-bold">Pre Questionaries</p>
+            </div>
+          </CardTitle>
           {apptDtls?.source === "nextcare" && (
             <div className="flex items-center space-x-2">
               <Label
@@ -149,8 +153,8 @@ export default function PreConsultationAnswers({
                   )
                 )
               )
-            ) : (
-              apptDtls?.questionary_answers &&
+            ) : apptDtls?.questionary_answers &&
+              apptDtls.questionary_answers.length > 0 ? (
               apptDtls.questionary_answers.map((q: any, i: number) => (
                 <div key={i}>
                   <p className="font-medium text-foreground">
@@ -158,6 +162,40 @@ export default function PreConsultationAnswers({
                   </p>
                   <p className="pl-3 text-muted-foreground">
                     A : {q.answer || ""}
+                  </p>
+                </div>
+              ))
+            ) : (
+              // Dummy Q&A when no questionary answers available
+              [
+                {
+                  question: "What is your primary reason for this visit?",
+                  answer: "General consultation and health checkup",
+                },
+                {
+                  question: "Are you currently taking any medications?",
+                  answer: "No current medications",
+                },
+                {
+                  question: "Do you have any known allergies?",
+                  answer: "No known allergies",
+                },
+                {
+                  question:
+                    "How would you rate your current pain level (1-10)?",
+                  answer: "3 - Mild discomfort",
+                },
+                {
+                  question: "When did your symptoms first appear?",
+                  answer: "Approximately 2-3 days ago",
+                },
+              ].map((dummyQ, i) => (
+                <div key={`dummy-${i}`} className="opacity-60">
+                  <p className="font-medium text-foreground">
+                    Q{i + 1}: {dummyQ.question}
+                  </p>
+                  <p className="pl-3 text-muted-foreground">
+                    A : {dummyQ.answer}
                   </p>
                 </div>
               ))

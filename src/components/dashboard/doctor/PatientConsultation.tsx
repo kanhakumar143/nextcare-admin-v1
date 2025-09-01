@@ -77,7 +77,7 @@ export default function PatientConsultation() {
   const router = useRouter();
 
   //
-    const [ehrModalOpen, setEhrModalOpen] = useState(false);
+  const [ehrModalOpen, setEhrModalOpen] = useState(false);
   // const { singlePatientDetails } = useSelector((state: RootState) => state.doctor);
 
   // Helper function to get vital icon based on code
@@ -176,7 +176,7 @@ export default function PatientConsultation() {
   };
 
   // Handle Health Record
-   const handlePatientHealthRecord = () => {
+  const handlePatientHealthRecord = () => {
     setEhrModalOpen(true);
   };
 
@@ -259,7 +259,7 @@ export default function PatientConsultation() {
               {apptDtls?.appointment_display_id}
             </p>
             {isEditingConsultation && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full">
+              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-black rounded-full">
                 <Edit className="h-4 w-4" />
                 <span className="text-sm font-medium">
                   Editing Consultation
@@ -272,10 +272,10 @@ export default function PatientConsultation() {
               <Info className="h-4 w-4" />
               View Patient Details
             </Button> */}
-            
-           <Button onClick={handlePatientHealthRecord}>
-          Patient Health Records
-        </Button>
+
+            <Button onClick={handlePatientHealthRecord}>
+              Patient Health Records
+            </Button>
             <ConsultationRecorder
               appointmentId={apptDtls?.appointment_display_id}
             />
@@ -300,7 +300,7 @@ export default function PatientConsultation() {
             </div>
 
             {apptDtls?.observations && apptDtls.observations.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 w-full">
+              <div className="flex flex-wrap gap-4">
                 {apptDtls.observations.map((vital: any, i: number) => (
                   <Tooltip>
                     <TooltipTrigger>
