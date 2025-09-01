@@ -1,4 +1,4 @@
-import SetMedicationReminders from "@/components/dashboard/receptionist/SetMedicationReminders";
+import SetMedicationReminders from "@/components/dashboard/nurse/SetMedicationReminders";
 
 import type { Metadata } from "next";
 

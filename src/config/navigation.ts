@@ -68,6 +68,12 @@ export const adminRoutes: Route[] = [
     icon: BellRing,
   },
   {
+    href: "/dashboard/admin/schedule",
+    name: "Schedule",
+    icon: BellRing,
+  },
+
+  {
     name: "Services",
     icon: Layers,
     children: [
@@ -160,6 +166,11 @@ export const nurseRoutes: Route[] = [
     name: "Scan QR Code",
     icon: QrCode,
   },
+  {
+    href: "/dashboard/nurse/set-reminders",
+    name: "Medication Reminder",
+    icon: AlarmClock,
+  },
 ];
 
 // Lab Technician Navigation Routes
@@ -198,11 +209,7 @@ export const receptionistRoutes: Route[] = [
     name: "Print Prescription",
     icon: LayoutDashboard,
   },
-  {
-    href: "/dashboard/receptionist/set-reminders",
-    name: "Medication Reminder",
-    icon: AlarmClock,
-  },
+ 
   {
     href: "/dashboard/receptionist/plan-pricing",
     name: "Pricing Plans",
