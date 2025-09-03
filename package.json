@@ -56,6 +56,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "lightningcss": "^1.30.1",
+    "string-replace-loader": "^3.2.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"

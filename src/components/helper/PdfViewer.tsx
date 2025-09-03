@@ -1,20 +1,25 @@
 "use client";
 
-import { Viewer, Worker } from "@react-pdf-viewer/core";
-import "@react-pdf-viewer/core/lib/styles/index.css";
-
-import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
-import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 
 interface PdfViewerProps {
   url: string;
   height?: string;
 }
 
+// Completely dynamic PDF viewer component
+const DynamicPdfViewer = dynamic(() => import("./PdfViewerClient"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[600px] border rounded-lg overflow-hidden flex items-center justify-center bg-gray-50">
+      <div className="text-gray-500">Loading PDF viewer...</div>
+    </div>
+  ),
+});
+
 const PdfViewer: React.FC<PdfViewerProps> = ({ url, height = "h-[600px]" }) => {
   const [isClient, setIsClient] = useState(false);
-  const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   useEffect(() => {
     setIsClient(true);
@@ -30,13 +35,7 @@ const PdfViewer: React.FC<PdfViewerProps> = ({ url, height = "h-[600px]" }) => {
     );
   }
 
-  return (
-    <div className={`w-full ${height} border rounded-lg overflow-hidden`}>
-      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
-        <Viewer fileUrl={url} plugins={[defaultLayoutPluginInstance]} />
-      </Worker>
-    </div>
-  );
+  return <DynamicPdfViewer url={url} height={height} />;
 };
 
 export default PdfViewer;
