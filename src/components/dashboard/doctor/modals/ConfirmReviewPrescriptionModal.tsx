@@ -57,6 +57,8 @@ export default function ConfirmReviewPrescriptionModal({
       practitioner_id: practitionerId,
     };
     console.log("Visit Summary Payload:", payload);
+    console.log("Eprescription Details:", EprescriptionDetails);
+    console.log(EprescriptionDetails?.lab_tests?.length);
     try {
       const response = await updateEprescriptionStatus(payload);
       handleUpdateApptStatus();

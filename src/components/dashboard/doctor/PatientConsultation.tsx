@@ -251,7 +251,7 @@ export default function PatientConsultation() {
   return (
     <>
       <div className="mx-6 my-3 py-2 border-b-2">
-        <BackButton />
+        {/* <BackButton /> */}
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-4">
             <Label className="text-md font-light">Appointment ID :</Label>
@@ -286,9 +286,64 @@ export default function PatientConsultation() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex flex-col gap-4 w-full">
             <div className="flex items-center justify-between gap-2">
-              <Label className="text-lg font-semibold text-gray-900">
-                General Vitals
-              </Label>
+              <div className="flex gap-3 items-center">
+                <Label className="text-lg font-semibold text-gray-900">
+                  General Vitals
+                </Label>
+                {apptDtls?.observations && apptDtls.observations.length > 0 ? (
+                  <div className="flex flex-wrap gap-4">
+                    {apptDtls.observations.map((vital: any, i: number) => (
+                      <Tooltip>
+                        <TooltipTrigger>
+                          <div
+                            key={i}
+                            className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
+                          >
+                            <div className="flex-shrink-0">
+                              {getVitalIcon(vital.vital_definition?.code)}
+                            </div>
+                            <div className="flex gap-3 min-w-0">
+                              <div className="text-sm font-bold text-gray-900">
+                                {vital.vital_definition?.code === "BP" ? (
+                                  <span>
+                                    {vital.value?.systolic}/
+                                    {vital.value?.diastolic}{" "}
+                                    {vital.vital_definition?.unit}
+                                  </span>
+                                ) : (
+                                  <span>
+                                    {vital.value?.value}{" "}
+                                    {vital.vital_definition?.unit}
+                                  </span>
+                                )}
+                              </div>
+                              {vital.is_abnormal && (
+                                <div className="text-xs text-red-600 font-medium mt-1">
+                                  Abnormal
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <div className="text-sm text-white">
+                            {vital.vital_definition?.name}
+                          </div>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center p-8 bg-gray-50 border border-gray-200 rounded-lg">
+                    <div className="text-center">
+                      <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">
+                        No vitals recorded
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
               <Button
                 variant="ghost"
                 size="icon"
@@ -298,62 +353,11 @@ export default function PatientConsultation() {
                 <Edit className="h-4 w-4 text-gray-600" />
               </Button>
             </div>
-
-            {apptDtls?.observations && apptDtls.observations.length > 0 ? (
-              <div className="flex flex-wrap gap-4">
-                {apptDtls.observations.map((vital: any, i: number) => (
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <div
-                        key={i}
-                        className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow"
-                      >
-                        <div className="flex-shrink-0">
-                          {getVitalIcon(vital.vital_definition?.code)}
-                        </div>
-                        <div className="flex gap-3 min-w-0">
-                          <div className="text-sm font-bold text-gray-900">
-                            {vital.vital_definition?.code === "BP" ? (
-                              <span>
-                                {vital.value?.systolic}/{vital.value?.diastolic}{" "}
-                                {vital.vital_definition?.unit}
-                              </span>
-                            ) : (
-                              <span>
-                                {vital.value?.value}{" "}
-                                {vital.vital_definition?.unit}
-                              </span>
-                            )}
-                          </div>
-                          {vital.is_abnormal && (
-                            <div className="text-xs text-red-600 font-medium mt-1">
-                              Abnormal
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <div className="text-sm text-white">
-                        {vital.vital_definition?.name}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center p-8 bg-gray-50 border border-gray-200 rounded-lg">
-                <div className="text-center">
-                  <Activity className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-500">No vitals recorded</p>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
       <div className="flex p-4 bg-background gap-4">
-        <div className="w-full lg:w-5/12 space-y-4 min-h-full">
+        <div className="w-full lg:w-8/12 space-y-4 min-h-full">
           <PreConsultationAnswers apptDtls={apptDtls} />
         </div>
 

@@ -1,4 +1,5 @@
-import PatientConsultation from "@/components/dashboard/doctor/PatientConsultation";
+// import PatientConsultation from "@/components/dashboard/doctor/PatientConsultation";
+import PatientConsultation from "@/components/dashboard/doctor/PatientConsultationRedesigned";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
