@@ -77,9 +77,10 @@ export function AppSidebar({
                                 <Link
                                   href={child.href}
                                   className={clsx(
-                                    "flex items-center text-sm pl-8 py-1.5 rounded-md transition hover:bg-muted",
-                                    isActive(child.href) &&
-                                      "bg-muted font-semibold"
+                                    "flex items-center text-sm pl-8 py-1.5 rounded-md transition",
+                                    isActive(child.href)
+                                      ? "bg-gray-300 font-semibold"
+                                      : "hover:bg-gray-200"
                                   )}
                                 >
                                   {ChildIcon && (
@@ -105,8 +106,8 @@ export function AppSidebar({
                           className={clsx(
                             "flex items-center gap-2 px-2 py-1 rounded",
                             isActive(href)
-                              ? "bg-muted text-primary font-semibold"
-                              : "hover:bg-muted"
+                              ? "bg-gray-300 text-primary font-semibold"
+                              : "hover:bg-gray-200"
                           )}
                         >
                           <Icon size={16} />

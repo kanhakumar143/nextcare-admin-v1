@@ -12,6 +12,7 @@ import nurseReducer from "./slices/nurseSlice";
 import labOrderReducer from "./slices/labTechnicianSlice";
 import allAppointmentsReducer from "./slices/allAppointmentSlice";
 import ehrReducer from "./slices/ehrSlice";
+import pharmacyReducer from "./slices/pharmacySlice";
 
 const store = configureStore({
   reducer: {
@@ -28,6 +29,7 @@ const store = configureStore({
     labOrder: labOrderReducer,
     allAppointments: allAppointmentsReducer,
     ehr: ehrReducer,
+    pharmacy: pharmacyReducer,
   },
 });
 

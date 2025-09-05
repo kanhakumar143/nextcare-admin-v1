@@ -14,6 +14,7 @@ import {
   submitQuestionariesAnswersBulk,
   updateNCSymptomData,
 } from "@/services/nurse.api";
+import { submitQuestionnairesAnswerToAi } from "@/services/ai.api";
 import ConfirmSubmissionModal from "./modals/ConfirmSubmissionModal";
 import { ArrowRight } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -25,6 +26,7 @@ import {
 } from "@/store/slices/nurseSlice";
 import { Question, SubmitQuestionPayload } from "@/types/nurse.types";
 import { Slider } from "@/components/ui/slider";
+import { AISubmitQuestionPayload, AIAnalysisPayload } from "@/types/ai.types";
 
 export default function DynamicQuestionnaires() {
   const router = useRouter();
@@ -280,6 +282,7 @@ export default function DynamicQuestionnaires() {
 
   const handleSubmit = () => {
     const result: SubmitQuestionPayload[] = [];
+    const ai_result: AISubmitQuestionPayload[] = [];
 
     if (qrDtls?.appointment.source === "nextcare") {
       const updatedData = preAppQuestionnaires.response.data.map(
@@ -318,18 +321,38 @@ export default function DynamicQuestionnaires() {
         });
       });
 
-      handleConfirmAnswerSubmit(result);
+      preAppQuestionnaires.response?.data.forEach((question) => {
+        ai_result.push({
+          question: question.question,
+          answer: answers[question.id] || "",
+        });
+      });
+
+      handleConfirmAnswerSubmit(result, ai_result);
     }
   };
 
-  const handleConfirmAnswerSubmit = async (payload: any) => {
+  const handleConfirmAnswerSubmit = async (payload: any, ai_result: any) => {
     try {
       const response = await submitQuestionariesAnswersBulk(payload);
-      console.log("Submission Response:", response);
-      router.push("/dashboard/nurse/check-in");
-      dispatch(setNurseStepCompleted({ step1: true }));
-      toast.success("Questionnaire submitted successfully.");
-    } catch (error) {}
+      if (response) {
+        const aiPayload: AIAnalysisPayload = {
+          qa_data: ai_result,
+          summary_type: "comprehensive",
+          appointment_id: qrDtls?.appointment.id || "",
+        };
+
+        router.push("/dashboard/nurse/check-in");
+        dispatch(setNurseStepCompleted({ step1: true }));
+        toast.success("Questionnaire submitted successfully.");
+
+        submitQuestionnairesAnswerToAi(aiPayload).catch((error) => {
+          console.error("AI analysis failed:", error);
+        });
+      }
+    } catch (error) {
+      toast.error("Failed to submit questionnaire.");
+    }
   };
 
   const handleNextcareSubmit = async (nc_symptom_id: string, payload: any) => {

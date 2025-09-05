@@ -28,13 +28,13 @@ interface Appointment {
 const statusColors: Record<string, string> = {
   proposed: "bg-gray-100 text-gray-800",
   pending: "bg-yellow-100 text-yellow-800",
-  booked: "bg-blue-500 text-white",
+  booked: "bg-sky-700 text-white",
   arrived: "bg-indigo-100 text-indigo-800",
   fulfilled: "bg-purple-100 text-purple-800",
   completed: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
   entered_in_error: "bg-red-200 text-red-900",
-  checked_in: "bg-green-500 text-white",
+  checked_in: "bg-green-600 text-white",
   waitlist: "bg-orange-400 text-orange-800",
   report_ready: "bg-pink-100 text-pink-800",
 };
@@ -48,9 +48,11 @@ export default function AllAppointments() {
   const practitionerId = searchParams.get("practitioner_id");
 
   const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
-  const { upcoming = [], loading = false, error = null } = useTypedSelector(
-    (state) => state.allAppointments
-  );
+  const {
+    upcoming = [],
+    loading = false,
+    error = null,
+  } = useTypedSelector((state) => state.allAppointments);
 
   useEffect(() => {
     if (practitionerId) {
@@ -65,6 +67,18 @@ export default function AllAppointments() {
         : [...prev, patientId]
     );
   };
+
+  const selectAll = () => {
+    const allPatientIds = upcoming.map((appt) => appt.patient_id);
+    setSelectedPatients(allPatientIds);
+  };
+
+  const deselectAll = () => {
+    setSelectedPatients([]);
+  };
+
+  const isAllSelected =
+    upcoming.length > 0 && selectedPatients.length === upcoming.length;
 
   const columns = useMemo<ColumnDef<Appointment>[]>(() => {
     return [
@@ -113,14 +127,32 @@ export default function AllAppointments() {
 
   return (
     <div className="p-2 space-y-4">
-      {/* Filter + Global Send Notification */}
+      {/* Filter + Select All/Deselect All + Global Send Notification */}
       <div className="flex items-center justify-between">
-        <Input
-          placeholder="Filter by Appointment ID..."
-          value={filterValue}
-          onChange={(e) => setFilterValue(e.target.value)}
-          className="max-w-sm"
-        />
+        <div className="flex items-center gap-4">
+          <Input
+            placeholder="Filter by Appointment ID..."
+            value={filterValue}
+            onChange={(e) => setFilterValue(e.target.value)}
+            className="max-w-sm"
+          />
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={isAllSelected ? deselectAll : selectAll}
+              disabled={upcoming.length === 0}
+            >
+              {isAllSelected ? "Deselect All" : "Select All"}
+            </Button>
+            {/* {selectedPatients.length > 0 && (
+              <span className="text-sm text-gray-600">
+                {selectedPatients.length} selected
+              </span>
+            )} */}
+          </div>
+        </div>
 
         <SendNotification
           icon={<BellPlus className="w-6 h-6 cursor-pointer" />}

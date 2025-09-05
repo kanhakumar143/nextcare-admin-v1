@@ -26,6 +26,21 @@ export interface QuestionarySymptomNCData {
   diagnosis: null | string;
 }
 
+interface PreAppointmentQAAISummary {
+  id: string;
+  appointment_id: string;
+  summary: string;
+  key_findings: string[];
+  summary_type: string;
+  remark: {
+    ai_model: string;
+    total_questions: number;
+    prompt_type: string;
+  };
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AppointmentDtlsForDoctor {
   id: string;
   appointment_display_id: string;
@@ -44,6 +59,7 @@ export interface AppointmentDtlsForDoctor {
   lab_test_orders: LabTestOrder[];
   source: string;
   symptom_data_nc: QuestionarySymptomNCData;
+  pre_appointment_qa_ai_summaries: PreAppointmentQAAISummary[];
 }
 
 interface LabTestOrder {

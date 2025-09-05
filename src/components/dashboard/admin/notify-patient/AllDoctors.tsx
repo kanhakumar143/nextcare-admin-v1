@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DataTable } from "@/components/common/DataTable";
 import { Input } from "@/components/ui/input";
-import { MoveRight } from "lucide-react";
+import { ArrowRight, MoveRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { Label } from "@/components/ui/label";
 
 type ExtendedDoctorData = DoctorData & {
   name: string;
@@ -78,8 +79,8 @@ export default function AllDoctors() {
           <Badge
             className={
               isActive
-                ? "bg-green-500 text-white w-16"
-                : "bg-red-500 text-white w-16"
+                ? "bg-green-700 text-white w-16"
+                : "bg-red-700 text-white w-16"
             }
           >
             {isActive ? "Active" : "Inactive"}
@@ -103,7 +104,7 @@ export default function AllDoctors() {
                 );
               }}
             >
-              <MoveRight className="w-3 h-3" />
+              <ArrowRight className="w-3 h-3" />
             </Button>
           </div>
         );
@@ -112,6 +113,7 @@ export default function AllDoctors() {
   ];
   return (
     <div className="p-2 space-y-4">
+      <Label className="text-2xl font-bold">All Doctors</Label>
       <Input
         placeholder="Search by Doctor Name..."
         value={filterValue}
