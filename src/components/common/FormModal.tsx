@@ -1,14 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import * as z from "zod";
-import { Plus, X } from "lucide-react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -32,6 +29,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchServices } from "@/store/slices/servicesSlice";
+import { AppDispatch, RootState } from "@/store";
 
 const currentYear = new Date().getFullYear();
 const today = new Date().toISOString().split("T")[0];
@@ -41,21 +41,12 @@ const practitionerFormSchema = z.object({
   tenant_id: z.string().min(1, "Tenant ID is required"),
   name: z.string().min(3, "Name must be at least 3 characters"),
   email: z.string().email("Invalid email"),
-  phone: z
-    .string()
-    .min(10, "Phone number must be at least 10 digits")
-    .max(15, "Phone number must be at most 15 digits")
-    .regex(/^\+?\d{10,15}$/, "Invalid phone number format"),
+  phone: z.string().optional(),
   hashed_password: z.string().min(6).optional(),
 
   // Practitioner Info
-  identifier_system: z.string().url().optional(),
-  identifier_value: z.string().min(1).optional(),
-  prefix: z.string().optional(),
-  given_name: z.string().min(1).optional(),
-  family_name: z.string().min(1).optional(),
-  telecom_phone: z.string().min(10).optional(),
-  telecom_email: z.string().email().optional(),
+  identifier_system: z.string().optional(),
+  identifier_value: z.string().optional(),
   gender: z.enum(["male", "female", "other", "unknown"]).optional(),
   birth_date: z
     .string()
@@ -64,57 +55,44 @@ const practitionerFormSchema = z.object({
       message: "Birth date cannot be in the future",
     }),
 
-  // Qualification
-  degree: z.string().min(1, "Degree is required"),
-  institution: z.string().min(1, "Institution is required"),
-  graduation_year: z
-    .string()
-    .regex(/^\d{4}$/)
-    .refine((val) => parseInt(val) <= currentYear, {
-      message: `Graduation year cannot be in the future (max ${currentYear})`,
-    }),
+  // Service Selection
+  selected_service_name: z.string().optional(),
+  selected_specialty_id: z.string().min(1, "Specialty selection is required"),
 
-  // License
-  license_number: z.string().min(1),
-  license_issued_by: z.string().min(1),
+  // Qualification
+  qualification_degree: z.string().min(1, "Degree is required"),
+  qualification_institution: z.string().min(1, "Institution is required"),
+  qualification_year: z
+    .string()
+    .min(4, "Year must be 4 digits")
+    .refine(
+      (val) => {
+        const year = parseInt(val);
+        return year >= 1950 && year <= currentYear;
+      },
+      {
+        message: `Year must be between 1950 and ${currentYear}`,
+      }
+    ),
+
+  // License Details
+  license_number: z.string().min(1, "License number is required"),
+  license_issued_by: z.string().min(1, "License issuing authority is required"),
   license_expiry: z
     .string()
-    .min(1)
+    .min(1, "License expiry date is required")
     .refine((val) => val >= today, {
-      message: "License expiry cannot be in the past",
+      message: "License expiry date cannot be in the past",
     }),
-  profile_picture_url: z.string().url(),
-  license_url: z.string().url(),
+
+  // URLs
+  profile_picture_url: z.string().url("Must be a valid URL").optional(),
+  license_url: z
+    .string()
+    .url("Must be a valid URL")
+    .min(1, "License URL is required"),
+
   is_active: z.boolean(),
-
-  // Role Info
-  role_code_system: z.string().url().optional(),
-  role_code: z.string().min(1).optional(),
-  role_display: z.string().min(1).optional(),
-  role_text: z.string().min(1).optional(),
-  specialty: z.string().min(1).optional(),
-  location_reference: z.string().min(1).optional(),
-  location_display: z.string().min(1).optional(),
-  healthcare_service_reference: z.string().min(1).optional(),
-  healthcare_service_display: z.string().min(1).optional(),
-  period_start: z.string().min(1).optional(),
-  period_end: z.string().min(1).optional(),
-
-  // Availability
-  availability_days: z.array(z.string()).min(1),
-  available_times: z
-    .array(
-      z.object({
-        start: z.string().regex(/^\d{2}:\d{2}$/),
-        end: z.string().regex(/^\d{2}:\d{2}$/),
-      })
-    )
-    .min(1),
-
-  // Not Available
-  not_available_description: z.string().optional(),
-  not_available_start: z.string().optional(),
-  not_available_end: z.string().optional(),
 });
 
 type PractitionerFormData = z.infer<typeof practitionerFormSchema>;
@@ -130,29 +108,6 @@ interface PractitionerFormModalProps {
   role: "doctor" | "nurse";
 }
 
-const daysOfWeek = [
-  { value: "mon", label: "Monday" },
-  { value: "tue", label: "Tuesday" },
-  { value: "wed", label: "Wednesday" },
-  { value: "thu", label: "Thursday" },
-  { value: "fri", label: "Friday" },
-  { value: "sat", label: "Saturday" },
-  { value: "sun", label: "Sunday" },
-];
-
-const roleDefaults = {
-  doctor: {
-    role_code: "doctor",
-    role_display: "Doctor",
-    role_text: "Doctor",
-  },
-  nurse: {
-    role_code: "nurse",
-    role_display: "Nurse",
-    role_text: "Nurse",
-  },
-};
-
 export default function PractitionerFormModal({
   open,
   onOpenChange,
@@ -164,130 +119,89 @@ export default function PractitionerFormModal({
   role,
 }: PractitionerFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedService, setSelectedService] = useState<string>("");
+  const [selectedServiceData, setSelectedServiceData] = useState<any>(null);
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { items } = useSelector((state: RootState) => state.services);
 
   const form = useForm<PractitionerFormData>({
     resolver: zodResolver(practitionerFormSchema),
     defaultValues: {
-      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      tenant_id: "b91a2af6-7c52-4fd3-9a5a-5b4456c34c14",
       is_active: true,
-      available_times: [{ start: "09:00", end: "17:00" }],
-      role_code_system:
-        "http://terminology.hl7.org/CodeSystem/practitioner-role",
-      availability_days: ["mon", "tue", "wed", "thu", "fri"],
-      ...roleDefaults[role],
+      selected_service_name: "",
+      selected_specialty_id: "",
+      qualification_degree: "",
+      qualification_institution: "",
+      qualification_year: "",
+      license_number: "",
+      license_issued_by: "",
+      license_expiry: "",
+      profile_picture_url: "",
+      license_url: "",
       ...defaultValues, // ✅ merge parent defaultValues here
     },
   });
 
-  const {
-    fields: timeFields,
-    append: appendTime,
-    remove: removeTime,
-  } = useFieldArray({
-    control: form.control,
-    name: "available_times",
-  });
+  // Handle service selection change
+  const handleServiceChange = (serviceName: string) => {
+    setSelectedService(serviceName);
+    const serviceData = items?.find((item: any) => item.name === serviceName);
+    setSelectedServiceData(serviceData);
+
+    // Reset specialty selection when service changes
+    form.setValue("selected_specialty_id", "");
+    form.setValue("selected_service_name", serviceName);
+  };
+
+  // Handle specialty selection change
+  const handleSpecialtyChange = (specialtyId: string) => {
+    form.setValue("selected_specialty_id", specialtyId);
+  };
 
   const onSubmit = async (data: PractitionerFormData) => {
-    setIsSubmitting(true);
+    // setIsSubmitting(true);
+    console.log("Form Data Submitted:", data);
     try {
       const payload = {
         user: {
-          tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
           name: data.name ?? "",
           email: data.email ?? "",
-          phone: data.phone ?? "",
-          hashed_password: "default1234",
+          // phone: data.telecom_phone ?? "",
+          hashed_password: data.hashed_password ?? "qwer1234",
           user_role: role === "nurse" ? "nurse" : "doctor",
+          tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
         },
         practitioner: {
-          identifiers:
-            data.identifier_system && data.identifier_value
-              ? [
-                  {
-                    system: data.identifier_system,
-                    value: data.identifier_value,
-                  },
-                ]
-              : [],
-
-          name: {
-            prefix: data.prefix ? [data.prefix] : [],
-            given: [data.given_name ?? ""],
-            family: data.family_name ?? "",
-          },
+          identifiers: [
+            {
+              system: "http://hospital.org/nurse",
+              value: "SA123456",
+            },
+          ],
           telecom: [
-            { system: "phone", value: data.telecom_phone ?? "", use: "mobile" },
-            { system: "email", value: data.telecom_email ?? "", use: "work" },
+            { system: "phone", value: data.phone ?? "", use: "mobile" },
+            { system: "email", value: data.email ?? "", use: "work" },
           ],
           gender: data.gender ?? "unknown",
           birth_date: data.birth_date ?? "",
+          is_active: data.is_active ?? true,
+          service_specialty_id: data.selected_specialty_id ?? "",
           qualification: [
             {
-              degree: data.degree ?? null,
-              institution: data.institution ?? null,
-              year: data.graduation_year ?? null,
+              degree: data.qualification_degree ?? "",
+              institution: data.qualification_institution ?? "",
+              year: data.qualification_year ?? "",
             },
           ],
           license_details: {
-            number: data.license_number ?? null,
-            issued_by: data.license_issued_by ?? null,
-            expiry: data.license_expiry ?? null,
+            number: data.license_number ?? "",
+            issued_by: data.license_issued_by ?? "",
+            expiry: data.license_expiry ?? "",
           },
-          profile_picture_url: data.profile_picture_url ?? null,
-          license_url: data.license_url ?? null,
-          is_active: data.is_active ?? true,
-        },
-        role: {
-          tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
-          code: [
-            {
-              coding: [
-                {
-                  system: data.role_code_system ?? "",
-                  code: data.role_code ?? "",
-                  display: data.role_display ?? "",
-                },
-              ],
-              text: data.role_text ?? "",
-            },
-          ],
-          specialty: [{ text: data.specialty ?? "" }],
-          location: [
-            {
-              reference: data.location_reference ?? "",
-              display: data.location_display ?? "",
-            },
-          ],
-          healthcare_service: [
-            {
-              reference: data.healthcare_service_reference ?? "",
-              display: data.healthcare_service_display ?? "",
-            },
-          ],
-          period: {
-            start: data.period_start ?? "",
-            end: data.period_end ?? "",
-          },
-          availability: data.availability_days
-            ? [
-                {
-                  daysOfWeek: data.availability_days,
-                  availableTime: data.available_times ?? [],
-                },
-              ]
-            : [],
-          not_available: data.not_available_description
-            ? [
-                {
-                  description: data.not_available_description,
-                  during: {
-                    start: data.not_available_start ?? "",
-                    end: data.not_available_end ?? "",
-                  },
-                },
-              ]
-            : [],
+          profile_picture_url: data.profile_picture_url ?? "",
+          license_url: data.license_url ?? "",
         },
       };
 
@@ -306,27 +220,50 @@ export default function PractitionerFormModal({
       setIsSubmitting(false);
     }
   };
+
+  useEffect(() => {
+    dispatch(fetchServices());
+  }, []);
+
   useEffect(() => {
     console.log("Default Values:", defaultValues);
     if (defaultValues) {
       form.reset({
-        tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+        tenant_id: "b91a2af6-7c52-4fd3-9a5a-5b4456c34c14",
         is_active: true,
-        available_times: [{ start: "09:00", end: "17:00" }],
-        role_code_system:
-          "http://terminology.hl7.org/CodeSystem/practitioner-role",
-        availability_days: ["mon", "tue", "wed", "thu", "fri"],
-        ...roleDefaults[role],
+        selected_service_name: "",
+        selected_specialty_id: "",
+        qualification_degree: "",
+        qualification_institution: "",
+        qualification_year: "",
+        license_number: "",
+        license_issued_by: "",
+        license_expiry: "",
+        profile_picture_url: "",
+        license_url: "",
         ...defaultValues,
       });
 
+      // If there are default values for service selection, set the local state
+      if (defaultValues.selected_service_name) {
+        setSelectedService(defaultValues.selected_service_name);
+        const serviceData = items?.find(
+          (item: any) => item.name === defaultValues.selected_service_name
+        );
+        setSelectedServiceData(serviceData);
+      }
+
       console.log("Form Values After Reset:", form.getValues());
     }
-  }, [defaultValues, form, role]);
+  }, [defaultValues, form, role, items]);
 
   const handleClose = (open: boolean) => {
     onOpenChange(open);
-    if (!open) form.reset();
+    if (!open) {
+      form.reset();
+      setSelectedService("");
+      setSelectedServiceData(null);
+    }
   };
 
   return (
@@ -343,29 +280,30 @@ export default function PractitionerFormModal({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit, (errors) => {
+              console.log("Form Errors:", errors);
               console.error("Form validation errors:", errors);
             })}
-            className="space-y-6 "
+            className="space-y-6"
           >
             {/* User Information Section */}
             <div className="space-y-4 ">
-              <div className="flex  justify-between">
-                <FormField
-                  control={form.control}
-                  name="tenant_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className=" text-blue-800 px-3 py- rounded-md   font-semibold inline-block">
-                        Tenant ID : {field.value}
-                      </FormLabel>
+              <div className="flex justify-end items-center">
+                {/* // <FormField */}
+                {/* // control={form.control} */}
+                {/* //name="tenant_id" */}
+                {/* // render={({ field }) => ( */}
+                {/* //   <FormItem> */}
+                {/* //     <FormLabel className=" text-blue-800 rounded-md font-semibold inline-block"> */}
+                {/* //       Tenant ID : {field.value} */}
+                {/* //     </FormLabel> */}
 
-                      <FormControl>
-                        {/* <Input placeholder="Enter tenant ID" {...field} /> */}
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {/* //     <FormControl> */}
+                {/* <Input placeholder="Enter tenant ID" {...field} /> */}
+                {/* //     </FormControl> */}
+                {/* //     <FormMessage /> */}
+                {/* //   </FormItem> */}
+                {/* // )} */}
+                {/* // /> */}
                 <FormField
                   control={form.control}
                   name="is_active"
@@ -384,6 +322,8 @@ export default function PractitionerFormModal({
                   )}
                 />
               </div>
+              <h3 className="text-lg font-bold">Personal Details</h3>
+
               <div className="grid grid-cols-3 items-center gap-4">
                 <FormField
                   control={form.control}
@@ -447,7 +387,7 @@ export default function PractitionerFormModal({
                         defaultValue={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="w-full">
                             <SelectValue placeholder="Select gender" />
                           </SelectTrigger>
                         </FormControl>
@@ -493,6 +433,150 @@ export default function PractitionerFormModal({
               </div>
             </div>
 
+            {/* Service Selection Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">Service Selection</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="selected_service_name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Service <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleServiceChange(value);
+                        }}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a service" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {items?.map((service: any) => (
+                            <SelectItem key={service.id} value={service.name}>
+                              {service.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="selected_specialty_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Specialty <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleSpecialtyChange(value);
+                        }}
+                        value={field.value}
+                        disabled={
+                          !selectedServiceData?.service_specialties?.length
+                        }
+                      >
+                        <FormControl>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select a specialty" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {selectedServiceData?.service_specialties?.map(
+                            (specialty: any) => (
+                              <SelectItem
+                                key={specialty.id}
+                                value={specialty.id}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">
+                                    {specialty.specialty_label}
+                                  </span>
+                                  {/* <span className="text-xs text-gray-500">
+                                    {specialty.description}
+                                  </span> */}
+                                </div>
+                              </SelectItem>
+                            )
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Qualification Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">Qualification</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="qualification_degree"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Degree <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., MBBS, MD, BSN" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="qualification_institution"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Institution <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., AIIMS Delhi" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="qualification_year"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Year of Graduation{" "}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., 2008"
+                          maxLength={4}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
             {/* License Details Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-bold">License Details</h3>
@@ -506,7 +590,7 @@ export default function PractitionerFormModal({
                         License Number <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="MCI-20231234" {...field} />
+                        <Input placeholder="e.g., MCI-20231234" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -521,7 +605,7 @@ export default function PractitionerFormModal({
                         Issued By <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="MCI" {...field} />
+                        <Input placeholder="e.g., MCI, NMC" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -533,7 +617,8 @@ export default function PractitionerFormModal({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        License Expiry <span className="text-red-500">*</span>
+                        License Expiry Date{" "}
+                        <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
@@ -542,18 +627,22 @@ export default function PractitionerFormModal({
                     </FormItem>
                   )}
                 />
+              </div>
+            </div>
+
+            {/* Document URLs Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-bold">Document URLs</h3>
+              <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="profile_picture_url"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Profile Picture URL{" "}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
+                      <FormLabel>Profile Picture URL</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="https://your-cdn.com/images/profile.jpg"
+                          placeholder="https://example.com/profile.jpg"
                           {...field}
                         />
                       </FormControl>
@@ -572,7 +661,7 @@ export default function PractitionerFormModal({
                       </FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="https://your-cdn.com/licenses/license.pdf"
+                          placeholder="https://example.com/license.pdf"
                           {...field}
                         />
                       </FormControl>
@@ -583,60 +672,8 @@ export default function PractitionerFormModal({
               </div>
             </div>
 
-            {/* Qualification Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Qualification </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="degree"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Degree <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="MBBS" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="institution"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Institution<span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="AIIMS Delhi" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="graduation_year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Graduation Year <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="2008" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
             {/* Role Information Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-lg font-semibold">Role & Specialty</h3>
               <div className="grid grid-cols-3 gap-4">
                 <FormField
@@ -708,10 +745,10 @@ export default function PractitionerFormModal({
                   )}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Period Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-lg font-semibold">Employment Period</h3>
               <div className="grid grid-cols-3 gap-4">
                 <FormField
@@ -741,10 +778,10 @@ export default function PractitionerFormModal({
                   )}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Availability Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-lg font-semibold">Availability</h3>
 
               <FormField
@@ -852,10 +889,10 @@ export default function PractitionerFormModal({
                   </div>
                 ))}
               </div>
-            </div>
+            </div> */}
 
             {/* Practitioner Information Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-lg font-semibold">
                 Practitioner Information
               </h3>
@@ -959,10 +996,10 @@ export default function PractitionerFormModal({
                   )}
                 />
               </div>
-            </div>
+            </div> */}
 
             {/* Not Available Section (Optional) */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <h3 className="text-lg font-semibold">Not Available</h3>
               <div className="grid grid-cols-3 gap-4">
                 <FormField
@@ -1010,9 +1047,9 @@ export default function PractitionerFormModal({
                   )}
                 />
               </div>
-            </div>
+            </div> */}
 
-            <DialogFooter>
+            <DialogFooter className="space-x-3">
               <Button
                 type="button"
                 variant="outline"
