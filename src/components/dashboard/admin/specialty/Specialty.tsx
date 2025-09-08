@@ -102,22 +102,35 @@ export default function Specialties() {
   ];
 
   const handleAddSpecialty = async (
-    formData: Omit<Specialty, "code" | "system" | "description">
-  ) => {
-    try {
-      const resultAction = await dispatch(addSpecialty(formData));
+  formData: Omit<Specialty, "code" | "system" | "description">
+) => {
+  // Check if specialty already exists for the selected service
+  const exists = items.some(
+    (item) =>
+      item.specialty_label.toLowerCase() ===
+      formData.specialty_label.toLowerCase()
+  );
 
-      if (addSpecialty.fulfilled.match(resultAction)) {
-        toast.success("Specialty added successfully!");
-        setOpenModal(false);
-        dispatch(fetchSpecialtiesByServiceId(selectedServiceId));
-      } else {
-        toast.error(resultAction.payload as string);
-      }
-    } catch {
-      toast.error("Something went wrong while adding the specialty.");
+  if (exists) {
+    toast.error("This specialty already exists under the selected service.");
+    return;
+  }
+
+  try {
+    const resultAction = await dispatch(addSpecialty(formData));
+
+    if (addSpecialty.fulfilled.match(resultAction)) {
+      toast.success("Specialty added successfully!");
+      setOpenModal(false);
+      dispatch(fetchSpecialtiesByServiceId(selectedServiceId));
+    } else {
+      toast.error(resultAction.payload as string);
     }
-  };
+  } catch {
+    toast.error("Something went wrong while adding the specialty.");
+  }
+};
+
 
   return (
     <div className="p-4 space-y-4">

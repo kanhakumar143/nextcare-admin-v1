@@ -17,6 +17,8 @@ import {
   Ribbon,
   AlarmClock,
   BellRing,
+  ReceiptText,
+  IndianRupee,
 } from "lucide-react";
 
 export type Route = {
@@ -96,6 +98,17 @@ export const adminRoutes: Route[] = [
         href: "/dashboard/admin/services/pre-questionary-sets",
         name: "Pre-Questionary Set",
         icon: FileQuestionMark,
+      },
+    ],
+  },
+   {
+    name: "Pricing Plans",
+    icon: ReceiptText ,
+    children: [
+      {
+        href: "/dashboard/admin/pricing-planes",
+        name: "Services Pricing",
+        icon: IndianRupee,
       },
     ],
   },

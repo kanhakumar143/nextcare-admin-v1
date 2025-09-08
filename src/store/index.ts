@@ -1,3 +1,4 @@
+import pricingReducer from "./slices/pricingSlice";
 import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import receptionistReducer from "./slices/receptionistSlice";
@@ -34,6 +35,7 @@ const store = configureStore({
     pharmacy: pharmacyReducer,
     availabilityTemplate: availabilityTemplateReducer,
     scheduleSlots: scheduleSlotsReducer,
+    pricing: pricingReducer,
   },
 });
 
