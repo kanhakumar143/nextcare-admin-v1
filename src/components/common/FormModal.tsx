@@ -7,6 +7,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { uploadImageToAws } from "@/services/labTechnician.api";
+import { UploadImageResponse } from "@/types/labTechnician.type";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -59,22 +62,6 @@ const practitionerFormSchema = z.object({
   selected_service_name: z.string().optional(),
   selected_specialty_id: z.string().min(1, "Specialty selection is required"),
 
-  // Qualification
-  qualification_degree: z.string().min(1, "Degree is required"),
-  qualification_institution: z.string().min(1, "Institution is required"),
-  qualification_year: z
-    .string()
-    .min(4, "Year must be 4 digits")
-    .refine(
-      (val) => {
-        const year = parseInt(val);
-        return year >= 1950 && year <= currentYear;
-      },
-      {
-        message: `Year must be between 1950 and ${currentYear}`,
-      }
-    ),
-
   // License Details
   license_number: z.string().min(1, "License number is required"),
   license_issued_by: z.string().min(1, "License issuing authority is required"),
@@ -86,11 +73,8 @@ const practitionerFormSchema = z.object({
     }),
 
   // URLs
-  profile_picture_url: z.string().url("Must be a valid URL").optional(),
-  license_url: z
-    .string()
-    .url("Must be a valid URL")
-    .min(1, "License URL is required"),
+  profile_picture_url: z.string().optional(),
+  license_url: z.string().optional(),
 
   is_active: z.boolean(),
 });
@@ -121,6 +105,8 @@ export default function PractitionerFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedService, setSelectedService] = useState<string>("");
   const [selectedServiceData, setSelectedServiceData] = useState<any>(null);
+  const [uploadingProfile, setUploadingProfile] = useState(false);
+  const [uploadingLicense, setUploadingLicense] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
   const { items } = useSelector((state: RootState) => state.services);
@@ -132,9 +118,6 @@ export default function PractitionerFormModal({
       is_active: true,
       selected_service_name: "",
       selected_specialty_id: "",
-      qualification_degree: "",
-      qualification_institution: "",
-      qualification_year: "",
       license_number: "",
       license_issued_by: "",
       license_expiry: "",
@@ -160,9 +143,99 @@ export default function PractitionerFormModal({
     form.setValue("selected_specialty_id", specialtyId);
   };
 
+  // Handle profile picture upload
+  const handleProfilePictureUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!e.target.files || !e.target.files[0]) {
+      toast.error("Please select an image to upload.");
+      return;
+    }
+
+    const file = e.target.files[0];
+
+    // Validate file type (images only)
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file only.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("f_name", "profile_picture");
+    formData.append("doc_types", "profile");
+    formData.append("phone_no", new Date().toISOString());
+    formData.append("files", file);
+
+    setUploadingProfile(true);
+
+    try {
+      const response: UploadImageResponse = await uploadImageToAws(formData);
+      const file_url = response.uploaded_files[0].file_url;
+
+      if (file_url) {
+        form.setValue("profile_picture_url", file_url);
+        toast.success("Profile picture uploaded successfully");
+      }
+    } catch (error) {
+      console.error("Profile picture upload error:", error);
+      toast.error("Something went wrong! Please try again");
+    } finally {
+      setUploadingProfile(false);
+    }
+  };
+
+  // Handle license document upload
+  const handleLicenseUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!e.target.files || !e.target.files[0]) {
+      toast.error("Please select an image to upload.");
+      return;
+    }
+
+    const file = e.target.files[0];
+
+    // Validate file type (images only)
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file only.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("f_name", "license_document");
+    formData.append("doc_types", "license");
+    formData.append("phone_no", new Date().toISOString());
+    formData.append("files", file);
+
+    setUploadingLicense(true);
+
+    try {
+      const response: UploadImageResponse = await uploadImageToAws(formData);
+      const file_url = response.uploaded_files[0].file_url;
+
+      if (file_url) {
+        form.setValue("license_url", file_url);
+        toast.success("License document uploaded successfully");
+      }
+    } catch (error) {
+      console.error("License upload error:", error);
+      toast.error("Something went wrong! Please try again");
+    } finally {
+      setUploadingLicense(false);
+    }
+  };
+
   const onSubmit = async (data: PractitionerFormData) => {
-    // setIsSubmitting(true);
+    setIsSubmitting(true);
     console.log("Form Data Submitted:", data);
+
+    // Validate required fields
+    if (!data.license_url) {
+      toast.error("Please upload the license document before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const payload = {
         user: {
@@ -188,13 +261,6 @@ export default function PractitionerFormModal({
           birth_date: data.birth_date ?? "",
           is_active: data.is_active ?? true,
           service_specialty_id: data.selected_specialty_id ?? "",
-          qualification: [
-            {
-              degree: data.qualification_degree ?? "",
-              institution: data.qualification_institution ?? "",
-              year: data.qualification_year ?? "",
-            },
-          ],
           license_details: {
             number: data.license_number ?? "",
             issued_by: data.license_issued_by ?? "",
@@ -233,9 +299,6 @@ export default function PractitionerFormModal({
         is_active: true,
         selected_service_name: "",
         selected_specialty_id: "",
-        qualification_degree: "",
-        qualification_institution: "",
-        qualification_year: "",
         license_number: "",
         license_issued_by: "",
         license_expiry: "",
@@ -263,12 +326,14 @@ export default function PractitionerFormModal({
       form.reset();
       setSelectedService("");
       setSelectedServiceData(null);
+      setUploadingProfile(false);
+      setUploadingLicense(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="w-[60vw] max-w-none max-h-[90vh] overflow-y-auto">
+      <DialogContent className=" max-h-[90vh] overflow-y-auto min-w-5xl">
         <DialogHeader>
           <DialogTitle>
             {editPractitionerId
@@ -520,63 +585,6 @@ export default function PractitionerFormModal({
               </div>
             </div>
 
-            {/* Qualification Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-bold">Qualification</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="qualification_degree"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Degree <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., MBBS, MD, BSN" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="qualification_institution"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Institution <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input placeholder="e.g., AIIMS Delhi" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="qualification_year"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Year of Graduation{" "}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., 2008"
-                          maxLength={4}
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
-
             {/* License Details Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-bold">License Details</h3>
@@ -630,45 +638,54 @@ export default function PractitionerFormModal({
               </div>
             </div>
 
-            {/* Document URLs Section */}
+            {/* Document Upload Section */}
             <div className="space-y-4">
-              <h3 className="text-lg font-bold">Document URLs</h3>
+              <h3 className="text-lg font-bold">Document Upload</h3>
               <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="profile_picture_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Profile Picture URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://example.com/profile.jpg"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="license_url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        License Document URL{" "}
-                        <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://example.com/license.pdf"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Profile Picture
+                  </label>
+                  <div className="space-y-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureUpload}
+                      disabled={uploadingProfile}
+                      className="cursor-pointer"
+                    />
+                    {uploadingProfile && (
+                      <p className="text-sm text-blue-600">Uploading...</p>
+                    )}
+                    {form.watch("profile_picture_url") && (
+                      <p className="text-sm text-green-600">
+                        ✓ Image uploaded successfully
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    License Document <span className="text-red-500">*</span>
+                  </label>
+                  <div className="space-y-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLicenseUpload}
+                      disabled={uploadingLicense}
+                      className="cursor-pointer"
+                    />
+                    {uploadingLicense && (
+                      <p className="text-sm text-blue-600">Uploading...</p>
+                    )}
+                    {form.watch("license_url") && (
+                      <p className="text-sm text-green-600">
+                        ✓ Document uploaded successfully
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
 

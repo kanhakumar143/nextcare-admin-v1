@@ -7,6 +7,7 @@ import { Plus, Search, Filter } from "lucide-react";
 import PricingCard from "./common/PricingCard";
 import AddPricingModal from "./common/AddPricingModal";
 import EditPricingModal from "./common/EditPricingModal";
+import DeleteConfirmationModal from "./common/DeleteConfirmationModal";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { fetchAllPricing, removePricing } from "@/store/slices/pricingSlice";
@@ -36,8 +37,10 @@ export default function ServicesPricing() {
   const { items: services } = useSelector((state: RootState) => state.services);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editEntry, setEditEntry] = useState<PricingEntry | null>(null);
+  const [deleteEntry, setDeleteEntry] = useState<PricingEntry | null>(null);
 
   useEffect(() => {
     dispatch(fetchAllPricing(tenant_id));
@@ -98,11 +101,19 @@ export default function ServicesPricing() {
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteClick = (id: string) => {
-    if (!confirm("Are you sure you want to delete this pricing?")) return;
-    dispatch(removePricing(id)).then((res: any) => {
+  const handleDeleteClick = (entry: PricingEntry) => {
+    setDeleteEntry(entry);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteEntry) return;
+
+    dispatch(removePricing(deleteEntry.id)).then((res: any) => {
       if (removePricing.fulfilled.match(res)) {
         dispatch(fetchAllPricing(tenant_id));
+        setIsDeleteModalOpen(false);
+        setDeleteEntry(null);
         if (typeof window !== "undefined") {
           // @ts-ignore
           import("sonner").then(({ toast }) =>
@@ -193,7 +204,7 @@ export default function ServicesPricing() {
               <PricingCard
                 entry={entry}
                 onEditClick={() => handleEditClick(entry)}
-                onDeleteClick={() => handleDeleteClick(entry.id)}
+                onDeleteClick={() => handleDeleteClick(entry)}
               />
             </div>
           ))}
@@ -227,6 +238,18 @@ export default function ServicesPricing() {
           setEditEntry(null);
         }}
         entry={editEntry}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeleteEntry(null);
+        }}
+        onConfirm={handleConfirmDelete}
+        entry={deleteEntry}
+        isLoading={loading}
       />
     </div>
   );
