@@ -186,6 +186,7 @@ export interface DoctorData {
     institution?: string | null | undefined;
     year?: string | null | undefined;
   }[];
+  service_specialty_id?: string;
   availability_status: {
     practitioner_id: string;
     practitioner_name: string;

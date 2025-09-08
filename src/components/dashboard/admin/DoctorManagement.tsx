@@ -725,7 +725,7 @@ export default function DoctorManagement() {
                 </DropdownMenuItem>
 
                 {/* Create Slots Option */}
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   onClick={() => {
                     setTempSlotsDoctor(doctor);
                     setShowTempSlotsModal(true);
@@ -733,7 +733,7 @@ export default function DoctorManagement() {
                 >
                   <Clock className="w-4 h-4 mr-2" />
                   Create Slots
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
 
                 {/* View Available Slots Option */}
                 <DropdownMenuItem

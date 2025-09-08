@@ -68,9 +68,9 @@ export const adminRoutes: Route[] = [
     icon: BellRing,
   },
   {
-    href: "/dashboard/admin/schedule",
-    name: "Schedule",
-    icon: BellRing,
+    href: "/dashboard/admin/slots-management",
+    name: "Slots Management",
+    icon: Calendar1,
   },
 
   {
@@ -209,7 +209,7 @@ export const receptionistRoutes: Route[] = [
     name: "Print Prescription",
     icon: LayoutDashboard,
   },
- 
+
   {
     href: "/dashboard/receptionist/plan-pricing",
     name: "Pricing Plans",

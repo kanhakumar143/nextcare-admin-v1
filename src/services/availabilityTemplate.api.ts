@@ -1,4 +1,5 @@
 import { api } from "@/lib/axios";
+import { SlotSubmissionData } from "@/types/scheduleSlots.types";
 
 export interface CreateAvailabilityTemplatePayload {
   name: string;
@@ -88,4 +89,32 @@ export const createSlots = async (payload: any) => {
 export const getAllSchedules = async () => {
   const response = await api.get("schedule/?skip=0&limit=1000");
   return response.data;
+};
+
+export const getAllSchedulesByPractitioner = async (practitionerId: string) => {
+  const response = await api.get(`schedule/by-practitioner/${practitionerId}`);
+  return response.data;
+};
+
+export const createScheduleSlotsWithTemplate = async (
+  payload: SlotSubmissionData
+) => {
+  const response = await api.post(`schedule-templates/`, payload);
+  return response.data;
+};
+
+export const updateTemplate = async (payload: SlotSubmissionData) => {
+  const response = await api.put(`schedule-templates/`, payload);
+  return response.data;
+};
+
+export const getAllTemplatesByPractitioner = async (practitionerId: string) => {
+  const response = await api.get(
+    `schedule-templates/?practitioner_id=${practitionerId}`
+  );
+  return response.data;
+};
+
+export const deleteTemplate = async (templateId: string) => {
+  await api.delete(`schedule-templates/?template_id=${templateId}`);
 };

@@ -14,6 +14,7 @@ import allAppointmentsReducer from "./slices/allAppointmentSlice";
 import ehrReducer from "./slices/ehrSlice";
 import pharmacyReducer from "./slices/pharmacySlice";
 import availabilityTemplateReducer from "./slices/availabilityTemplateSlice";
+import scheduleSlotsReducer from "./slices/scheduleSlotsSlice";
 
 const store = configureStore({
   reducer: {
@@ -32,6 +33,7 @@ const store = configureStore({
     ehr: ehrReducer,
     pharmacy: pharmacyReducer,
     availabilityTemplate: availabilityTemplateReducer,
+    scheduleSlots: scheduleSlotsReducer,
   },
 });
 
