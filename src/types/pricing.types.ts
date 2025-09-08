@@ -1,3 +1,17 @@
+export interface PricingPayload {
+  tenant_id: string;
+  service_specialty_id: string;
+  base_price: number;
+  tax_percentage: number;
+  currency: string;
+  remark?: string;
+}
+
+// export interface PricingResponse {
+//   success: boolean;
+//   message: string;
+//   data?: any;
+// }
 export interface PricingPlanFeatures {
   support?: string;
   priority_booking?: boolean;
@@ -24,4 +38,27 @@ export interface PricingPlan {
 
 export interface PricingPlansResponse {
   plans: PricingPlan[];
+}
+export interface PricingResponse {
+  id: string; // Add this
+  tenant_id: string;
+  service_specialty_id: string;
+  base_price: number;
+  tax_percentage: number;
+  currency: string;
+  remark: string;
+  created_at: string;
+  updated_at: string;
+  success?: boolean;
+  message?: string;
+}
+
+
+export interface UpdatePricingPayload {
+  tenant_id: string;
+  service_specialty_id: string;
+  base_price: number;
+  tax_percentage: number;
+  currency: string;
+  remark?: string; // optional
 }
