@@ -1,126 +1,135 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Plus, Search, Filter } from "lucide-react"
-import PricingCard from "./common/PricingCard"
-import AddPricingModal from "./common/AddPricingModal"
-import { useDispatch, useSelector } from "react-redux"
-import { RootState, AppDispatch } from "@/store"
-import { fetchAllPricing, putPricing, removePricing } from "@/store/slices/pricingSlice"
-import { fetchServices } from "@/store/slices/servicesSlice"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Plus, Search, Filter } from "lucide-react";
+import PricingCard from "./common/PricingCard";
+import AddPricingModal from "./common/AddPricingModal";
+import EditPricingModal from "./common/EditPricingModal";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store";
+import { fetchAllPricing, removePricing } from "@/store/slices/pricingSlice";
+import { fetchServices } from "@/store/slices/servicesSlice";
 
 interface PricingEntry {
-  id: string
-  service_specialty_id: string
-  service: string
-  specialty: string
-  price: number
-  tax: number
-  totalPrice: number
-   isActive: boolean;
+  id: string;
+  service_specialty_id: string;
+  service: string;
+  specialty: string;
+  price: number;
+  tax: number;
+  totalPrice: number;
+  isActive: boolean;
 }
 
-const tenant_id = process.env.NEXT_PUBLIC_TENANT_ID || "4896d272-e201-4dce-9048-f93b1e3ca49f"
+const tenant_id =
+  process.env.NEXT_PUBLIC_TENANT_ID || "4896d272-e201-4dce-9048-f93b1e3ca49f";
 
 export default function ServicesPricing() {
-  const dispatch = useDispatch<AppDispatch>()
-  const { items: pricingData, loading, error } = useSelector((state: RootState) => state.pricing)
-  const { items: services } = useSelector((state: RootState) => state.services)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [searchTerm, setSearchTerm] = useState("")
-  const [editEntry, setEditEntry] = useState<PricingEntry | null>(null)
+  const dispatch = useDispatch<AppDispatch>();
+  const {
+    items: pricingData,
+    loading,
+    error,
+  } = useSelector((state: RootState) => state.pricing);
+  const { items: services } = useSelector((state: RootState) => state.services);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [editEntry, setEditEntry] = useState<PricingEntry | null>(null);
 
   useEffect(() => {
-    dispatch(fetchAllPricing(tenant_id))
-    dispatch(fetchServices())
-  }, [dispatch])
+    dispatch(fetchAllPricing(tenant_id));
+    dispatch(fetchServices());
+  }, [dispatch]);
 
   // Build service-specialty lookup map
-  const serviceSpecialtyMap: Record<string, { service: string; specialty: string }> = {}
+  const serviceSpecialtyMap: Record<
+    string,
+    { service: string; specialty: string }
+  > = {};
   services.forEach((srv: any) => {
     if (srv.specialties && Array.isArray(srv.specialties)) {
       srv.specialties.forEach((sp: any) => {
         serviceSpecialtyMap[sp.id] = {
           service: srv.name || srv.service_label || "",
           specialty: sp.specialty_label || sp.display || sp.name || "",
-        }
-      })
+        };
+      });
     }
-  })
+  });
 
   // Map PricingResponse to PricingEntry
-  const pricingEntries: PricingEntry[] = (pricingData ?? []).map((entry: any) => {
-    const mapping = serviceSpecialtyMap[entry.service_specialty_id] || {};
-    return {
-      id: entry.id || entry._id || Math.random().toString(),
-      service_specialty_id: entry.service_specialty_id,
-      service: mapping.service || "No Service",
-      specialty: entry.service_specialty?.display || mapping.specialty || "No Specialty",
-      price: entry.base_price ?? entry.price ?? 0,
-      tax: entry.tax_percentage ?? entry.tax ?? 0,
-      totalPrice:
-        (entry.base_price ?? entry.price ?? 0) +
-        Math.round((entry.base_price ?? entry.price ?? 0) * ((entry.tax_percentage ?? entry.tax ?? 0) / 100)),
-      isActive: entry.service_specialty?.is_active ?? true,
-    };
-  });
+  const pricingEntries: PricingEntry[] = (pricingData ?? []).map(
+    (entry: any) => {
+      const mapping = serviceSpecialtyMap[entry.service_specialty_id] || {};
+      return {
+        id: entry.id || entry._id || Math.random().toString(),
+        service_specialty_id: entry.service_specialty_id,
+        service: mapping.service || "No Service",
+        specialty:
+          entry.service_specialty?.display ||
+          mapping.specialty ||
+          "No Specialty",
+        price: entry.base_price ?? entry.price ?? 0,
+        tax: entry.tax_percentage ?? entry.tax ?? 0,
+        totalPrice:
+          (entry.base_price ?? entry.price ?? 0) +
+          Math.round(
+            (entry.base_price ?? entry.price ?? 0) *
+              ((entry.tax_percentage ?? entry.tax ?? 0) / 100)
+          ),
+        isActive: entry.service_specialty?.is_active ?? true,
+      };
+    }
+  );
 
   // Filter based on search term
   const filteredData = pricingEntries.filter((entry: PricingEntry) => {
     return (
       entry.service.toLowerCase().includes(searchTerm.toLowerCase()) ||
       entry.specialty.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  })
+    );
+  });
 
   const handleEditClick = (entry: PricingEntry) => {
-    setEditEntry(entry)
-    setIsModalOpen(true)
-  }
+    setEditEntry(entry);
+    setIsEditModalOpen(true);
+  };
 
   const handleDeleteClick = (id: string) => {
     if (!confirm("Are you sure you want to delete this pricing?")) return;
     dispatch(removePricing(id)).then((res: any) => {
       if (removePricing.fulfilled.match(res)) {
         dispatch(fetchAllPricing(tenant_id));
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           // @ts-ignore
-          import('sonner').then(({ toast }) => toast.success('Pricing deleted successfully!'));
+          import("sonner").then(({ toast }) =>
+            toast.success("Pricing deleted successfully!")
+          );
         }
       } else {
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
           // @ts-ignore
-          import('sonner').then(({ toast }) => toast.error(res.payload || 'Failed to delete pricing'));
+          import("sonner").then(({ toast }) =>
+            toast.error(res.payload || "Failed to delete pricing")
+          );
         }
       }
     });
-  }
+  };
 
-  const handleSavePricing = (newEntry: Omit<PricingEntry, "id" | "totalPrice">) => {
+  const handleSavePricing = (
+    newEntry: Omit<PricingEntry, "id" | "totalPrice">
+  ) => {
     if (editEntry) {
-      // Edit flow
-      dispatch(
-        putPricing({
-          id: editEntry.id,
-          payload: {
-            ...newEntry,
-            tenant_id: tenant_id,
-            service_specialty_id: editEntry.service_specialty_id,
-            base_price: newEntry.price,
-            tax_percentage: newEntry.tax,
-            currency: "INR",
-            remark: "Standard consultation fee",
-          },
-        })
-      )
-      setEditEntry(null)
+      setEditEntry(null);
     } else {
       // Add flow handled in AddPricingModal
     }
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -129,7 +138,9 @@ export default function ServicesPricing() {
         <div className="container mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="animate-fade-in">
-              <h1 className="text-4xl font-bold text-foreground mb-2">Healthcare Pricing</h1>
+              <h1 className="text-4xl font-bold text-foreground mb-2">
+                Healthcare Pricing
+              </h1>
               <p className="text-muted-foreground text-lg">
                 Manage your services and specialties with intelligent pricing
               </p>
@@ -161,7 +172,11 @@ export default function ServicesPricing() {
               className="pl-10 h-12"
             />
           </div>
-          <Button variant="outline" size="lg" className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="lg"
+            className="flex items-center gap-2"
+          >
             <Filter className="w-4 h-4" />
             Filter
           </Button>
@@ -197,12 +212,22 @@ export default function ServicesPricing() {
       <AddPricingModal
         isOpen={isModalOpen}
         onClose={() => {
-          setIsModalOpen(false)
-          setEditEntry(null)
+          setIsModalOpen(false);
+          setEditEntry(null);
         }}
         onAdd={handleSavePricing}
         entry={editEntry}
       />
+
+      {/* Edit Pricing Modal */}
+      <EditPricingModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditEntry(null);
+        }}
+        entry={editEntry}
+      />
     </div>
-  )
+  );
 }

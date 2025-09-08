@@ -1,6 +1,11 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { PricingPayload, PricingResponse } from '@/types/pricing.types';
-import { createPricing, getAllPricing, updatePricing, deletePricing } from '@/services/pricing.api';
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { PricingPayload, PricingResponse } from "@/types/pricing.types";
+import {
+  createPricing,
+  getAllPricing,
+  updatePricing,
+  deletePricing,
+} from "@/services/pricing.api";
 
 interface PricingState {
   loading: boolean;
@@ -14,71 +19,64 @@ const initialState: PricingState = {
   loading: false,
   error: null,
   success: false,
-  message: '',
+  message: "",
   items: [],
 };
 
 // Create pricing
 export const postPricing = createAsyncThunk<PricingResponse, PricingPayload>(
-  'pricing/postPricing',
+  "pricing/postPricing",
   async (payload, { rejectWithValue }) => {
     try {
       const response = await createPricing(payload);
       return response;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to post pricing');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to post pricing"
+      );
     }
   }
 );
 
 // Fetch all pricing
 export const fetchAllPricing = createAsyncThunk<PricingResponse[], string>(
-  'pricing/fetchAllPricing',
+  "pricing/fetchAllPricing",
   async (tenant_id, { rejectWithValue }) => {
     try {
       const data = await getAllPricing(tenant_id);
       return data;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch pricing');
-    }
-  }
-);
-
-// Update pricing (payload includes `id`)
-export const putPricing = createAsyncThunk<PricingResponse, { id: string; payload: PricingPayload }>(
-  'pricing/putPricing',
-  async ({ id, payload }, { rejectWithValue }) => {
-    try {
-      const response = await updatePricing(id, payload);
-      return response;
-    } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to update pricing');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch pricing"
+      );
     }
   }
 );
 
 // Delete pricing
 export const removePricing = createAsyncThunk<string, string>(
-  'pricing/removePricing',
+  "pricing/removePricing",
   async (id, { rejectWithValue }) => {
     try {
       await deletePricing(id);
       return id;
     } catch (error: any) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to delete pricing');
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to delete pricing"
+      );
     }
   }
 );
 
 const pricingSlice = createSlice({
-  name: 'pricing',
+  name: "pricing",
   initialState,
   reducers: {
     resetPricingState: (state) => {
       state.loading = false;
       state.error = null;
       state.success = false;
-      state.message = '';
+      state.message = "";
     },
   },
   extraReducers: (builder) => {
@@ -88,20 +86,22 @@ const pricingSlice = createSlice({
         state.loading = true;
         state.error = null;
         state.success = false;
-        state.message = '';
+        state.message = "";
       })
       .addCase(postPricing.fulfilled, (state, action) => {
         state.loading = false;
         state.success = action.payload.success ?? true;
-        state.error = action.payload.success ? null : action.payload.message || null;
-        state.message = action.payload.message || '';
+        state.error = action.payload.success
+          ? null
+          : action.payload.message || null;
+        state.message = action.payload.message || "";
         if (action.payload) state.items.push(action.payload);
       })
       .addCase(postPricing.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload as string;
-        state.message = '';
+        state.message = "";
       })
 
       // FETCH
@@ -121,41 +121,17 @@ const pricingSlice = createSlice({
         state.success = false;
       })
 
-      // PUT
-      .addCase(putPricing.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.success = false;
-        state.message = '';
-      })
-      .addCase(putPricing.fulfilled, (state, action) => {
-        state.loading = false;
-        state.success = action.payload.success ?? true;
-        state.error = action.payload.success ? null : action.payload.message || null;
-        state.message = action.payload.message || '';
-
-        // Update item in list
-        const index = state.items.findIndex(item => item.id === action.payload.id);
-        if (index !== -1) state.items[index] = action.payload;
-      })
-      .addCase(putPricing.rejected, (state, action) => {
-        state.loading = false;
-        state.success = false;
-        state.error = action.payload as string;
-        state.message = '';
-      })
-
       // DELETE
       .addCase(removePricing.pending, (state) => {
         state.loading = true;
         state.error = null;
         state.success = false;
-        state.message = '';
+        state.message = "";
       })
       .addCase(removePricing.fulfilled, (state, action) => {
         state.loading = false;
         state.success = true;
-        state.items = state.items.filter(item => item.id !== action.payload);
+        state.items = state.items.filter((item) => item.id !== action.payload);
       })
       .addCase(removePricing.rejected, (state, action) => {
         state.loading = false;

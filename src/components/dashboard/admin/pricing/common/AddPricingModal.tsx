@@ -4,8 +4,12 @@ import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { fetchServices } from "@/store/slices/servicesSlice";
-import { fetchAllPricing, postPricing, resetPricingState } from '@/store/slices/pricingSlice';
-import { PricingPayload } from '@/types/pricing.types';
+import {
+  fetchAllPricing,
+  postPricing,
+  resetPricingState,
+} from "@/store/slices/pricingSlice";
+import { PricingPayload } from "@/types/pricing.types";
 import { getSpecialtiesByServiceId } from "@/services/specialty.api";
 import {
   Dialog,
@@ -31,7 +35,14 @@ import { toast } from "sonner";
 interface AddPricingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (entry: { service: any; specialty: any; price: number; tax: number; service_specialty_id: string; isActive: boolean }) => void;
+  onAdd: (entry: {
+    service: any;
+    specialty: any;
+    price: number;
+    tax: number;
+    service_specialty_id: string;
+    isActive: boolean;
+  }) => void;
   entry?: any;
 }
 
@@ -55,7 +66,7 @@ export default function AddPricingModal({
   const [selectedSpecialty, setSelectedSpecialty] = useState<any>(null);
   const [price, setPrice] = useState(100);
   const [tax, setTax] = useState(10);
-  const [successMessage, setSuccessMessage] = useState('');
+  const [successMessage, setSuccessMessage] = useState("");
   const suggestedPrices = [100, 250, 500, 1000];
 
   // Fetch services when modal opens
@@ -101,7 +112,11 @@ export default function AddPricingModal({
       try {
         const data = await getSpecialtiesByServiceId(selectedServiceId);
         // If data.data exists and is an array, use it; else fallback to data
-        const specialtiesArray = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+        const specialtiesArray = Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
         setSpecialties(specialtiesArray);
         setSpecialtiesLoading(false);
         if (specialtiesArray.length > 0) {
@@ -136,39 +151,37 @@ export default function AddPricingModal({
   // Pricing state from Redux
   const pricingState = useSelector((state: RootState) => state.pricing);
 
-const handleSave = () => {
-  if (!selectedService || !selectedSpecialty) return;
+  const handleSave = () => {
+    if (!selectedService || !selectedSpecialty) return;
 
-  const payload: PricingPayload = {
-    tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || '',
-    service_specialty_id: selectedSpecialty.id,
-    base_price: price,
-    tax_percentage: tax,
-    currency: 'INR',
-    remark: 'Standard consultation fee',
+    const payload: PricingPayload = {
+      tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "",
+      service_specialty_id: selectedSpecialty.id,
+      base_price: price,
+      tax_percentage: tax,
+      currency: "INR",
+      remark: "Standard consultation fee",
+    };
+
+    dispatch(postPricing(payload)).then((res: any) => {
+      if (postPricing.fulfilled.match(res)) {
+        // ✅ First click will close modal
+        onAdd({
+          service: selectedService,
+          specialty: selectedSpecialty,
+          price,
+          tax,
+          service_specialty_id: selectedSpecialty.id, // Include service_specialty_id
+          isActive: selectedSpecialty?.is_active ?? true,
+        });
+        dispatch(fetchAllPricing(process.env.NEXT_PUBLIC_TENANT_ID || ""));
+        dispatch(resetPricingState());
+        onClose(); // closes immediately
+      } else {
+        console.error("Error:", res.payload);
+      }
+    });
   };
-
-  dispatch(postPricing(payload)).then((res: any) => {
-    if (postPricing.fulfilled.match(res)) {
-      // ✅ First click will close modal
-      onAdd({
-        service: selectedService,
-        specialty: selectedSpecialty,
-        price,
-        tax,
-        service_specialty_id: selectedSpecialty.id, // Include service_specialty_id
-        isActive: selectedSpecialty?.is_active ?? true,
-      });
-dispatch(fetchAllPricing(process.env.NEXT_PUBLIC_TENANT_ID || ''));
-      dispatch(resetPricingState());
-      onClose(); // closes immediately
-    } else {
-      console.error("Error:", res.payload);
-    }
-  });
-};
-
-
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -341,18 +354,28 @@ dispatch(fetchAllPricing(process.env.NEXT_PUBLIC_TENANT_ID || ''));
           {step < 3 ? (
             <Button onClick={nextStep}>Next</Button>
           ) : (
-            <Button onClick={handleSave} className="bg-primary text-white" disabled={pricingState.loading}>
-              {pricingState.loading ? 'Saving...' : 'Save'}
+            <Button
+              onClick={handleSave}
+              className="bg-primary text-white"
+              disabled={pricingState.loading}
+            >
+              {pricingState.loading ? "Saving..." : "Save"}
             </Button>
           )}
           {/* Show API error message if present */}
           {pricingState.error && (
-            <div className="text-red-500 text-sm mt-2">{pricingState.error}</div>
+            <div className="text-red-500 text-sm mt-2">
+              {pricingState.error}
+            </div>
           )}
           {/* Show API response error message if present */}
-          {pricingState?.error === null && pricingState?.success === false && pricingState?.message && (
-            <div className="text-red-500 text-sm mt-2">{pricingState.message}</div>
-          )}
+          {pricingState?.error === null &&
+            pricingState?.success === false &&
+            pricingState?.message && (
+              <div className="text-red-500 text-sm mt-2">
+                {pricingState.message}
+              </div>
+            )}
           {/* Show success message if present */}
           {successMessage && (
             <div className="text-green-600 text-sm mt-2">{successMessage}</div>

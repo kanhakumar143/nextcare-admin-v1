@@ -1,10 +1,11 @@
 export interface PricingPayload {
   tenant_id: string;
-  service_specialty_id: string;
+  service_specialty_id?: string;
   base_price: number;
   tax_percentage: number;
   currency: string;
   remark?: string;
+  id?: string;
 }
 
 // export interface PricingResponse {
@@ -52,7 +53,6 @@ export interface PricingResponse {
   success?: boolean;
   message?: string;
 }
-
 
 export interface UpdatePricingPayload {
   tenant_id: string;
