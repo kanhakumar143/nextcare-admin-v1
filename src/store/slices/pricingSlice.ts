@@ -28,7 +28,11 @@ export const postPricing = createAsyncThunk<PricingResponse, PricingPayload>(
   "pricing/postPricing",
   async (payload, { rejectWithValue }) => {
     try {
-      const response = await createPricing(payload);
+      // ✅ Ensure backend gets number for base_price
+      const response = await createPricing({
+        ...payload,
+        base_price: Number(payload.base_price),
+      });
       return response;
     } catch (error: any) {
       return rejectWithValue(
@@ -38,12 +42,12 @@ export const postPricing = createAsyncThunk<PricingResponse, PricingPayload>(
   }
 );
 
-// Fetch all pricing
+// Fetch all pricing (sub_service_id based)
 export const fetchAllPricing = createAsyncThunk<PricingResponse[], string>(
   "pricing/fetchAllPricing",
-  async (tenant_id, { rejectWithValue }) => {
+  async (sub_service_id, { rejectWithValue }) => {
     try {
-      const data = await getAllPricing(tenant_id);
+      const data = await getAllPricing(sub_service_id);
       return data;
     } catch (error: any) {
       return rejectWithValue(
@@ -90,11 +94,9 @@ const pricingSlice = createSlice({
       })
       .addCase(postPricing.fulfilled, (state, action) => {
         state.loading = false;
-        state.success = action.payload.success ?? true;
-        state.error = action.payload.success
-          ? null
-          : action.payload.message || null;
-        state.message = action.payload.message || "";
+        state.success = true;
+        state.error = null;
+        state.message = "Pricing created successfully";
         if (action.payload) state.items.push(action.payload);
       })
       .addCase(postPricing.rejected, (state, action) => {

@@ -19,6 +19,8 @@ import {
   BellRing,
   ReceiptText,
   IndianRupee,
+  Wallet,
+  ScrollText,
 } from "lucide-react";
 
 export type Route = {
@@ -85,6 +87,11 @@ export const adminRoutes: Route[] = [
         icon: LayoutDashboard,
       },
       {
+        href: "/dashboard/admin/services/sub-services",
+        name: "Sub Services",
+        icon: LayoutDashboard,
+      },
+      {
         href: "/dashboard/admin/services/specialty",
         name: "Specialty",
         icon: BriefcaseMedical,
@@ -102,14 +109,20 @@ export const adminRoutes: Route[] = [
     ],
   },
    {
-    name: "Pricing Plans",
+    name: "Pricing & Billing",
     icon: ReceiptText ,
     children: [
       {
+        href: "/dashboard/admin/pricing-planes/tax-management",
+        name: "Tax Management",
+        icon: ScrollText,
+      },
+      {
         href: "/dashboard/admin/pricing-planes",
         name: "Services Pricing",
-        icon: IndianRupee,
+        icon: ScrollText,
       },
+      
     ],
   },
 ];

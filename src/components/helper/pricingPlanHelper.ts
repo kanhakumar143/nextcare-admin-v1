@@ -1,11 +1,11 @@
-import { PricingPlan, PricingPlanFeatures } from "@/types/pricing.types";
+// import { PricingPlan, PricingPlanFeatures } from "@/types/pricing.types";
 
 /**
  * Transform API features object into display-friendly features array
  * @param features - The features object from the API
  * @returns Array of feature strings for display
  */
-export const transformFeatures = (features: PricingPlanFeatures): string[] => {
+export const transformFeatures = (features: any): string[] => {
   const featureList: string[] = [];
 
   if (features.free_consultations) {
@@ -59,7 +59,7 @@ export const transformFeatures = (features: PricingPlanFeatures): string[] => {
  * @returns Boolean indicating if the plan should be marked as popular
  */
 export const isPopularPlan = (
-  plan: PricingPlan,
+  plan: any,
   index: number,
   totalPlans: number
 ): boolean => {
@@ -79,7 +79,7 @@ export const isPopularPlan = (
  * @returns Button text string
  */
 export const getButtonText = (
-  plan: PricingPlan,
+  plan: any,
   index: number,
   totalPlans: number
 ): string => {
@@ -96,7 +96,7 @@ export const getButtonText = (
  * @returns CSS class string for button styling
  */
 export const getButtonStyle = (
-  plan: PricingPlan,
+  plan: any,
   index: number,
   totalPlans: number
 ): string => {
@@ -177,7 +177,7 @@ export const formatPrice = (price: string): string => {
  * @param plans - Array of pricing plans
  * @returns Sorted array of pricing plans
  */
-export const sortPlansByPrice = (plans: PricingPlan[]): PricingPlan[] => {
+export const sortPlansByPrice = (plans: any[]): any[] => {
   return [...plans].sort((a, b) => {
     const priceA = parseInt(a.price.replace(/[^\d]/g, ""));
     const priceB = parseInt(b.price.replace(/[^\d]/g, ""));
@@ -190,18 +190,16 @@ export const sortPlansByPrice = (plans: PricingPlan[]): PricingPlan[] => {
  * @param plans - Array of pricing plans
  * @returns The plan with the most features
  */
-export const getMostFeatureRichPlan = (
-  plans: PricingPlan[]
-): PricingPlan | null => {
+export const getMostFeatureRichPlan = (plans: any[]): any | null => {
   if (plans.length === 0) return null;
 
   return plans.reduce((mostFeatureRich, current) => {
     const currentFeatureCount = Object.keys(current.features).filter(
-      (key) => current.features[key as keyof PricingPlanFeatures]
+      (key) => current.features[key as keyof any]
     ).length;
 
     const mostFeatureRichCount = Object.keys(mostFeatureRich.features).filter(
-      (key) => mostFeatureRich.features[key as keyof PricingPlanFeatures]
+      (key) => mostFeatureRich.features[key as keyof any]
     ).length;
 
     return currentFeatureCount > mostFeatureRichCount

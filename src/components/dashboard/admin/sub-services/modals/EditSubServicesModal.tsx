@@ -1,11 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import {
-  updateSubService,
-  fetchSubServicesByServiceId,
-  closeEditModal,
-} from "@/store/slices/subServicesSlice";
+import { updateSubService, fetchSubServicesByServiceId, closeEditModal } from "@/store/slices/subServicesSlice";
 import {
   Dialog,
   DialogContent,
@@ -25,13 +21,9 @@ interface EditSubServiceModalProps {
   selectedServiceId: string;
 }
 
-export default function EditSubServiceModal({
-  selectedServiceId,
-}: EditSubServiceModalProps) {
+export default function EditSubServiceModal({ selectedServiceId }: EditSubServiceModalProps) {
   const dispatch = useAppDispatch();
-  const { editing: subServiceToEdit, loading } = useAppSelector(
-    (state) => state.subService
-  );
+  const { editing: subServiceToEdit, loading } = useAppSelector((state) => state.subService);
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -73,18 +65,15 @@ export default function EditSubServiceModal({
     if (nameErr || descErr) return;
 
     try {
-      // payload includes the id
-      const payload: SubService = {
+      // ✅ Payload includes the id as required by your API
+      const payload = {
         id: subServiceToEdit.id,
         name: name.trim(),
         description: description.trim(),
         active: isActive,
-        tenant_service_id: subServiceToEdit.tenant_service_id, // keep original service ID
       };
 
-      const resultAction = await dispatch(
-        updateSubService({ id: subServiceToEdit.id, data: payload })
-      );
+      const resultAction = await dispatch(updateSubService({ id: subServiceToEdit.id, data: payload }));
 
       if (updateSubService.fulfilled.match(resultAction)) {
         toast.success("Sub-service updated successfully!");
@@ -152,9 +141,7 @@ export default function EditSubServiceModal({
               className={descriptionError ? "border-red-500" : ""}
               disabled={loading}
             />
-            {descriptionError && (
-              <p className="text-sm text-red-500">{descriptionError}</p>
-            )}
+            {descriptionError && <p className="text-sm text-red-500">{descriptionError}</p>}
           </div>
 
           {/* Active switch */}
@@ -166,11 +153,7 @@ export default function EditSubServiceModal({
                 onCheckedChange={setIsActive}
                 className={isActive ? "bg-green-500" : "bg-red-500"}
               />
-              <span
-                className={`text-sm font-medium ${
-                  isActive ? "text-green-600" : "text-red-600"
-                }`}
-              >
+              <span className={`text-sm font-medium ${isActive ? "text-green-600" : "text-red-600"}`}>
                 {isActive ? "Active" : "Inactive"}
               </span>
             </div>

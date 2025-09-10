@@ -1,64 +1,24 @@
+// 
+
+// Request payload (POST/PUT)
 export interface PricingPayload {
-  tenant_id: string;
-  service_specialty_id?: string;
-  base_price: number;
-  tax_percentage: number;
+  sub_service_id: string;
+  base_price: number;   // we’ll keep it number when sending
   currency: string;
-  remark?: string;
-  id?: string;
+  tax_id: string;
+  active: boolean;
 }
 
-// export interface PricingResponse {
-//   success: boolean;
-//   message: string;
-//   data?: any;
-// }
-export interface PricingPlanFeatures {
-  support?: string;
-  priority_booking?: boolean;
-  teleconsultation?: boolean;
-  free_consultations?: number;
-  lab_discount_percent?: number;
-  health_reports_storage?: boolean;
-  family_members?: number;
-  diet_consultation?: boolean;
-  annual_health_checkup?: boolean;
-  fitness_tracking_integration?: boolean;
-}
-
-export interface PricingPlan {
-  tenant_id: string;
-  name: string;
-  price: string;
-  duration_days: number;
-  features: PricingPlanFeatures;
-  id: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PricingPlansResponse {
-  plans: PricingPlan[];
-}
+// Response object (GET)
 export interface PricingResponse {
-  id: string; // Add this
-  tenant_id: string;
-  service_specialty_id: string;
-  base_price: number;
-  tax_percentage: number;
+  id: string;
+  sub_service_id: string;
+  base_price: string;   // comes as string from API
   currency: string;
-  remark: string;
+  tax_id: string;
+  active: boolean;
   created_at: string;
   updated_at: string;
   success?: boolean;
   message?: string;
-}
-
-export interface UpdatePricingPayload {
-  tenant_id: string;
-  service_specialty_id: string;
-  base_price: number;
-  tax_percentage: number;
-  currency: string;
-  remark?: string; // optional
 }
