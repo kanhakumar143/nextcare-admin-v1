@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { getAllPricingPlansByTenant } from "@/services/receptionist.api";
-import { PricingPlan } from "@/types/pricing.types";
+// import { PricingPlan } from "@/types/pricing.types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,7 +19,7 @@ import {
 import { Check, Star, Clock, Shield, Users, Heart } from "lucide-react";
 
 const ShowPlanPricingDetails: React.FC = () => {
-  const [pricingPlans, setPricingPlans] = useState<PricingPlan[]>([]);
+  const [pricingPlans, setPricingPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
