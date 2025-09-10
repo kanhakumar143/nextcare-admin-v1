@@ -82,20 +82,23 @@ export default function EditPricingModal({
       id: entry.id,
       sub_service_id: entry.sub_service_id,
       base_price: basePrice,
-      currency: "INR", // 🔧 match your system default
+      currency: "INR", // default valid value
       tax_id: selectedTaxId,
       active: isActive,
-      remark: "Updated via UI",
-      changed_by: "", // 🔧 or userId if available
+      remark: "Updated via UI", // default valid value
+      changed_by: "61fd81cb-ac87-4371-a9bd-a9bfafbbd08a", // example valid user id
     };
-
+    console.log("Update Pricing Payload:", updateData);
     try {
       const response = await updatePricing(updateData);
       console.log("Pricing updated successfully:", response);
       toast.success("Pricing updated successfully");
       dispatch(fetchAllPricing(entry.sub_service_id));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating pricing:", error);
+      if (error?.response) {
+        console.error("API Error Response:", error.response.data);
+      }
       toast.error("Failed to update pricing");
     }
     onClose();
