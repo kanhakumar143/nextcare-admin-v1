@@ -1,35 +1,45 @@
 import axios from "axios";
-import { 
-  CreateScheduleRequest, 
-  CreateScheduleResponse, 
-  CreateSlotRequest, 
-  CreateSlotResponse, 
-  GenerateSlotsRequest, 
-  GenerateSlotsResponse 
-} from "../types/schedule.type";
+import { api } from "@/lib/axios";
 
-const API_BASE = "/schedule";
-
-// ---- Create Schedule ----
-export const createSchedule = async (
-  data: CreateScheduleRequest
-): Promise<CreateScheduleResponse> => {
-  const res = await axios.post(`${API_BASE}/`, data);
-  return res.data;
+export const deleteSingleSchedule = async (scheduleId: string) => {
+  try {
+    const response = await api.delete(`schedule/single/${scheduleId}`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
 };
 
-// ---- Create Single Slot ----
-export const createSlot = async (
-  data: CreateSlotRequest
-): Promise<CreateSlotResponse> => {
-  const res = await axios.post(`${API_BASE}/slot`, data);
-  return res.data;
+export const deleteBulkSchedules = async (scheduleIds: string[]) => {
+  try {
+    const response = await api.delete(`schedule/bulk-delete`, {
+      data: scheduleIds,
+    });
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
 };
 
-// ---- Generate Bulk Slots ----
-export const generateSlots = async (
-  data: GenerateSlotsRequest
-): Promise<GenerateSlotsResponse> => {
-  const res = await axios.post(`${API_BASE}/generate-slots`, data);
-  return res.data;
+export const deleteBulkSlots = async (slotIds: string[]) => {
+  try {
+    const response = await api.delete(`schedule/slot/bulk-delete`, {
+      data: slotIds,
+    });
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
 };

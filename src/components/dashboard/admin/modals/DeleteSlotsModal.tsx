@@ -10,13 +10,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Clock, Trash2, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -24,6 +17,7 @@ import { Schedule, Slot } from "@/types/scheduleSlots.types";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { deleteBulkSlots } from "@/services/schedule.api";
 
 interface DeleteSlotsModalProps {
   isOpen: boolean;
@@ -59,33 +53,41 @@ export default function DeleteSlotsModal({
     onClose();
   };
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (!schedule) return;
-
-    if (deleteMode === "timeRange") {
-      if (!startTime || !endTime) {
-        toast.error("Please select both start and end times");
-        return;
-      }
-
-      // Create full datetime strings for comparison
-      const scheduleDate = new Date(schedule.planning_start)
-        .toISOString()
-        .split("T")[0];
-      const startDateTime = `${scheduleDate}T${startTime}:00`;
-      const endDateTime = `${scheduleDate}T${endTime}:00`;
-
-      onDeleteSlotsByTimeRange(schedule.id, startDateTime, endDateTime);
-      toast.success(`Deleted slots between ${startTime} and ${endTime}`);
-    } else {
-      if (selectedSlotIds.length === 0) {
-        toast.error("Please select at least one slot to delete");
-        return;
-      }
-      onDeleteSlots(schedule.id, selectedSlotIds);
+    console.log(selectedSlotIds);
+    try {
+      await deleteBulkSlots(selectedSlotIds);
       toast.success(`Deleted ${selectedSlotIds.length} slot(s)`);
+    } catch (error) {
+      toast.error("Failed to delete slots");
+    } finally {
+      handleClose();
     }
-    handleClose();
+    // if (deleteMode === "timeRange") {
+    //   if (!startTime || !endTime) {
+    //     toast.error("Please select both start and end times");
+    //     return;
+    //   }
+
+    //   // Create full datetime strings for comparison
+    //   const scheduleDate = new Date(schedule.planning_start)
+    //     .toISOString()
+    //     .split("T")[0];
+    //   const startDateTime = `${scheduleDate}T${startTime}:00`;
+    //   const endDateTime = `${scheduleDate}T${endTime}:00`;
+
+    //   onDeleteSlotsByTimeRange(schedule.id, startDateTime, endDateTime);
+    //   toast.success(`Deleted slots between ${startTime} and ${endTime}`);
+    // } else {
+    //   if (selectedSlotIds.length === 0) {
+    //     toast.error("Please select at least one slot to delete");
+    //     return;
+    //   }
+    //   onDeleteSlots(schedule.id, selectedSlotIds);
+    //   toast.success(`Deleted ${selectedSlotIds.length} slot(s)`);
+    // }
+    // handleClose();
   };
 
   const toggleSlotSelection = (slotId: string) => {

@@ -12,6 +12,12 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import {
   Calendar,
   Clock,
   User,
@@ -19,6 +25,7 @@ import {
   CalendarDays,
   X,
   Trash2,
+  EllipsisVertical,
 } from "lucide-react";
 import {
   Select,
@@ -35,18 +42,18 @@ import {
   fetchSchedulesByPractitioner,
   setSelectedPractitionerId,
   clearError,
-  deleteScheduleLocal,
   deleteMultipleSchedulesLocal,
   deleteSchedulesByDateRangeLocal,
   deleteSlotLocal,
-  deleteMultipleSlotsLocal,
   deleteSlotsByTimeRangeLocal,
 } from "@/store/slices/scheduleSlotsSlice";
 import { format } from "date-fns";
-import DeleteScheduleModal from "./DeleteScheduleModal";
-import DeleteSlotsModal from "./DeleteSlotsModal";
-import ConfirmDeleteModal from "./ConfirmDeleteModal";
+import moment from "moment";
+import DeleteScheduleModal from "../modals/DeleteScheduleModal";
+import DeleteSlotsModal from "../modals/DeleteSlotsModal";
+import ConfirmDeleteModal from "../modals/ConfirmDeleteModal";
 import { Schedule } from "@/types/scheduleSlots.types";
+import { deleteSingleSchedule } from "@/services/schedule.api";
 
 export default function SlotManagement() {
   const router = useRouter();
@@ -55,6 +62,8 @@ export default function SlotManagement() {
   // Date filter state
   const [fromDate, setFromDate] = useState<Date | undefined>();
   const [toDate, setToDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [dateFilterOption, setDateFilterOption] = useState<string>("all");
 
   // Delete modal states
@@ -78,7 +87,6 @@ export default function SlotManagement() {
     doctors,
     selectedPractitionerId,
     isLoadingSchedules,
-    isLoadingDoctors,
     error,
     doctorsError,
   } = useAppSelector((state) => state.scheduleSlots);
@@ -100,7 +108,7 @@ export default function SlotManagement() {
     if (selectedPractitionerId) {
       dispatch(fetchSchedulesByPractitioner(selectedPractitionerId));
     }
-  }, [selectedPractitionerId, dispatch]);
+  }, [selectedPractitionerId, dispatch, isDeleteScheduleModalOpen]);
 
   useEffect(() => {
     if (error) {
@@ -145,27 +153,32 @@ export default function SlotManagement() {
 
   // Filter schedules based on date range
   const filteredSchedules = schedules.filter((schedule) => {
-    const scheduleDate = new Date(schedule.planning_start);
-    scheduleDate.setHours(0, 0, 0, 0); // Normalize to start of day for comparison
+    const scheduleDate = moment(schedule.planning_start).startOf("day");
 
-    if (fromDate && toDate) {
-      const fromDateNormalized = new Date(fromDate);
-      fromDateNormalized.setHours(0, 0, 0, 0);
-      const toDateNormalized = new Date(toDate);
-      toDateNormalized.setHours(23, 59, 59, 999);
-
-      return (
-        scheduleDate >= fromDateNormalized && scheduleDate <= toDateNormalized
-      );
-    } else if (fromDate) {
-      const fromDateNormalized = new Date(fromDate);
-      fromDateNormalized.setHours(0, 0, 0, 0);
-      return scheduleDate >= fromDateNormalized;
-    } else if (toDate) {
-      const toDateNormalized = new Date(toDate);
-      toDateNormalized.setHours(23, 59, 59, 999);
-      return scheduleDate <= toDateNormalized;
+    // Handle single date filters (today, tomorrow, specific date)
+    if (selectedDate) {
+      const filterDate = moment(selectedDate).startOf("day");
+      return scheduleDate.isSame(filterDate, "day");
     }
+
+    // Handle date range filters
+    if (dateRange.from || dateRange.to || fromDate || toDate) {
+      const startDate = dateRange.from || fromDate;
+      const endDate = dateRange.to || toDate;
+
+      if (startDate && endDate) {
+        const fromMoment = moment(startDate).startOf("day");
+        const toMoment = moment(endDate).endOf("day");
+        return scheduleDate.isBetween(fromMoment, toMoment, "day", "[]");
+      } else if (startDate) {
+        const fromMoment = moment(startDate).startOf("day");
+        return scheduleDate.isSameOrAfter(fromMoment, "day");
+      } else if (endDate) {
+        const toMoment = moment(endDate).endOf("day");
+        return scheduleDate.isSameOrBefore(toMoment, "day");
+      }
+    }
+
     return true; // No filter applied
   });
 
@@ -189,67 +202,78 @@ export default function SlotManagement() {
   const handleDateFilterOptionChange = (value: string) => {
     setDateFilterOption(value);
 
-    if (value === "this-month") {
-      const today = new Date();
-      const firstDayOfMonth = new Date(
-        today.getFullYear(),
-        today.getMonth(),
-        1
-      );
-      const lastDayOfMonth = new Date(
-        today.getFullYear(),
-        today.getMonth() + 1,
-        0
-      );
-      setFromDate(firstDayOfMonth);
-      setToDate(lastDayOfMonth);
-    } else if (value === "next-month") {
-      const today = new Date();
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      const endOfNextMonth = new Date(
-        today.getFullYear(),
-        today.getMonth() + 2,
-        0
-      );
-      setFromDate(nextMonth);
-      setToDate(endOfNextMonth);
-    } else if (value === "next-2-months") {
-      const today = new Date();
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-      const endOfNext2Months = new Date(
-        today.getFullYear(),
-        today.getMonth() + 3,
-        0
-      );
-      setFromDate(nextMonth);
-      setToDate(endOfNext2Months);
-    } else if (value === "all") {
-      setFromDate(undefined);
-      setToDate(undefined);
+    // Clear all previous selections
+    setSelectedDate(undefined);
+    setDateRange({});
+    setFromDate(undefined);
+    setToDate(undefined);
+
+    const today = moment().toDate();
+    const tomorrow = moment().add(1, "day").toDate();
+
+    switch (value) {
+      case "today":
+        setSelectedDate(today);
+        break;
+      case "tomorrow":
+        setSelectedDate(tomorrow);
+        break;
+      case "this-month":
+        const startOfMonth = moment().startOf("month").toDate();
+        const endOfMonth = moment().endOf("month").toDate();
+        setDateRange({ from: startOfMonth, to: endOfMonth });
+        break;
+      case "next-month":
+        const startOfNextMonth = moment()
+          .add(1, "month")
+          .startOf("month")
+          .toDate();
+        const endOfNextMonth = moment().add(1, "month").endOf("month").toDate();
+        setDateRange({ from: startOfNextMonth, to: endOfNextMonth });
+        break;
+      case "next-2-months":
+        const startOfNext = moment().add(1, "month").startOf("month").toDate();
+        const endOfNext2Months = moment()
+          .add(2, "month")
+          .endOf("month")
+          .toDate();
+        setDateRange({ from: startOfNext, to: endOfNext2Months });
+        break;
+      case "all":
+        // All filters cleared above
+        break;
+      // For "custom-single", "custom-range" we don't set dates - user will set them manually
     }
-    // For "custom", we don't set dates - user will set them manually
   };
 
   const getFilterDisplayText = () => {
     switch (dateFilterOption) {
+      case "today":
+        return `Today (${moment().format("MMM DD, YYYY")})`;
+      case "tomorrow":
+        return `Tomorrow (${moment().add(1, "day").format("MMM DD, YYYY")})`;
       case "this-month":
         return "This Month";
       case "next-month":
         return "Next Month";
       case "next-2-months":
         return "Next 2 Months";
-      case "custom":
-        if (fromDate && toDate) {
-          return `${format(fromDate, "MMM dd, yyyy")} to ${format(
-            toDate,
-            "MMM dd, yyyy"
-          )}`;
-        } else if (fromDate) {
-          return `From ${format(fromDate, "MMM dd, yyyy")}`;
-        } else if (toDate) {
-          return `Until ${format(toDate, "MMM dd, yyyy")}`;
+      case "custom-single":
+        if (selectedDate) {
+          return moment(selectedDate).format("MMM DD, YYYY");
         }
-        return "Custom Range";
+        return "Select Single Date";
+      case "custom-range":
+        if (dateRange.from && dateRange.to) {
+          return `${moment(dateRange.from).format("MMM DD, YYYY")} to ${moment(
+            dateRange.to
+          ).format("MMM DD, YYYY")}`;
+        } else if (dateRange.from) {
+          return `From ${moment(dateRange.from).format("MMM DD, YYYY")}`;
+        } else if (dateRange.to) {
+          return `Until ${moment(dateRange.to).format("MMM DD, YYYY")}`;
+        }
+        return "Custom Date Range";
       default:
         return "All Dates";
     }
@@ -258,6 +282,31 @@ export default function SlotManagement() {
   // Delete handlers
   const handleDeleteSchedules = (scheduleIds: string[]) => {
     dispatch(deleteMultipleSchedulesLocal(scheduleIds));
+  };
+
+  const deleteSingleScheduleApi = async (scheduleId: string) => {
+    try {
+      const response = await deleteSingleSchedule(scheduleId);
+      toast.success("Schedule deleted successfully.");
+      dispatch(fetchSchedulesByPractitioner(selectedPractitionerId || ""));
+    } catch {
+      toast.error("Failed to delete schedule.");
+    }
+  };
+
+  const handleDeleteSingleSchedule = (schedule: Schedule) => {
+    console.log("Deleting schedule:", schedule);
+    showConfirmation(
+      "Delete Schedule",
+      `Are you sure you want to delete the schedule for ${formatDate(
+        schedule.planning_start
+      )}? This will permanently remove all ${
+        schedule.slots.length
+      } slots for this date.`,
+      () => {
+        deleteSingleScheduleApi(schedule.id);
+      }
+    );
   };
 
   const handleDeleteSchedulesByDateRange = (
@@ -406,16 +455,23 @@ export default function SlotManagement() {
                     onValueChange={handleDateFilterOptionChange}
                   >
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select date range" />
+                      <SelectValue placeholder="Select date filter" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Dates</SelectItem>
+                      <SelectItem value="today">Today</SelectItem>
+                      <SelectItem value="tomorrow">Tomorrow</SelectItem>
                       <SelectItem value="this-month">This Month</SelectItem>
                       <SelectItem value="next-month">Next Month</SelectItem>
                       <SelectItem value="next-2-months">
                         Next 2 Months
                       </SelectItem>
-                      <SelectItem value="custom">Custom Range</SelectItem>
+                      <SelectItem value="custom-single">
+                        Custom Single Date
+                      </SelectItem>
+                      <SelectItem value="custom-range">
+                        Custom Date Range
+                      </SelectItem>
                     </SelectContent>
                   </Select>
 
@@ -433,9 +489,82 @@ export default function SlotManagement() {
                 </div>
               </div>
 
-              {/* Custom Date Inputs - Only show when custom is selected */}
-              {dateFilterOption === "custom" && (
+              {/* Custom Single Date Picker */}
+              {dateFilterOption === "custom-single" && (
                 <div className="space-y-2">
+                  <label className="text-sm font-medium">Select Date:</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {selectedDate
+                          ? moment(selectedDate).format("MMM DD, YYYY")
+                          : "Select a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {/* Custom Date Range Picker */}
+              {dateFilterOption === "custom-range" && (
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">
+                    Select Date Range:
+                  </label>
+
+                  {/* Date Range Picker */}
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start text-left font-normal"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {dateRange.from
+                          ? dateRange.to
+                            ? `${moment(dateRange.from).format(
+                                "MMM DD, YYYY"
+                              )} - ${moment(dateRange.to).format(
+                                "MMM DD, YYYY"
+                              )}`
+                            : moment(dateRange.from).format("MMM DD, YYYY")
+                          : "Pick a date range"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="range"
+                        selected={{
+                          from: dateRange.from ?? undefined,
+                          to: dateRange.to ?? undefined,
+                        }}
+                        onSelect={(range) =>
+                          setDateRange({
+                            from: range?.from ?? undefined,
+                            to: range?.to ?? undefined,
+                          })
+                        }
+                        numberOfMonths={2}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Alternative: Separate From/To Pickers */}
+                  <div className="text-xs text-muted-foreground text-center">
+                    or select individually:
+                  </div>
+
                   <div className="grid grid-cols-2 gap-2">
                     <div className="space-y-1">
                       <label className="text-xs font-medium text-muted-foreground">
@@ -448,15 +577,18 @@ export default function SlotManagement() {
                             className="w-full justify-start text-left font-normal"
                           >
                             <Calendar className="mr-2 h-4 w-4" />
-                            {fromDate ? format(fromDate, "MMM dd") : "Select"}
+                            {dateRange.from
+                              ? moment(dateRange.from).format("MMM DD")
+                              : "Start"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <CalendarComponent
                             mode="single"
-                            selected={fromDate}
-                            onSelect={setFromDate}
-                            initialFocus
+                            selected={dateRange.from}
+                            onSelect={(date) =>
+                              setDateRange((prev) => ({ ...prev, from: date }))
+                            }
                           />
                         </PopoverContent>
                       </Popover>
@@ -473,17 +605,22 @@ export default function SlotManagement() {
                             className="w-full justify-start text-left font-normal"
                           >
                             <Calendar className="mr-2 h-4 w-4" />
-                            {toDate ? format(toDate, "MMM dd") : "Select"}
+                            {dateRange.to
+                              ? moment(dateRange.to).format("MMM DD")
+                              : "End"}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
                           <CalendarComponent
                             mode="single"
-                            selected={toDate}
-                            onSelect={setToDate}
-                            initialFocus
+                            selected={dateRange.to}
+                            onSelect={(date) =>
+                              setDateRange((prev) => ({ ...prev, to: date }))
+                            }
                             disabled={(date) =>
-                              fromDate ? date < fromDate : false
+                              dateRange.from
+                                ? moment(date).isBefore(moment(dateRange.from))
+                                : false
                             }
                           />
                         </PopoverContent>
@@ -495,9 +632,13 @@ export default function SlotManagement() {
 
               {/* Filter Display Text */}
               {dateFilterOption !== "all" && (
-                <div className="text-xs text-muted-foreground">
-                  <span className="font-medium">Active:</span>{" "}
-                  {getFilterDisplayText()}
+                <div className="p-2 bg-muted/30 rounded-md">
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium">Active Filter:</span>{" "}
+                    <span className="font-medium text-foreground">
+                      {getFilterDisplayText()}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
@@ -595,18 +736,27 @@ export default function SlotManagement() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-6">
+              <Accordion type="multiple" className="w-full">
                 {filteredSchedules.map((schedule) => (
-                  <div
+                  <AccordionItem
                     key={schedule.id}
-                    className="border rounded-lg p-4 bg-card"
+                    value={schedule.id}
+                    className="border rounded-lg mb-4 bg-card"
                   >
-                    {/* Schedule Header */}
-                    <div className="mb-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold">
-                          {formatDate(schedule.planning_start)}
-                        </h3>
+                    <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                      <div className="flex items-center justify-between w-full mr-4">
+                        <div className="flex flex-col items-start space-y-1">
+                          <h3 className="text-lg font-semibold text-left">
+                            {formatDate(schedule.planning_start)}
+                          </h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Clock className="w-4 h-4" />
+                            <span>
+                              {formatTime(schedule.planning_start)} -{" "}
+                              {formatTime(schedule.planning_end)}
+                            </span>
+                          </div>
+                        </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline">
                             {calculateTotalHours(
@@ -615,132 +765,126 @@ export default function SlotManagement() {
                             )}{" "}
                             hours
                           </Badge>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenDeleteSlotsModal(schedule)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-3 h-3 mr-1" />
-                            Delete Slots
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => {
-                              showConfirmation(
-                                "Delete Schedule",
-                                `Are you sure you want to delete the schedule for ${formatDate(
-                                  schedule.planning_start
-                                )}? This will permanently remove all ${
-                                  schedule.slots.length
-                                } slots for this date.`,
-                                () => {
-                                  dispatch(deleteScheduleLocal(schedule.id));
-                                  toast.success(
-                                    `Deleted schedule for ${formatDate(
-                                      schedule.planning_start
-                                    )}`
-                                  );
-                                }
-                              );
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3 mr-1" />
-                            Delete Schedule
-                          </Button>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                          {formatTime(schedule.planning_start)} -{" "}
-                          {formatTime(schedule.planning_end)}
-                        </span>
-                      </div>
-                      {/* {schedule.comment && (
-                        <p className="text-sm text-muted-foreground">
-                          {schedule.comment}
-                        </p>
-                      )} */}
-                    </div>
-
-                    {/* Slots Grid */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium text-sm">
-                            Available Time Slots
-                          </h4>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Use "Delete Slots" button above for bulk deletion
-                            actions
-                          </p>
-                        </div>
-                        <div className="flex gap-2 text-xs">
-                          <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
-                            {
-                              schedule.slots.filter((slot) => !slot.overbooked)
-                                .length
-                            }{" "}
-                            Available
-                          </span>
-                          <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
-                            {
-                              schedule.slots.filter((slot) => slot.overbooked)
-                                .length
-                            }{" "}
-                            Overbooked
-                          </span>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1.5">
-                        {[...schedule.slots]
-                          .sort(
-                            (a, b) =>
-                              new Date(a.start).getTime() -
-                              new Date(b.start).getTime()
-                          )
-                          .map((slot) => (
-                            <div
-                              key={slot.id}
-                              className={`p-2 rounded-md border text-center text-xs transition-all duration-200 ${
-                                slot.overbooked
-                                  ? "bg-gray-100 text-gray-500 border-gray-300 opacity-60"
-                                  : slot.status === "free"
-                                  ? "bg-green-50 text-green-700 border-green-200"
-                                  : "bg-blue-50 text-blue-700 border-blue-200"
-                              }`}
-                            >
-                              <div className="font-medium text-lg">
-                                {formatTime(slot.start)}
+                          <div className="flex gap-2 text-xs">
+                            <span className="bg-green-100 text-green-700 px-2 py-1 rounded">
+                              {
+                                schedule.slots.filter(
+                                  (slot) => !slot.overbooked
+                                ).length
+                              }{" "}
+                              Available
+                            </span>
+                            <span className="bg-red-100 text-red-700 px-2 py-1 rounded">
+                              {
+                                schedule.slots.filter((slot) => slot.overbooked)
+                                  .length
+                              }{" "}
+                              Overbooked
+                            </span>
+                          </div>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <EllipsisVertical />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-56 p-2" align="end">
+                              <div className="space-y-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleOpenDeleteSlotsModal(schedule)
+                                  }
+                                  className="w-full justify-start  hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-3 h-3 mr-2 text-red-600" />
+                                  Delete Slots
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    handleDeleteSingleSchedule(schedule)
+                                  }
+                                  className="w-full justify-start  hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-3 h-3 mr-2 text-red-600" />
+                                  Delete Schedule
+                                </Button>
                               </div>
-                              <div className=" opacity-80 leading-tight">
-                                to {formatTime(slot.end)}
-                              </div>
-                              <div className="mt-3 mb-1">
-                                {slot.overbooked ? (
-                                  <span className="text-md bg-red-100 text-red-600 px-3 py-1 rounded-full m-2">
-                                    Overbooked
-                                  </span>
-                                ) : (
-                                  <span className="text-md bg-green-100 text-green-600 px-3 py-1 rounded-full">
-                                    Available
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                      {schedule.slots.length === 0 && (
-                        <div className="text-center py-4 text-muted-foreground text-sm">
-                          No slots available for this date
+                            </PopoverContent>
+                          </Popover>
                         </div>
-                      )}
-                    </div>
-                  </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-4">
+                      {/* Slots Grid */}
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-sm">
+                              Available Time Slots
+                            </h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Use "Delete Slots" button above for bulk deletion
+                              actions
+                            </p>
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-1.5">
+                          {[...schedule.slots]
+                            .sort(
+                              (a, b) =>
+                                new Date(a.start).getTime() -
+                                new Date(b.start).getTime()
+                            )
+                            .map((slot) => (
+                              <div
+                                key={slot.id}
+                                className={`p-2 rounded-md border text-center text-xs transition-all duration-200 ${
+                                  slot.overbooked
+                                    ? "bg-gray-100 text-gray-500 border-gray-300 opacity-60"
+                                    : slot.status === "free"
+                                    ? "bg-green-50 text-green-700 border-green-200"
+                                    : "bg-blue-50 text-blue-700 border-blue-200"
+                                }`}
+                              >
+                                <div className="font-medium text-lg">
+                                  {formatTime(slot.start)}
+                                </div>
+                                <div className=" opacity-80 leading-tight">
+                                  to {formatTime(slot.end)}
+                                </div>
+                                <div className="mt-3 mb-1">
+                                  {slot.overbooked ? (
+                                    <span className="text-md bg-red-100 text-red-600 px-3 py-1 rounded-full m-2">
+                                      Overbooked
+                                    </span>
+                                  ) : (
+                                    <span className="text-md bg-green-100 text-green-600 px-3 py-1 rounded-full">
+                                      Available
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                        {schedule.slots.length === 0 && (
+                          <div className="text-center py-4 text-muted-foreground text-sm">
+                            No slots available for this date
+                          </div>
+                        )}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
                 ))}
-              </div>
+              </Accordion>
             )}
           </ScrollArea>
         </CardContent>

@@ -13,6 +13,7 @@ import {
   Trash2,
 } from "lucide-react";
 import moment from "moment";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,6 +33,12 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -39,8 +46,8 @@ import {
   setSelectedPractitionerId,
   setSubmissionData,
 } from "@/store/slices/scheduleSlotsSlice";
-import CreateSlotsConfirmationModal from "./modals/CreateSlotsConfirmationModal";
-import DeleteTemplateConfirmationModal from "./modals/DeleteTemplateConfirmationModal";
+import CreateSlotsConfirmationModal from "../modals/CreateSlotsConfirmationModal";
+import DeleteTemplateConfirmationModal from "../modals/DeleteTemplateConfirmationModal";
 import {
   deleteTemplate,
   getAllTemplatesByPractitioner,
@@ -104,9 +111,9 @@ export default function CreateSlots() {
   const { schedules, doctors, selectedPractitionerId, isLoadingSchedules } =
     useAppSelector((state) => state.scheduleSlots);
   // Date range settings
-  const [dateRangeType, setDateRangeType] = useState<"months" | "custom">(
-    "months"
-  );
+  const [dateRangeType, setDateRangeType] = useState<
+    "months" | "custom" | "today" | "tomorrow" | "week"
+  >("months");
   const [monthsCount, setMonthsCount] = useState(3);
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(
@@ -180,10 +187,21 @@ export default function CreateSlots() {
   // Calculated values
   const actualInterval =
     intervalType === "preset" ? selectedInterval : customInterval;
-  const actualEndDate =
-    dateRangeType === "months"
-      ? moment(startDate).add(monthsCount, "months").toDate()
-      : endDate;
+  const actualEndDate = (() => {
+    switch (dateRangeType) {
+      case "months":
+        return moment(startDate).add(monthsCount, "months").toDate();
+      case "today":
+        return moment(startDate).endOf("day").toDate();
+      case "tomorrow":
+        return moment(startDate).endOf("day").toDate();
+      case "week":
+        return moment(startDate).add(1, "week").toDate();
+      case "custom":
+      default:
+        return endDate;
+    }
+  })();
 
   // Check if start and end date are the same
   const isSingleDay =
@@ -195,28 +213,6 @@ export default function CreateSlots() {
   // Helper functions for date input
   const formatDateForInput = (date: Date): string => {
     return moment(date).format("YYYY-MM-DD");
-  };
-
-  const handleStartDateChange = (value: string) => {
-    const newDate = new Date(value);
-    setStartDate(newDate);
-    // If end date is before new start date, update it
-    if (endDate <= newDate) {
-      setEndDate(moment(newDate).add(1, "month").toDate());
-    }
-  };
-
-  const handleEndDateChange = (value: string) => {
-    setEndDate(new Date(value));
-  };
-
-  const addUnavailableDateFromInput = (
-    value: string,
-    type: "clinic" | "doctor"
-  ) => {
-    if (!value) return;
-    const date = new Date(value);
-    addUnavailableDate(date, type);
   };
 
   useEffect(() => {
@@ -708,6 +704,7 @@ export default function CreateSlots() {
       } appointments`,
       practitioner_id: selectedPractitionerId || "",
       specialty_id: selectedDoctor?.service_specialty_id || "",
+      // user_email: selectedDoctor?.telecom[1]?.value || "",
     };
 
     // Set submission data in Redux
@@ -1163,17 +1160,42 @@ export default function CreateSlots() {
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Duration</Label>
                       <Select
-                        value={`${dateRangeType}-${monthsCount}`}
+                        value={
+                          dateRangeType === "months"
+                            ? `${dateRangeType}-${monthsCount}`
+                            : dateRangeType === "custom"
+                            ? "custom-0"
+                            : dateRangeType
+                        }
                         onValueChange={(value) => {
-                          const [type, months] = value.split("-");
-                          setDateRangeType(type as "months" | "custom");
-                          if (months) setMonthsCount(parseInt(months));
+                          if (value === "today") {
+                            setDateRangeType("today");
+                            setStartDate(moment().startOf("day").toDate());
+                          } else if (value === "tomorrow") {
+                            setDateRangeType("tomorrow");
+                            setStartDate(
+                              moment().add(1, "day").startOf("day").toDate()
+                            );
+                          } else if (value === "week") {
+                            setDateRangeType("week");
+                            setStartDate(moment().startOf("day").toDate());
+                          } else if (value === "custom-0") {
+                            setDateRangeType("custom");
+                          } else {
+                            const [type, months] = value.split("-");
+                            setDateRangeType(type as "months");
+                            if (months) setMonthsCount(parseInt(months));
+                            setStartDate(moment().startOf("day").toDate());
+                          }
                         }}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="today">Today</SelectItem>
+                          <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                          <SelectItem value="week">Next 1 week</SelectItem>
                           <SelectItem value="months-1">Next 1 month</SelectItem>
                           <SelectItem value="months-2">
                             Next 2 months
@@ -1278,25 +1300,69 @@ export default function CreateSlots() {
                         <Label className="text-xs text-gray-600">
                           Start Date
                         </Label>
-                        <Input
-                          type="date"
-                          value={formatDateForInput(startDate)}
-                          onChange={(e) =>
-                            handleStartDateChange(e.target.value)
-                          }
-                          min={formatDateForInput(new Date())}
-                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              <Calendar className="mr-2 h-4 w-4" />
+                              {startDate
+                                ? format(startDate, "MMM dd, yyyy")
+                                : "Select start date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={startDate}
+                              onSelect={(date) => {
+                                if (date) {
+                                  setStartDate(date);
+                                  // If end date is before new start date, update it
+                                  if (endDate <= date) {
+                                    setEndDate(
+                                      moment(date).add(1, "month").toDate()
+                                    );
+                                  }
+                                }
+                              }}
+                              disabled={(date) => date < new Date()}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs text-gray-600">
                           End Date
                         </Label>
-                        <Input
-                          type="date"
-                          value={formatDateForInput(endDate)}
-                          onChange={(e) => handleEndDateChange(e.target.value)}
-                          min={formatDateForInput(startDate)}
-                        />
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="w-full justify-start text-left font-normal"
+                            >
+                              <Calendar className="mr-2 h-4 w-4" />
+                              {endDate
+                                ? format(endDate, "MMM dd, yyyy")
+                                : "Select end date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={endDate}
+                              onSelect={(date) => {
+                                if (date) {
+                                  setEndDate(date);
+                                }
+                              }}
+                              disabled={(date) => date < startDate}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </div>
                   )}
@@ -1380,102 +1446,155 @@ export default function CreateSlots() {
                   </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Holidays Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Holidays</Label>
-                      <span className="text-xs text-gray-500">
-                        {clinicUnavailableDates.length} added
-                      </span>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Input
-                        type="date"
-                        min={formatDateForInput(startDate)}
-                        max={formatDateForInput(actualEndDate)}
-                        placeholder="Select holiday date"
-                        className="flex-1"
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            addUnavailableDateFromInput(
-                              e.target.value,
-                              "clinic"
-                            );
-                            e.target.value = "";
-                          }
-                        }}
-                      />
-                    </div>
-
-                    {clinicUnavailableDates.length > 0 && (
-                      <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                        <div className="flex flex-wrap gap-2">
-                          {clinicUnavailableDates.map((date, index) => (
-                            <Badge
-                              key={index}
-                              variant="outline"
-                              className="text-xs cursor-pointer hover:bg-orange-200 border-orange-300 text-orange-700 bg-white"
-                              onClick={() =>
-                                removeUnavailableDate(date, "clinic")
-                              }
-                            >
-                              {moment(date).format("MMM DD, YYYY")}
-                              <X className="w-3 h-3 ml-2" />
-                            </Badge>
-                          ))}
-                        </div>
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Holidays Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Holidays</Label>
+                        <span className="text-xs text-gray-500">
+                          {clinicUnavailableDates.length} added
+                        </span>
                       </div>
-                    )}
-                  </div>
 
-                  {/* Staff Leave Section */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium">Staff Leave</Label>
-                      <span className="text-xs text-gray-500">
-                        {doctorLeaveDates.length} added
-                      </span>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <Input
-                        type="date"
-                        min={formatDateForInput(startDate)}
-                        max={formatDateForInput(actualEndDate)}
-                        placeholder="Select leave date"
-                        className="flex-1"
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            addUnavailableDateFromInput(
-                              e.target.value,
-                              "doctor"
-                            );
-                            e.target.value = "";
-                          }
-                        }}
-                      />
-                    </div>
-
-                    {doctorLeaveDates.length > 0 && (
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                        <div className="flex flex-wrap gap-2">
-                          {doctorLeaveDates.map((date, index) => (
-                            <Badge
-                              key={index}
+                      <div className="flex gap-3">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
                               variant="outline"
-                              className="text-xs cursor-pointer hover:bg-blue-200 border-blue-300 text-blue-700 bg-white"
-                              onClick={() =>
-                                removeUnavailableDate(date, "doctor")
-                              }
+                              className="flex-1 justify-start text-left font-normal"
                             >
-                              {moment(date).format("MMM DD, YYYY")}
-                              <X className="w-3 h-3 ml-2" />
-                            </Badge>
-                          ))}
-                        </div>
+                              <Calendar className="mr-2 h-4 w-4" />
+                              Select holiday date
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  addUnavailableDate(date, "clinic");
+                                }
+                              }}
+                              disabled={(date) => {
+                                const dateStr =
+                                  moment(date).format("YYYY-MM-DD");
+                                const startStr =
+                                  moment(startDate).format("YYYY-MM-DD");
+                                const endStr =
+                                  moment(actualEndDate).format("YYYY-MM-DD");
+                                return (
+                                  dateStr < startStr ||
+                                  dateStr > endStr ||
+                                  clinicUnavailableDates.some(
+                                    (existingDate) =>
+                                      moment(existingDate).format(
+                                        "YYYY-MM-DD"
+                                      ) === dateStr
+                                  )
+                                );
+                              }}
+                            />
+                          </PopoverContent>
+                        </Popover>
                       </div>
-                    )}
+
+                      {clinicUnavailableDates.length > 0 && (
+                        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                          <div className="flex flex-wrap gap-2">
+                            {clinicUnavailableDates.map((date, index) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs cursor-pointer hover:bg-orange-200 border-orange-300 text-orange-700 bg-white"
+                                onClick={() =>
+                                  removeUnavailableDate(date, "clinic")
+                                }
+                              >
+                                {moment(date).format("MMM DD, YYYY")}
+                                <X className="w-3 h-3 ml-2" />
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Staff Leave Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">
+                          Staff Leave
+                        </Label>
+                        <span className="text-xs text-gray-500">
+                          {doctorLeaveDates.length} added
+                        </span>
+                      </div>
+
+                      <div className="flex gap-3">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="flex-1 justify-start text-left font-normal"
+                            >
+                              <Calendar className="mr-2 h-4 w-4" />
+                              Select leave date
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <CalendarComponent
+                              mode="single"
+                              selected={undefined}
+                              onSelect={(date) => {
+                                if (date) {
+                                  addUnavailableDate(date, "doctor");
+                                }
+                              }}
+                              disabled={(date) => {
+                                const dateStr =
+                                  moment(date).format("YYYY-MM-DD");
+                                const startStr =
+                                  moment(startDate).format("YYYY-MM-DD");
+                                const endStr =
+                                  moment(actualEndDate).format("YYYY-MM-DD");
+                                return (
+                                  dateStr < startStr ||
+                                  dateStr > endStr ||
+                                  doctorLeaveDates.some(
+                                    (existingDate) =>
+                                      moment(existingDate).format(
+                                        "YYYY-MM-DD"
+                                      ) === dateStr
+                                  )
+                                );
+                              }}
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {doctorLeaveDates.length > 0 && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                          <div className="flex flex-wrap gap-2">
+                            {doctorLeaveDates.map((date, index) => (
+                              <Badge
+                                key={index}
+                                variant="outline"
+                                className="text-xs cursor-pointer hover:bg-blue-200 border-blue-300 text-blue-700 bg-white"
+                                onClick={() =>
+                                  removeUnavailableDate(date, "doctor")
+                                }
+                              >
+                                {moment(date).format("MMM DD, YYYY")}
+                                <X className="w-3 h-3 ml-2" />
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Breaks Section */}
@@ -1603,26 +1722,29 @@ export default function CreateSlots() {
           <div className="space-y-4">
             {/* Preview Card */}
             <Card className="w-full border-2 border-gray-300 bg-white">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl font-bold text-black">
+              <CardHeader>
+                <div className="">
+                  <CardTitle className="text-xl text-black">
                     Slots Preview
                   </CardTitle>
-                  <div className="bg-black text-white text-2xl font-bold px-4 py-2 rounded-full shadow-lg">
-                    {customSlotCount || totalSlots}
-                  </div>
                 </div>
                 <p className="text-sm text-gray-600">
                   Review your slot configuration before creating
                 </p>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-1">
                 {/* Schedule Summary */}
                 <div className="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
+                  <div className=" pb-3 flex gap-2 items-center">
+                    <p className="text-sm font-semibold">Total Slots : </p>
+                    <p className="font-bold ">
+                      {customSlotCount || totalSlots}
+                    </p>
+                  </div>
                   <h3 className="text-sm font-semibold text-black mb-3">
                     Schedule Details
                   </h3>
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="grid grid-cols-3 gap-3">
                     <div className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
                       <span className="text-sm text-gray-600">Period</span>
                       <span className="text-sm font-medium text-black">
@@ -1647,7 +1769,7 @@ export default function CreateSlots() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
+                    <div className="flex items-center justify-between p-2 bg-white rounded border border-gray-200 w-full col-span-3">
                       <span className="text-sm text-gray-600">
                         {isSingleDay ? "Selected Date" : "Working Days"}
                       </span>
@@ -1725,7 +1847,7 @@ export default function CreateSlots() {
                 )}
 
                 {/* Repeat Pattern */}
-                <div className="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
+                {/* <div className="bg-gray-50 rounded-lg p-4 shadow-sm border border-gray-200">
                   <Label className="text-sm font-semibold text-black mb-3 block">
                     Repeat Pattern
                   </Label>
@@ -1744,10 +1866,19 @@ export default function CreateSlots() {
                       <SelectItem value="monthly">Monthly</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </div> */}
 
                 {/* Action Buttons */}
-                <div className="space-y-3 pt-4 border-t-2 border-gray-300">
+                <div className="gap-3 pt-4 flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      router.push("/dashboard/admin/slots-management")
+                    }
+                    className=" border-2 border-gray-300 hover:bg-gray-50 font-medium"
+                  >
+                    Cancel
+                  </Button>
                   {isEditingTemplateMode ? (
                     <Button onClick={handleSaveTemplate} className="w-full">
                       Save Template
@@ -1755,7 +1886,7 @@ export default function CreateSlots() {
                   ) : (
                     <Button
                       onClick={handleSubmit}
-                      className="w-full bg-black hover:bg-gray-800 text-white font-semibold py-3 text-base shadow-lg"
+                      className=" bg-black hover:bg-gray-800 text-white font-semibold py-3 text-base shadow-lg"
                       disabled={
                         totalSlots === 0 ||
                         (!isSingleDay && workingDays.length === 0)
@@ -1764,15 +1895,6 @@ export default function CreateSlots() {
                       Create {customSlotCount || totalSlots} Slots
                     </Button>
                   )}
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      router.push("/dashboard/admin/slots-management")
-                    }
-                    className="w-full border-2 border-gray-300 hover:bg-gray-50 font-medium"
-                  >
-                    Cancel
-                  </Button>
                 </div>
               </CardContent>
             </Card>

@@ -10,26 +10,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar, Clock, Trash2, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { Calendar, Clock, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Schedule } from "@/types/scheduleSlots.types";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { deleteBulkSchedules } from "@/services/schedule.api";
 
 interface DeleteScheduleModalProps {
   isOpen: boolean;
@@ -52,40 +38,52 @@ export default function DeleteScheduleModal({
   const [selectedScheduleIds, setSelectedScheduleIds] = useState<string[]>([]);
   const [fromDate, setFromDate] = useState<Date | undefined>();
   const [toDate, setToDate] = useState<Date | undefined>();
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleClose = () => {
-    setDeleteMode("single");
     setSelectedScheduleIds([]);
     setFromDate(undefined);
     setToDate(undefined);
+    setIsDeleting(false);
     onClose();
   };
 
-  const handleDeleteConfirm = () => {
-    if (deleteMode === "dateRange") {
-      if (!fromDate || !toDate) {
-        toast.error("Please select both from and to dates");
-        return;
-      }
-      onDeleteSchedulesByDateRange(
-        fromDate.toISOString(),
-        toDate.toISOString()
-      );
-      toast.success(
-        `Deleted schedules from ${format(fromDate, "MMM dd, yyyy")} to ${format(
-          toDate,
-          "MMM dd, yyyy"
-        )}`
-      );
-    } else {
-      if (selectedScheduleIds.length === 0) {
-        toast.error("Please select at least one schedule to delete");
-        return;
-      }
-      onDeleteSchedules(selectedScheduleIds);
-      toast.success(`Deleted ${selectedScheduleIds.length} schedule(s)`);
+  const handleDeleteConfirm = async () => {
+    console.log("Delete confirmed", selectedScheduleIds);
+    setIsDeleting(true);
+    try {
+      await deleteBulkSchedules(selectedScheduleIds);
+      toast.success("Schedules deleted successfully.");
+      handleClose();
+    } catch (error) {
+      toast.error("Failed to delete schedules.");
+    } finally {
+      setIsDeleting(false);
     }
-    handleClose();
+    // if (deleteMode === "dateRange") {
+    //   if (!fromDate || !toDate) {
+    //     toast.error("Please select both from and to dates");
+    //     return;
+    //   }
+    //   onDeleteSchedulesByDateRange(
+    //     fromDate.toISOString(),
+    //     toDate.toISOString()
+    //   );
+    //   toast.success(
+    //     `Deleted schedules from ${format(fromDate, "MMM dd, yyyy")} to ${format(
+    //       toDate,
+    //       "MMM dd, yyyy"
+    //     )}`
+    //   );
+    // } else {
+    //   if (selectedScheduleIds.length === 0) {
+    //     toast.error("Please select at least one schedule to delete");
+    //     return;
+    //   }
+    //   onDeleteSchedules(selectedScheduleIds);
+    //   toast.success(`Deleted ${selectedScheduleIds.length} schedule(s)`);
+    // }
+    // handleClose();
   };
 
   const toggleScheduleSelection = (scheduleId: string) => {
@@ -136,23 +134,8 @@ export default function DeleteScheduleModal({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Delete Mode Selection */}
-          {/* <div className="space-y-2">
-            <Label>Delete Mode:</Label>
-            <Select value={deleteMode} onValueChange={(value: "single" | "multiple" | "dateRange") => setDeleteMode(value)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="single">Single Schedule</SelectItem>
-                <SelectItem value="multiple">Multiple Schedules</SelectItem>
-                <SelectItem value="dateRange">Date Range</SelectItem>
-              </SelectContent>
-            </Select>
-          </div> */}
-
           {/* Date Range Selection */}
-          {deleteMode === "dateRange" && (
+          {/* {deleteMode === "dateRange" && (
             <div className="space-y-4 p-4 border rounded-lg bg-red-50">
               <div className="flex items-center gap-2 text-red-700">
                 <AlertTriangle className="w-4 h-4" />
@@ -225,7 +208,7 @@ export default function DeleteScheduleModal({
                 </div>
               )}
             </div>
-          )}
+          )} */}
 
           {/* Schedule Selection */}
           {deleteMode !== "dateRange" && (
@@ -324,16 +307,24 @@ export default function DeleteScheduleModal({
             variant="destructive"
             onClick={handleDeleteConfirm}
             disabled={
-              deleteMode === "dateRange"
+              isDeleting ||
+              (deleteMode === "dateRange"
                 ? !fromDate || !toDate
-                : selectedScheduleIds.length === 0
+                : selectedScheduleIds.length === 0)
             }
           >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete{" "}
-            {deleteMode === "dateRange" && fromDate && toDate
-              ? `${getSchedulesInDateRange().length} Schedule(s)`
-              : `${selectedScheduleIds.length} Schedule(s)`}
+            {isDeleting ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Trash2 className="w-4 h-4 mr-2" />
+            )}
+            {isDeleting
+              ? "Deleting..."
+              : `Delete ${
+                  deleteMode === "dateRange" && fromDate && toDate
+                    ? `${getSchedulesInDateRange().length} Schedule(s)`
+                    : `${selectedScheduleIds.length} Schedule(s)`
+                }`}
           </Button>
         </DialogFooter>
       </DialogContent>

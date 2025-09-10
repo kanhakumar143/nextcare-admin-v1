@@ -18,13 +18,14 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { checkInPatient } from "@/services/receptionist.api";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import RazorpayPayment from "@/components/payment/razorpayPayment";
 
 const ScannedPatientDetails = () => {
   const dispatch = useDispatch();
   const router = useRouter();
   const { userId } = useAuthInfo();
 
-  const { patientDetails } = useSelector(
+  const { patientDetails, appoinmentDetails } = useSelector(
     (state: RootState) => state.receptionistData
   );
   const [loading, setLoading] = useState<boolean>(false);
@@ -58,6 +59,8 @@ const ScannedPatientDetails = () => {
       return desc;
     }
   };
+
+  const handleConfirmPayment = () => {};
 
   return (
     <div className="w-full">
@@ -161,7 +164,7 @@ const ScannedPatientDetails = () => {
                 >
                   Verify Patient
                 </Button>
-              ) : (
+              ) : appoinmentDetails?.order_requests?.length === 0 ? (
                 <>
                   <Button
                     onClick={handleConfirmCheckin}
@@ -173,6 +176,43 @@ const ScannedPatientDetails = () => {
                     {patientDetails.time_alert}
                   </p>
                 </>
+              ) : (
+                <div className="space-y-3">
+                  {/* Payment label showing deduction */}
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                    <p className="text-sm text-green-700 text-center">
+                      ₹25 already paid during appointment booking
+                    </p>
+                  </div>
+
+                  <RazorpayPayment
+                    amount={Math.max(
+                      0,
+                      Number(
+                        appoinmentDetails?.order_requests?.[0].amount || 0
+                      ) - 25
+                    )}
+                    patientData={{
+                      name: patientDetails.patient.name || "Patient",
+                      email: patientDetails.patient.phone || "",
+                      phone: patientDetails.patient.phone || "",
+                    }}
+                    appointmentId={appoinmentDetails?.id}
+                    onSuccess={(result) => {
+                      console.log("Payment successful:", result);
+                      handleConfirmCheckin();
+                      toast.success("Payment completed successfully!");
+                      // router.push("/dashboard/appointments");
+                      // handleContinue();
+                    }}
+                    onError={(error) => {
+                      toast.error("Payment failed. Please try again.");
+                      // router.push("/book-appointment/step/3");
+                      console.error("Payment failed:", error);
+                    }}
+                    // disabled={!userDetails?.is_active}
+                  />
+                </div>
               )}
             </div>
           </CardContent>
