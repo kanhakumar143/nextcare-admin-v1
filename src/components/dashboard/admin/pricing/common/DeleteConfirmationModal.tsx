@@ -67,7 +67,7 @@ export default function DeleteConfirmationModal({
                 <span>{entry.service}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="font-medium">Specialty:</span>
+                <span className="font-medium">Sub Service:</span>
                 <span>{entry.specialty}</span>
               </div>
               <div className="flex justify-between text-sm">

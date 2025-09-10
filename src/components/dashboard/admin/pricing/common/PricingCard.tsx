@@ -21,10 +21,10 @@ interface PricingCardProps {
 
 export default function PricingCard({ entry, onEditClick, onDeleteClick }: PricingCardProps) {
   return (
-    <Card className="shadow-md hover:shadow-lg transition-shadow duration-300 relative">
+    <Card className="shadow-lg hover:shadow-2xl transition-shadow duration-300 relative max-w-70 mx-auto">
       {/* Status badge */}
-      <div className="absolute right-4 top-8">
-        <span className={`px-2 py-1 rounded text-xs font-semibold ${entry.isActive ? ' text-green-700 ' : ' text-red-700'}`}>
+      <div className="absolute right-4 top-7">
+        <span className={`px-2  rounded text-xs font-semibold ${entry.isActive ? ' text-green-700 ' : ' text-red-700'}`}>
           {entry.isActive ? 'Active' : 'Inactive'}
         </span>
       </div>
@@ -45,10 +45,10 @@ export default function PricingCard({ entry, onEditClick, onDeleteClick }: Prici
           <span className="font-bold text-primary">₹{entry.totalPrice ?? 0}</span>
         </div>
         <div className="flex justify-end gap-2 pt-3">
-          <Button variant="outline" size="sm" onClick={onEditClick}>
+          <Button variant="outline" size="sm" className="cursor-pointer" onClick={onEditClick}>
             <Edit className="w-4 h-4 mr-1" />
           </Button>
-          <Button variant="outline" size="sm" onClick={onDeleteClick}>
+          <Button variant="outline" size="sm" className="cursor-pointer" onClick={onDeleteClick}>
             <Trash className="w-4 h-4 mr-1 text-red-500" />
           </Button>
         </div>

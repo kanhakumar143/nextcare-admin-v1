@@ -9,8 +9,9 @@ import {
   postPricing,
   resetPricingState,
 } from "@/store/slices/pricingSlice";
+import { fetchTaxRates } from "@/store/slices/taxManagementSlice";
+import { fetchSubServicesByServiceId } from "@/store/slices/subServicesSlice";
 import { PricingPayload } from "@/types/pricing.types";
-import { getSpecialtiesByServiceId } from "@/services/specialty.api";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +20,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,17 +30,16 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import { toast } from "sonner";
 
 interface AddPricingModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (entry: {
     service: any;
-    specialty: any;
+    subservice: any;
     price: number;
-    tax: number;
-    service_specialty_id: string;
+    tax_id: string;
+    service_subservice_id: string;
     isActive: boolean;
   }) => void;
   entry?: any;
@@ -53,132 +52,89 @@ export default function AddPricingModal({
   entry,
 }: AddPricingModalProps) {
   const dispatch = useDispatch<AppDispatch>();
-  const { items: services, loading } = useSelector(
+  const { items: services, loading: servicesLoading } = useSelector(
     (state: RootState) => state.services
   );
+  const { taxRates } = useSelector((state: RootState) => state.taxManagement);
+  const { items: subservices, loading: subservicesLoading } = useSelector(
+    (state: RootState) => state.subService
+  );
+  const pricingState = useSelector((state: RootState) => state.pricing);
 
   const [step, setStep] = useState(1);
   const [selectedServiceId, setSelectedServiceId] = useState("");
   const [selectedService, setSelectedService] = useState<any>(null);
-  const [specialties, setSpecialties] = useState<Array<any>>([]);
-  const [specialtiesLoading, setSpecialtiesLoading] = useState(false);
-  const [selectedSpecialtyId, setSelectedSpecialtyId] = useState("");
-  const [selectedSpecialty, setSelectedSpecialty] = useState<any>(null);
+  const [selectedSubserviceId, setSelectedSubserviceId] = useState("");
+  const [selectedSubservice, setSelectedSubservice] = useState<any>(null);
   const [price, setPrice] = useState(100);
-  const [tax, setTax] = useState(10);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [selectedTaxId, setSelectedTaxId] = useState("");
+
   const suggestedPrices = [100, 250, 500, 1000];
 
-  // Fetch services when modal opens
+  // Fetch services & taxes when modal opens
   useEffect(() => {
-    if (isOpen) dispatch(fetchServices());
+    if (isOpen) {
+      dispatch(fetchServices());
+      dispatch(fetchTaxRates());
+    }
   }, [isOpen, dispatch]);
 
-  // Reset modal on close
+  // Reset state on close
   useEffect(() => {
     if (!isOpen) {
       setStep(1);
       setSelectedServiceId("");
       setSelectedService(null);
-      setSpecialties([]);
-      setSelectedSpecialtyId("");
-      setSelectedSpecialty(null);
+      setSelectedSubserviceId("");
+      setSelectedSubservice(null);
       setPrice(100);
-      setTax(10);
-      setSuccessMessage("");
+      setSelectedTaxId("");
     }
   }, [isOpen]);
 
-  // Prefill modal fields with entry values when editing
+  // Prefill for editing
   useEffect(() => {
     if (entry) {
-      setStep(1);
-      setSelectedServiceId(entry.service_specialty_id || "");
       setSelectedService(entry.service || null);
-      setSpecialties([]); // Optionally fetch specialties for the service
-      setSelectedSpecialtyId(entry.service_specialty_id || "");
-      setSelectedSpecialty(entry.specialty || null);
+      setSelectedServiceId(entry.service?.id || "");
+      setSelectedSubservice(entry.subservice || null);
+      setSelectedSubserviceId(entry.subservice?.id || "");
       setPrice(entry.price ?? 100);
-      setTax(entry.tax ?? 10);
-      setSuccessMessage("");
+      setSelectedTaxId(entry.tax_id || "");
     }
   }, [entry]);
 
-  // Fetch specialties after selecting a service
+  // Fetch subservices when service changes
   useEffect(() => {
-    const fetchSpecialties = async () => {
-      if (!selectedServiceId) return;
-      setSpecialtiesLoading(true);
-      try {
-        const data = await getSpecialtiesByServiceId(selectedServiceId);
-        // If data.data exists and is an array, use it; else fallback to data
-        const specialtiesArray = Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data)
-          ? data
-          : [];
-        setSpecialties(specialtiesArray);
-        setSpecialtiesLoading(false);
-        if (specialtiesArray.length > 0) {
-          setTimeout(() => {
-            setSelectedSpecialtyId(specialtiesArray[0].id);
-            setSelectedSpecialty(specialtiesArray[0]);
-          }, 0);
-        } else {
-          setSelectedSpecialtyId("");
-          setSelectedSpecialty(null);
-        }
-      } catch (err) {
-        console.error("Failed to fetch specialties:", err);
-        setSpecialties([]);
-        setSpecialtiesLoading(false);
-        setSelectedSpecialtyId("");
-        setSelectedSpecialty(null);
-      }
-    };
-
-    fetchSpecialties();
-  }, [selectedServiceId]);
-
-  const nextStep = () => {
-    if (step === 1 && !selectedService) return;
-    if (step === 2 && !selectedSpecialty) return;
-    setStep((prev) => Math.min(prev + 1, 3));
-  };
-
-  const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
-
-  // Pricing state from Redux
-  const pricingState = useSelector((state: RootState) => state.pricing);
+    if (selectedServiceId) {
+      dispatch(fetchSubServicesByServiceId(selectedServiceId));
+    }
+  }, [dispatch, selectedServiceId]);
 
   const handleSave = () => {
-    if (!selectedService || !selectedSpecialty) return;
+    if (!selectedService || !selectedSubservice || !selectedTaxId) return;
 
     const payload: PricingPayload = {
-      tenant_id: process.env.NEXT_PUBLIC_TENANT_ID || "",
-      service_specialty_id: selectedSpecialty.id,
+      sub_service_id: selectedSubservice.id,
       base_price: price,
-      tax_percentage: tax,
+      tax_id: selectedTaxId,
       currency: "INR",
-      remark: "Standard consultation fee",
+      active: selectedSubservice?.is_active ?? true,
     };
 
     dispatch(postPricing(payload)).then((res: any) => {
       if (postPricing.fulfilled.match(res)) {
-        // ✅ First click will close modal
         onAdd({
           service: selectedService,
-          specialty: selectedSpecialty,
+          subservice: selectedSubservice,
           price,
-          tax,
-          service_specialty_id: selectedSpecialty.id, // Include service_specialty_id
-          isActive: selectedSpecialty?.is_active ?? true,
+          tax_id: selectedTaxId,
+          service_subservice_id: selectedSubservice.id,
+          isActive: selectedSubservice?.is_active ?? true,
         });
         dispatch(fetchAllPricing(process.env.NEXT_PUBLIC_TENANT_ID || ""));
         dispatch(resetPricingState());
-        onClose(); // closes immediately
-      } else {
-        console.error("Error:", res.payload);
+        onClose();
       }
     });
   };
@@ -187,12 +143,14 @@ export default function AddPricingModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg rounded-2xl shadow-xl">
         <DialogHeader>
-          <DialogTitle>Add New Pricing</DialogTitle>
+          <DialogTitle>
+            {entry ? "Edit Pricing" : "Add New Pricing"}
+          </DialogTitle>
         </DialogHeader>
 
         {/* Stepper */}
         <div className="flex items-center justify-between mt-4 mb-6">
-          {["Service", "Specialty", "Pricing"].map((title, idx) => {
+          {["Service", "Subservice", "Pricing"].map((title, idx) => {
             const currentStep = idx + 1;
             const isActive = step === currentStep;
             const isCompleted = step > currentStep;
@@ -226,94 +184,80 @@ export default function AddPricingModal({
         {/* Step Content */}
         <div className="space-y-6">
           {step === 1 && (
-            <>
-              {/* Service Select */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Service</label>
-                <Select
-                  value={selectedServiceId}
-                  onValueChange={(val) => {
-                    setSelectedServiceId(val);
-                    const srv = services.find((s) => s.id === val);
-                    setSelectedService(srv || null);
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={loading ? "Loading..." : "Select a service"}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {services.map((srv) => (
-                      <SelectItem key={srv.id} value={srv.id}>
-                        {srv.name || srv.service_label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Specialty Select */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Specialty</label>
-                <Select
-                  value={selectedSpecialtyId}
-                  onValueChange={(val) => {
-                    setSelectedSpecialtyId(val);
-                    const sp = specialties.find((s) => s.id === val);
-                    setSelectedSpecialty(sp || null);
-                  }}
-                  disabled={specialtiesLoading || specialties.length === 0}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue
-                      placeholder={
-                        specialtiesLoading
-                          ? "Loading specialties..."
-                          : specialties.length === 0
-                          ? "No specialties found"
-                          : "Select a specialty"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {specialties.map((sp) => (
-                      <SelectItem key={sp.id} value={sp.id}>
-                        {sp.specialty_label || sp.display || sp.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Service</label>
+              <Select
+                value={selectedServiceId}
+                onValueChange={(val) => {
+                  setSelectedServiceId(val);
+                  const srv = services.find((s) => s.id === val);
+                  setSelectedService(srv || null);
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      servicesLoading ? "Loading..." : "Select a service"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((srv) => (
+                    <SelectItem key={srv.id} value={srv.id}>
+                      {srv.name || srv.service_label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           )}
 
           {step === 2 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Subservice</label>
+              <Select
+                value={selectedSubserviceId}
+                onValueChange={(val) => {
+                  setSelectedSubserviceId(val);
+                  const sp = subservices.find((s: any) => s.id === val);
+                  setSelectedSubservice(sp || null);
+                }}
+                disabled={subservicesLoading || subservices.length === 0}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue
+                    placeholder={
+                      subservicesLoading
+                        ? "Loading..."
+                        : subservices.length === 0
+                        ? "No subservices found"
+                        : "Select a subservice"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {subservices.map((sp: any) => (
+                    <SelectItem key={sp.id} value={sp.id}>
+                      {sp.subservice_label || sp.display || sp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {step === 3 && (
             <>
               {/* Price */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Price</label>
-                <Slider
-                  value={[price]}
-                  onValueChange={(val) => setPrice(val[0])}
-                  max={2000}
-                  step={10}
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(Number(e.target.value))}
+                  className="w-full border rounded-md p-2"
                 />
-                <div className="text-right font-semibold">₹{price}</div>
               </div>
-
-              {/* Tax Percentage */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Tax Percentage</label>
-                <Slider
-                  value={[tax]}
-                  onValueChange={(val) => setTax(val[0])}
-                  max={100}
-                  step={1}
-                />
-                <div className="text-right font-semibold">{tax}%</div>
-              </div>
-
               {/* Suggested Prices */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Suggested Pricing</label>
@@ -330,55 +274,76 @@ export default function AddPricingModal({
                   ))}
                 </div>
               </div>
-            </>
-          )}
 
-          {step === 3 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Total Price</label>
-              <div className="text-right text-xl font-bold text-primary">
-                ₹{price + Math.round(price * (tax / 100))}
+              {/* Tax Dropdown */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Tax</label>
+                <Select value={selectedTaxId} onValueChange={setSelectedTaxId}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a tax rate" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {taxRates.map((tax) => (
+                      <SelectItem key={tax.id} value={tax.id}>
+                        {tax.name} ({tax.rate}%)
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="text-xs text-gray-500 text-right">
-                (Base: ₹{price} + Tax: ₹{Math.round(price * (tax / 100))})
+
+              {/* Total with tax */}
+              <div className="pt-2 border-t">
+                <label className="text-sm font-medium">Total (with tax)</label>
+                <div className="text-xl font-bold text-primary text-right">
+                  {(() => {
+                    const tax = taxRates.find(
+                      (t: any) => t.id === selectedTaxId
+                    );
+                    const taxAmt =
+                      tax && typeof tax.rate === "number"
+                        ? Math.round(price * (tax.rate / 100))
+                        : 0;
+                    return `₹${price + taxAmt}`;
+                  })()}
+                </div>
               </div>
-            </div>
+            </>
           )}
         </div>
 
         {/* Navigation */}
         <DialogFooter className="mt-4 flex justify-between">
-          <Button variant="outline" onClick={prevStep} disabled={step === 1}>
+          <Button
+            variant="outline"
+            onClick={() => setStep((s) => Math.max(s - 1, 1))}
+            disabled={step === 1}
+          >
             Back
           </Button>
           {step < 3 ? (
-            <Button onClick={nextStep}>Next</Button>
+            <Button
+              onClick={() => setStep((s) => Math.min(s + 1, 3))}
+              disabled={
+                (step === 1 && !selectedServiceId) ||
+                (step === 2 && !selectedSubserviceId)
+              }
+            >
+              Next
+            </Button>
           ) : (
             <Button
               onClick={handleSave}
               className="bg-primary text-white"
-              disabled={pricingState.loading}
+              disabled={
+                pricingState.loading ||
+                !price ||
+                !selectedSubserviceId ||
+                !selectedTaxId
+              }
             >
               {pricingState.loading ? "Saving..." : "Save"}
             </Button>
-          )}
-          {/* Show API error message if present */}
-          {pricingState.error && (
-            <div className="text-red-500 text-sm mt-2">
-              {pricingState.error}
-            </div>
-          )}
-          {/* Show API response error message if present */}
-          {pricingState?.error === null &&
-            pricingState?.success === false &&
-            pricingState?.message && (
-              <div className="text-red-500 text-sm mt-2">
-                {pricingState.message}
-              </div>
-            )}
-          {/* Show success message if present */}
-          {successMessage && (
-            <div className="text-green-600 text-sm mt-2">{successMessage}</div>
           )}
         </DialogFooter>
       </DialogContent>
