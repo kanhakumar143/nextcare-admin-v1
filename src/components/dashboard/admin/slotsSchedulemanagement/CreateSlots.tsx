@@ -675,10 +675,12 @@ export default function CreateSlots() {
       );
       return;
     }
-
+    console.log(selectedPractitionerId);
+    console.log(doctors);
     const selectedDoctor = doctors.find(
       (doctor) => doctor.id === selectedPractitionerId
     );
+    console.log(selectedDoctor);
     // Prepare data for submission
     const availabilityData = {
       name:

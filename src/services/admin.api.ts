@@ -114,7 +114,9 @@ export const addPractitioner = async (payload: AddDoctorPayload) => {
 };
 
 // Get Practitioner List by Role
-export const getPractitionerByRole = async (role: "doctor" | "nurse") => {
+export const getPractitionerByRole = async (
+  role: "doctor" | "nurse" | "lab_technician"
+) => {
   try {
     const { data } = await api.get(
       `practitioner/by-tenant-role?tenant_id=4896d272-e201-4dce-9048-f93b1e3ca49f&role=${role}`

@@ -214,6 +214,7 @@ export interface qrDecodedDetails {
 export interface staffSliceInitialState {
   patientDetails: qrDecodedDetails | null;
   medicationDetailsForReminder: any | null;
+  paymentDetails: PendingOrdersResponse | null;
   appoinmentDetails: any | null;
   practitionerAttendanceData: ExtendedDoctorData | null;
   practitionersList: DoctorData[];
@@ -397,4 +398,48 @@ export interface MedicationReminderUpdatePayload {
   start_date: string;
   end_date: string;
   frequency_per_day: number;
+}
+
+export interface PendingOrdersResponse {
+  pending_orders: PendingOrder[];
+  total_amount: number;
+  currency: string;
+  order_count: number;
+}
+
+export interface PendingOrder {
+  patient_id: string;
+  order_type: "lab_test" | string; // extend with other order types if needed
+  status: "pending" | "completed" | "cancelled" | string;
+  appointment_id: string;
+  lab_test_order_id: string | null;
+  sub_service_id: string;
+  amount: string;
+  currency: string;
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  sub_service: SubService;
+}
+
+export interface SubService {
+  tenant_service_id: string;
+  name: string;
+  description: string;
+  active: boolean;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  pricings: Pricing[];
+}
+
+export interface Pricing {
+  sub_service_id: string;
+  base_price: string;
+  currency: string;
+  tax_id: string;
+  active: boolean;
+  id: string;
+  created_at: string;
+  updated_at: string;
 }

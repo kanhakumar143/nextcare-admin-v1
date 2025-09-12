@@ -46,6 +46,7 @@ import {
   deleteSchedulesByDateRangeLocal,
   deleteSlotLocal,
   deleteSlotsByTimeRangeLocal,
+  setAllPractitioner,
 } from "@/store/slices/scheduleSlotsSlice";
 import { format } from "date-fns";
 import moment from "moment";
@@ -54,6 +55,17 @@ import DeleteSlotsModal from "../modals/DeleteSlotsModal";
 import ConfirmDeleteModal from "../modals/ConfirmDeleteModal";
 import { Schedule } from "@/types/scheduleSlots.types";
 import { deleteSingleSchedule } from "@/services/schedule.api";
+import { getPractitionerByRole } from "@/services/admin.api";
+
+// Type for practitioners (doctor or lab technician)
+interface PractitionerData {
+  id: string;
+  name: string;
+  practitioner_display_id?: string;
+  user?: {
+    name: string;
+  };
+}
 
 export default function SlotManagement() {
   const router = useRouter();
@@ -65,6 +77,14 @@ export default function SlotManagement() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [dateFilterOption, setDateFilterOption] = useState<string>("all");
+
+  // User type filter state
+  const [selectedUserType, setSelectedUserType] = useState<
+    "doctor" | "lab_technician"
+  >("doctor");
+  const [localPractitioners, setLocalPractitioners] = useState<
+    PractitionerData[]
+  >([]);
 
   // Delete modal states
   const [isDeleteScheduleModalOpen, setIsDeleteScheduleModalOpen] =
@@ -96,12 +116,60 @@ export default function SlotManagement() {
     dispatch(fetchDoctors());
   }, [dispatch]);
 
+  // Fetch practitioners by role when user type changes
+  const fetchPractitionersByRole = async (
+    role: "doctor" | "lab_technician"
+  ) => {
+    try {
+      const response = await getPractitionerByRole(role);
+      const data = (response?.data || response || []).map(
+        (practitioner: any) => ({
+          ...practitioner,
+          name: practitioner.user?.name ?? "",
+        })
+      ) as PractitionerData[];
+      setLocalPractitioners(data);
+
+      // Auto-select first practitioner when data is loaded
+      if (data.length > 0) {
+        dispatch(setSelectedPractitionerId(data[0].id));
+        // Only set all practitioners in Redux if they are doctors
+        // if (role === "doctor") {
+        // Transform data to match ExtendedDoctorData structure for doctors
+        const doctorData = data.map((practitioner) => ({
+          ...practitioner,
+          name: practitioner.name,
+          // Add any other required fields that ExtendedDoctorData expects
+        })) as any[];
+        dispatch(setAllPractitioner(doctorData));
+        // }
+      } else {
+        dispatch(setSelectedPractitionerId(""));
+      }
+    } catch (error) {
+      console.error("Failed to fetch practitioners:", error);
+      setLocalPractitioners([]);
+      toast.error(
+        `Failed to fetch ${role === "doctor" ? "doctors" : "lab technicians"}.`
+      );
+    }
+  };
+
   useEffect(() => {
-    // Auto-select first doctor when doctors are loaded
-    if (doctors.length > 0 && !selectedPractitionerId) {
+    // Fetch practitioners when user type changes
+    fetchPractitionersByRole(selectedUserType);
+  }, [selectedUserType]);
+
+  useEffect(() => {
+    // Auto-select first doctor when doctors are loaded (only for initial load when user type is doctor)
+    if (
+      selectedUserType === "doctor" &&
+      doctors.length > 0 &&
+      !selectedPractitionerId
+    ) {
       dispatch(setSelectedPractitionerId(doctors[0].id));
     }
-  }, [doctors, selectedPractitionerId, dispatch]);
+  }, [doctors, selectedPractitionerId, dispatch, selectedUserType]);
 
   useEffect(() => {
     // Fetch schedules when practitioner is selected
@@ -122,8 +190,29 @@ export default function SlotManagement() {
   }, [error, doctorsError, dispatch]);
 
   const handleDoctorSelect = (value: string) => {
+    console.log(value);
     console.log("Selected Practitioner ID:", value);
     dispatch(setSelectedPractitionerId(value));
+  };
+
+  const handleUserTypeChange = (userType: "doctor" | "lab_technician") => {
+    setSelectedUserType(userType);
+    // Clear current selection when switching user types
+    dispatch(setSelectedPractitionerId(""));
+  };
+
+  // Get current practitioners list based on selected user type
+  const getCurrentPractitioners = (): PractitionerData[] => {
+    if (selectedUserType === "doctor") {
+      return doctors.map((doctor) => ({
+        id: doctor.id,
+        name: doctor.name,
+        practitioner_display_id: doctor.practitioner_display_id,
+        user: doctor.user,
+      }));
+    } else {
+      return localPractitioners;
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -385,29 +474,71 @@ export default function SlotManagement() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <User className="w-5 h-5" />
-              Select Doctor
+              Select Practitioner
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
+              {/* User Type Selection */}
               <div className="space-y-2">
-                <label htmlFor="doctor-select" className="text-sm font-medium">
-                  Choose a doctor to view their available slots:
+                <label
+                  htmlFor="user-type-select"
+                  className="text-sm font-medium"
+                >
+                  Select User Type:
                 </label>
                 <Select
-                  value={selectedPractitionerId || doctors[0]?.id || ""}
+                  value={selectedUserType}
+                  onValueChange={handleUserTypeChange}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select user type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="doctor">Doctor</SelectItem>
+                    <SelectItem value="lab_technician">
+                      Lab Technician
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Practitioner Selection */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="practitioner-select"
+                  className="text-sm font-medium"
+                >
+                  Choose a{" "}
+                  {selectedUserType === "doctor" ? "doctor" : "lab technician"}{" "}
+                  to view their available slots:
+                </label>
+                <Select
+                  value={
+                    selectedPractitionerId ||
+                    getCurrentPractitioners()[0]?.id ||
+                    ""
+                  }
                   onValueChange={handleDoctorSelect}
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select a doctor..." />
+                    <SelectValue
+                      placeholder={`Select a ${
+                        selectedUserType === "doctor"
+                          ? "doctor"
+                          : "lab technician"
+                      }...`}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {doctors.map((doctor) => (
-                      <SelectItem key={doctor.id} value={doctor.id}>
+                    {getCurrentPractitioners().map((practitioner) => (
+                      <SelectItem key={practitioner.id} value={practitioner.id}>
                         <div className="flex items-center gap-2">
-                          <span className="font-medium">{doctor.name}</span>
+                          <span className="font-medium">
+                            {practitioner.name}
+                          </span>
                           {/* <span className="text-xs text-muted-foreground">
-                            (ID: {doctor.practitioner_display_id})
+                            (ID: {practitioner.practitioner_display_id})
                           </span> */}
                         </div>
                       </SelectItem>
@@ -428,8 +559,14 @@ export default function SlotManagement() {
                 >
                   <Plus className="w-4 h-4" />
                   Create Slots for{" "}
-                  {doctors.find((doc) => doc.id === selectedPractitionerId)
-                    ?.name || "Selected Doctor"}
+                  {getCurrentPractitioners().find(
+                    (practitioner) => practitioner.id === selectedPractitionerId
+                  )?.name ||
+                    `Selected ${
+                      selectedUserType === "doctor"
+                        ? "Doctor"
+                        : "Lab Technician"
+                    }`}
                 </Button>
               )}
             </div>
@@ -698,11 +835,18 @@ export default function SlotManagement() {
             Available Schedules -
             {selectedPractitionerId ? (
               <span className="font-bold">
-                {doctors.find((doc) => doc.id === selectedPractitionerId)?.name}
+                {
+                  getCurrentPractitioners().find(
+                    (practitioner) => practitioner.id === selectedPractitionerId
+                  )?.name
+                }
               </span>
             ) : (
               <span className="text-sm font-normal text-muted-foreground ml-2">
-                {doctors[0]?.name || "No doctor selected"}
+                {getCurrentPractitioners()[0]?.name ||
+                  `No ${
+                    selectedUserType === "doctor" ? "doctor" : "lab technician"
+                  } selected`}
               </span>
             )}
           </CardTitle>
@@ -714,7 +858,11 @@ export default function SlotManagement() {
                 <div className="text-center">
                   <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg">
-                    Please select a doctor to view their available schedules
+                    Please select a{" "}
+                    {selectedUserType === "doctor"
+                      ? "doctor"
+                      : "lab technician"}{" "}
+                    to view their available schedules
                   </p>
                 </div>
               </div>
@@ -730,7 +878,11 @@ export default function SlotManagement() {
                   <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                   <p className="text-muted-foreground text-lg">
                     {schedules.length === 0
-                      ? "No schedules available for selected doctor"
+                      ? `No schedules available for selected ${
+                          selectedUserType === "doctor"
+                            ? "doctor"
+                            : "lab technician"
+                        }`
                       : "No schedules found for the selected date range"}
                   </p>
                 </div>

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
@@ -25,7 +25,7 @@ const ScannedPatientDetails = () => {
   const router = useRouter();
   const { userId } = useAuthInfo();
 
-  const { patientDetails, appoinmentDetails } = useSelector(
+  const { patientDetails, appoinmentDetails, paymentDetails } = useSelector(
     (state: RootState) => state.receptionistData
   );
   const [loading, setLoading] = useState<boolean>(false);
@@ -153,6 +153,96 @@ const ScannedPatientDetails = () => {
               </div>
             </div>
 
+            {/* Payment Details Section */}
+            {paymentDetails && (
+              <>
+                <div className="text-left mt-6">
+                  <h2 className="text-md font-semibold text-gray-800">
+                    Payment <span className="">Details</span>
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+                  <div className="space-y-1">
+                    <div className="font-medium">Total Amount:</div>
+                    <div className="font-medium">Total Orders:</div>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="text-primary font-bold">
+                      {paymentDetails.currency} {paymentDetails.total_amount}
+                    </div>
+                    <div className="text-primary font-bold">
+                      {paymentDetails.order_count}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pending Services Table */}
+                {paymentDetails.pending_orders &&
+                  paymentDetails.pending_orders.length > 0 && (
+                    <div className="mt-4">
+                      <div className="text-left mb-2">
+                        <h3 className="text-sm font-semibold text-gray-800">
+                          Pending Services
+                        </h3>
+                      </div>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full text-xs">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-2 py-2 text-left font-medium text-gray-700">
+                                Service
+                              </th>
+                              <th className="px-2 py-2 text-right font-medium text-gray-700">
+                                Amount
+                              </th>
+                              <th className="px-2 py-2 text-center font-medium text-gray-700">
+                                Status
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {paymentDetails.pending_orders.map(
+                              (order, index) => (
+                                <tr key={order.id} className="hover:bg-gray-50">
+                                  <td className="px-2 py-2 text-gray-800">
+                                    <div className="font-medium">
+                                      {order.sub_service.name}
+                                    </div>
+                                    <div className="text-gray-500 text-xs truncate">
+                                      {order.sub_service.description}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-2 text-right font-medium text-green-600">
+                                    {order.currency} {order.amount}
+                                  </td>
+                                  <td className="px-2 py-2 text-center">
+                                    <span
+                                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                                        order.status === "pending"
+                                          ? "bg-yellow-100 text-yellow-800"
+                                          : order.status === "completed"
+                                          ? "bg-green-100 text-green-800"
+                                          : order.status === "cancelled"
+                                          ? "bg-red-100 text-red-800"
+                                          : "bg-gray-100 text-gray-800"
+                                      }`}
+                                    >
+                                      {order.status.charAt(0).toUpperCase() +
+                                        order.status.slice(1)}
+                                    </span>
+                                  </td>
+                                </tr>
+                              )
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+              </>
+            )}
+
             <div className="flex flex-col gap-2 mt-5">
               {patientDetails.patient.patient_profile.verifications[0]
                 .verification_status !== "verified" ? (
@@ -186,12 +276,16 @@ const ScannedPatientDetails = () => {
                   </div>
 
                   <RazorpayPayment
-                    amount={Math.max(
-                      0,
-                      Number(
-                        appoinmentDetails?.order_requests?.[0].amount || 0
-                      ) - 25
-                    )}
+                    amount={
+                      paymentDetails
+                        ? Math.max(0, Number(paymentDetails.total_amount) - 25)
+                        : Math.max(
+                            0,
+                            Number(
+                              appoinmentDetails?.order_requests?.[0].amount || 0
+                            ) - 25
+                          )
+                    }
                     patientData={{
                       name: patientDetails.patient.name || "Patient",
                       email: patientDetails.patient.phone || "",

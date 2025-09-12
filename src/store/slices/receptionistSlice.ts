@@ -43,6 +43,7 @@ export const fetchPractitionersByRoleAsync = createAsyncThunk(
 const initialState: staffSliceInitialState = {
   patientDetails: null,
   appoinmentDetails: null,
+  paymentDetails: null,
   medicationDetailsForReminder: null,
   practitionerAttendanceData: null,
   practitionersList: [],
@@ -133,6 +134,7 @@ const receptionistSlice = createSlice({
           // Populate both patientDetails and appoinmentDetails
           state.patientDetails = action.payload.data;
           state.appoinmentDetails = action.payload.data.appointment || null;
+          state.paymentDetails = action.payload.data.payment || null;
           state.error = null;
           state.scanQrMessage = null;
         } else {

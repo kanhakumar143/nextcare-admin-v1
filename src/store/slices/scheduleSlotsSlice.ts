@@ -150,6 +150,12 @@ const scheduleSlotsSlice = createSlice({
         );
       }
     },
+    setAllPractitioner: (
+      state,
+      action: PayloadAction<ExtendedDoctorData[]>
+    ) => {
+      state.doctors = action.payload;
+    },
     deleteSlotsByTimeRangeLocal: (
       state,
       action: PayloadAction<{
@@ -229,6 +235,7 @@ export const {
   clearSchedules,
   clearError,
   resetState,
+  setAllPractitioner,
   deleteScheduleLocal,
   deleteMultipleSchedulesLocal,
   deleteSchedulesByDateRangeLocal,

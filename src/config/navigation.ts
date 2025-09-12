@@ -51,21 +51,7 @@ export const adminRoutes: Route[] = [
     name: "Location Management",
     icon: MapPinPlus,
   },
-  {
-    href: "/dashboard/admin/doctor-management",
-    name: "Doctor Management",
-    icon: Stethoscope,
-  },
-  {
-    href: "/dashboard/admin/nurse-management",
-    name: "Nurse Management",
-    icon: BriefcaseMedical,
-  },
-  {
-    href: "/admin/staff",
-    name: "Staff Management",
-    icon: Users,
-  },
+
   {
     href: "/dashboard/admin/notify-patient",
     name: "Notify Patient",
@@ -75,6 +61,33 @@ export const adminRoutes: Route[] = [
     href: "/dashboard/admin/slots-management",
     name: "Slots Management",
     icon: Calendar1,
+  },
+
+  {
+    name: "Users",
+    icon: Users,
+    children: [
+      {
+        href: "/dashboard/admin/doctor-management",
+        name: "Doctor Management",
+        icon: Stethoscope,
+      },
+      {
+        href: "/dashboard/admin/nurse-management",
+        name: "Nurse Management",
+        icon: BriefcaseMedical,
+      },
+      {
+        href: "/admin/staff",
+        name: "Staff Management",
+        icon: Users,
+      },
+      {
+        href: "/dashboard/admin/lab-technician-management",
+        name: "Lab Management",
+        icon: ClipboardList,
+      },
+    ],
   },
 
   {
@@ -108,9 +121,9 @@ export const adminRoutes: Route[] = [
       },
     ],
   },
-   {
+  {
     name: "Pricing & Billing",
-    icon: ReceiptText ,
+    icon: ReceiptText,
     children: [
       {
         href: "/dashboard/admin/pricing-planes/tax-management",
@@ -122,7 +135,6 @@ export const adminRoutes: Route[] = [
         name: "Services Pricing",
         icon: ScrollText,
       },
-      
     ],
   },
 ];

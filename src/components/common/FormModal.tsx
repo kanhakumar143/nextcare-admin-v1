@@ -89,7 +89,7 @@ interface PractitionerFormModalProps {
   editPractitionerId?: string | null;
   defaultValues?: Partial<PractitionerFormData>;
   onSuccess?: () => void;
-  role: "doctor" | "nurse";
+  role: "doctor" | "nurse" | "lab_technician";
 }
 
 export default function PractitionerFormModal({
@@ -243,7 +243,12 @@ export default function PractitionerFormModal({
           email: data.email ?? "",
           // phone: data.telecom_phone ?? "",
           hashed_password: data.hashed_password ?? "qwer1234",
-          user_role: role === "nurse" ? "nurse" : "doctor",
+          user_role:
+            role === "nurse"
+              ? "nurse"
+              : role === "lab_technician"
+              ? "lab_technician"
+              : "doctor",
           tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
         },
         practitioner: {
