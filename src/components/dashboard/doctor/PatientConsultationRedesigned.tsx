@@ -38,7 +38,6 @@ import {
 } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
 import EditVitalsModal from "./modals/EditVitalsModal";
-import PatientDetailsDrawer from "./PatientDetailsDrawer";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setConfirmConsultationModal,
@@ -53,14 +52,10 @@ import { useParams, useRouter } from "next/navigation";
 import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
 import { toast } from "sonner";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
-import { Tooltip, TooltipContent } from "@/components/ui/tooltip";
-import { TooltipTrigger } from "@radix-ui/react-tooltip";
-import BackButton from "@/components/common/BackButton";
 import DentalProcedureEntry from "./DentalProcedureEntry";
 import { DataTable } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
 import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import ConsultationRecorder from "./ConsultationRecorder";
 import PreConsultationAnswers from "./PreConsultationAnswersRedesigned";
 import EhrModal from "./modals/ehrModal";
@@ -84,7 +79,6 @@ export default function PatientConsultation() {
 
   const [ehrModalOpen, setEhrModalOpen] = useState(false);
 
-  // Helper function to get vital icon based on code
   const getVitalIcon = (code: string) => {
     const iconProps = { className: "h-4 w-4 text-gray-600" };
     switch (code) {
@@ -108,7 +102,6 @@ export default function PatientConsultation() {
   };
 
   useEffect(() => {
-    console.log("singlePatientDetails", singlePatientDetails);
     if (consultationMode === "new") {
       dispatch(clearConsultationOrders());
     }
@@ -124,7 +117,6 @@ export default function PatientConsultation() {
     consultationMode,
   ]);
 
-  // Effect to populate data when in edit mode and appointment details are loaded
   useEffect(() => {
     if (consultationMode === "edit" && apptDtls) {
       populateExistingConsultationData();
@@ -179,24 +171,20 @@ export default function PatientConsultation() {
     dispatch(setEditVitalsModal(true));
   };
 
-  // Handle Health Record
   const handlePatientHealthRecord = () => {
     setEhrModalOpen(true);
   };
 
-  // Handle image view for lab reports
   const handleViewImage = (imagePath: string) => {
     console.log("Viewing image:", imagePath);
     setSelectedImage(imagePath);
     setImageModalOpen(true);
   };
 
-  // Format date for lab test reports
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
   };
 
-  // Define columns for lab tests table when in edit mode
   const labTestColumns = [
     {
       accessorKey: "test_display",
@@ -254,7 +242,6 @@ export default function PatientConsultation() {
 
   return (
     <div className="min-h-screen">
-      {/* Compact Header Section */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="mx-4 py-2">
           <div className="flex items-center justify-between">
@@ -305,12 +292,8 @@ export default function PatientConsultation() {
         </div>
       </div>
 
-      {/* Patient Vitals Section - Single Row */}
       <div className="mx-4 my-4">
-        {/* <Card className="border"> */}
-        {/* <CardContent className="py-0"> */}
         <div className="flex items-center justify-between">
-          {/* Left side - Label and Vitals */}
           <div className="flex items-center gap-4 flex-1">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-4 w-4 " />
@@ -356,7 +339,6 @@ export default function PatientConsultation() {
             )}
           </div>
 
-          {/* Right side - Edit Button */}
           <Button
             variant="ghost"
             size="sm"
@@ -367,17 +349,12 @@ export default function PatientConsultation() {
             <span className="text-xs text-blue-600">Edit</span>
           </Button>
         </div>
-        {/* </CardContent> */}
-        {/* </Card> */}
       </div>
 
-      {/* Main Content Area - Custom Width Distribution */}
       <div className="mx-4 grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-        {/* Left Column - Pre-consultation & Lab Tests (40% width) */}
         <div className="lg:col-span-2 space-y-4">
           <PreConsultationAnswers apptDtls={apptDtls} />
 
-          {/* Lab Test Orders - Only show in edit mode */}
           {isEditingConsultation &&
             apptDtls?.lab_test_orders &&
             apptDtls.lab_test_orders.length > 0 && (
@@ -400,7 +377,6 @@ export default function PatientConsultation() {
             )}
         </div>
 
-        {/* Right Column - Visit Summary (60% width) */}
         <div className="lg:col-span-3">
           <Card className="border">
             <CardHeader className="pb-4">
@@ -601,12 +577,10 @@ export default function PatientConsultation() {
         </div>
       </div>
 
-      {/* Orders Section */}
       <div className="mx-4 mb-6">
         <DoctorMedicineLabEntry appointmentDetails={apptDtls} />
       </div>
 
-      {/* Dental Procedures (if applicable) */}
       {singlePatientDetails?.service_specialty.display === "Dentistry" && (
         <div className="mb-6">
           <DentalProcedureEntry
@@ -615,10 +589,7 @@ export default function PatientConsultation() {
         </div>
       )}
 
-      {/* Compact Action Buttons */}
       <div className="mx-4 mb-4">
-        {/* <Card className="border bg-white/80 backdrop-blur-sm"> */}
-        {/* <CardContent className="pt-3 pb-3"> */}
         <div className="flex justify-between items-center py-5">
           <div className="text-xs text-gray-600">
             {isEditingConsultation
@@ -645,11 +616,8 @@ export default function PatientConsultation() {
             </Button>
           </div>
         </div>
-        {/* </CardContent> */}
-        {/* </Card> */}
       </div>
 
-      {/* Modals */}
       <ConfirmConsultationModal />
       <EditVitalsModal />
 
