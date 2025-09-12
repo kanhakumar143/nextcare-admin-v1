@@ -9,6 +9,7 @@ import axios from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 const razorpayBaseUrl = `${API_BASE_URL}api/v1/razorpay`;
+const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 const headers = {
   headers: {
@@ -16,7 +17,6 @@ const headers = {
   },
 };
 
-//RazorpayService class following the guide pattern
 class RazorpayService {
   config: RazorpayConfig | null;
 
@@ -24,7 +24,6 @@ class RazorpayService {
     this.config = null;
   }
 
-  // Load Razorpay configuration
   async loadConfig() {
     try {
       const response = await axios.get(`${razorpayBaseUrl}/config`, headers);
@@ -39,7 +38,6 @@ class RazorpayService {
     }
   }
 
-  // Create order
   async createOrder(orderData: CreateOrderPayload) {
     try {
       const response = await axios.post(
@@ -65,7 +63,6 @@ class RazorpayService {
     }
   }
 
-  // Get checkout preferences
   async getCheckoutPreferences(
     order: Order,
     customerData: CheckoutPreferencesPayload
@@ -93,7 +90,6 @@ class RazorpayService {
     }
   }
 
-  // Verify payment
   async verifyPayment(paymentData: VerifyPaymentPayload) {
     try {
       const response = await axios.post(
@@ -113,7 +109,6 @@ class RazorpayService {
     }
   }
 
-  // Health check
   async healthCheck() {
     try {
       const response = await axios.get(`${razorpayBaseUrl}/health`, headers);
@@ -125,11 +120,9 @@ class RazorpayService {
   }
 }
 
-// Export singleton instance
 const razorpayService = new RazorpayService();
 export default razorpayService;
 
-// Also export individual functions for backward compatibility
 export const loadRazorpayConfig = async () => {
   const service = new RazorpayService();
   return service.loadConfig();
@@ -151,4 +144,13 @@ export const getCheckoutPreferences = async (
 export const verifyPayment = async (payload: VerifyPaymentPayload) => {
   const service = new RazorpayService();
   return service.verifyPayment(payload);
+};
+
+export const updateBulkStatusPaymentRequest = async (payload: any) => {
+  const { data } = await axios.put(
+    `${baseUrl}order-requests/bulk-update/`,
+    payload,
+    headers
+  );
+  return data;
 };

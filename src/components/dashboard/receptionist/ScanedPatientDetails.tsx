@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { checkInPatient } from "@/services/receptionist.api";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import RazorpayPayment from "@/components/payment/razorpayPayment";
+import { updateBulkStatusPaymentRequest } from "@/services/razorpay.api";
 
 const ScannedPatientDetails = () => {
   const dispatch = useDispatch();
@@ -57,6 +58,25 @@ const ScannedPatientDetails = () => {
       return moment(first).format("Do MMMM YYYY");
     } catch {
       return desc;
+    }
+  };
+
+  const UpdateBulkStatusPaymentRequest = async () => {
+    try {
+      if (!paymentDetails) {
+        return toast.error("No payment details found");
+      }
+      const payload = paymentDetails.pending_orders.map((order) => {
+        return { id: order.id, status: "completed" };
+      });
+      console.log("setLoading", payload);
+      setLoading(true);
+      await updateBulkStatusPaymentRequest(payload);
+    } catch (error) {
+      console.error("Error updating payment requests:", error);
+      toast.error("Failed to update payment requests");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -290,8 +310,8 @@ const ScannedPatientDetails = () => {
                     }}
                     appointmentId={appoinmentDetails?.id}
                     onSuccess={(result) => {
+                      UpdateBulkStatusPaymentRequest();
                       handleConfirmCheckin();
-                      toast.success("Payment completed successfully!");
                     }}
                     onError={(error) => {
                       console.error("Payment failed:", error);
