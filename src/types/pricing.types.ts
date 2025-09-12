@@ -16,6 +16,7 @@ export interface PricingResponse {
   base_price: string;   // comes as string from API
   currency: string;
   tax_id: string;
+  taxRate: number;
   active: boolean;
   created_at: string;
   updated_at: string;

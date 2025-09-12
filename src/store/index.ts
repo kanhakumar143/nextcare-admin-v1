@@ -18,6 +18,7 @@ import availabilityTemplateReducer from "./slices/availabilityTemplateSlice";
 import scheduleSlotsReducer from "./slices/scheduleSlotsSlice";
 import subServiceReducer from "./slices/subServicesSlice";
 import taxManagementReducer from "./slices/taxManagementSlice";
+import subscriptionReducer from "./slices/subscriptionSlice";
 
 
 const store = configureStore({
@@ -41,6 +42,7 @@ const store = configureStore({
     pricing: pricingReducer,
     subService: subServiceReducer,
     taxManagement: taxManagementReducer, 
+    subscription: subscriptionReducer,
   },
 });
 

@@ -20,9 +20,10 @@ import {
 } from "@/components/ui/select";
 import { updatePricing } from "@/services/pricing.api";
 import { toast } from "sonner";
-import { fetchAllPricing } from "@/store/slices/pricingSlice";
+// import { fetchAllPricing } from "@/store/slices/pricingSlice";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchTaxRates } from "@/store/slices/taxManagementSlice";
+import { fetchServices } from "@/store/slices/servicesSlice";
 
 interface PricingEntry {
   id: string;
@@ -30,6 +31,7 @@ interface PricingEntry {
   service: string;
   subservice: string;
   price: number;
+  taxRate: number;
   tax_id: string;
   isActive: boolean;
 }
@@ -93,7 +95,7 @@ export default function EditPricingModal({
       const response = await updatePricing(updateData);
       console.log("Pricing updated successfully:", response);
       toast.success("Pricing updated successfully");
-      dispatch(fetchAllPricing(entry.sub_service_id));
+      dispatch(fetchServices());
     } catch (error: any) {
       console.error("Error updating pricing:", error);
       if (error?.response) {
