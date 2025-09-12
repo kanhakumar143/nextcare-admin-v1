@@ -5,7 +5,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import moment from "moment";
-import { Plus, Pencil } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Shield,
+  ShieldOff,
+  ShieldCheck,
+  ShieldBan,
+} from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,7 +23,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Switch } from "@/components/ui/switch";
 import { DataTable } from "@/components/common/DataTable";
 import { addService, getServices, updateService } from "@/services/admin.api";
 import { toast } from "sonner";
@@ -110,15 +116,13 @@ export default function Services() {
     setOpen(true);
   };
 
-  const handleToggleStatus = async (checked: boolean) => {
-    if (!selectedService) return;
+  const handleToggleStatus = async (service: Service, checked: boolean) => {
     try {
       await updateService({
-        service_id: selectedService.id,
-        name: selectedService.name,
+        service_id: service.id,
+        name: service.name,
         active: checked,
       });
-      setSelectedService({ ...selectedService, active: checked });
       toast.success(
         checked
           ? "Service activated successfully"
@@ -132,7 +136,19 @@ export default function Services() {
   };
 
   const columns: ColumnDef<Service>[] = [
-    { accessorKey: "name", header: "Service Name" },
+    {
+      accessorKey: "name",
+      header: "Service Name",
+      cell: ({ row }) => (
+        <div className="flex items-center  group cursor-pointer">
+          <span>{row.original.name}</span>
+          <Pencil
+            className="w-4 h-4  cursor-pointer opacity-0 group-hover:opacity-100 transition ml-4"
+            onClick={() => handleEdit(row.original)}
+          />
+        </div>
+      ),
+    },
     {
       header: "Available Days",
       accessorFn: (row: any) =>
@@ -151,32 +167,38 @@ export default function Services() {
     {
       header: "Status",
       accessorFn: (row: any) => row.active,
-      cell: ({ getValue }) => {
-        const isActive = getValue() as boolean;
+      cell: ({ row }) => {
+        const isActive = row.original.active;
+
         return (
-          <Badge
-            className={
-              isActive
-                ? "bg-green-500 text-white w-16"
-                : "bg-red-500 text-white w-16"
-            }
-          >
-            {isActive ? "Active" : "Inactive"}
-          </Badge>
+          <div className="flex items-center cursor-pointer  group">
+            <Badge
+              className={
+                isActive
+                  ? "bg-green-500 text-white w-16"
+                  : "bg-red-500 text-white w-16"
+              }
+            >
+              {isActive ? "Active" : "Inactive"}
+            </Badge>
+
+            {/* Shield icon only shows on hover */}
+            <div className="opacity-0 group-hover:opacity-100 transition ml-4 cursor-pointer">
+              {isActive ? (
+                <ShieldBan
+                  className="w-5 h-4 text-red-500"
+                  onClick={() => handleToggleStatus(row.original, false)}
+                />
+              ) : (
+                <ShieldCheck
+                  className="w-5 h-4 text-green-500"
+                  onClick={() => handleToggleStatus(row.original, true)}
+                />
+              )}
+            </div>
+          </div>
         );
       },
-    },
-    {
-      header: "Actions",
-      cell: ({ row }) => (
-        <Button
-          variant="secondary"
-          size="icon"
-          onClick={() => handleEdit(row.original)}
-        >
-          <Pencil className="w-4 h-4" />
-        </Button>
-      ),
     },
   ];
 
@@ -225,30 +247,6 @@ export default function Services() {
                   <p className="text-sm text-red-600">{errors.name.message}</p>
                 )}
               </div>
-
-              {editServiceId && selectedService && (
-                <div className="flex items-center gap-12">
-                  <span className="text-sm font-medium">Active Status</span>
-                  <div className="flex items-center gap-3">
-                    <Switch
-                      checked={selectedService.active}
-                      onCheckedChange={handleToggleStatus}
-                      className={
-                        selectedService.active ? "bg-green-500" : "bg-red-500"
-                      }
-                    />
-                    <span
-                      className={`text-sm font-medium ${
-                        selectedService.active
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}
-                    >
-                      {selectedService.active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-                </div>
-              )}
 
               <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting

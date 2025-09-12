@@ -60,8 +60,6 @@ const ScannedPatientDetails = () => {
     }
   };
 
-  const handleConfirmPayment = () => {};
-
   return (
     <div className="w-full">
       {["unverified", "under_review"].includes(
@@ -268,7 +266,6 @@ const ScannedPatientDetails = () => {
                 </>
               ) : (
                 <div className="space-y-3">
-                  {/* Payment label showing deduction */}
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <p className="text-sm text-green-700 text-center">
                       ₹25 already paid during appointment booking
@@ -293,19 +290,16 @@ const ScannedPatientDetails = () => {
                     }}
                     appointmentId={appoinmentDetails?.id}
                     onSuccess={(result) => {
-                      console.log("Payment successful:", result);
                       handleConfirmCheckin();
                       toast.success("Payment completed successfully!");
-                      // router.push("/dashboard/appointments");
-                      // handleContinue();
                     }}
                     onError={(error) => {
-                      toast.error("Payment failed. Please try again.");
-                      // router.push("/book-appointment/step/3");
                       console.error("Payment failed:", error);
                     }}
-                    // disabled={!userDetails?.is_active}
                   />
+                  <p className="text-sm text-gray-500">
+                    {patientDetails.time_alert}
+                  </p>
                 </div>
               )}
             </div>

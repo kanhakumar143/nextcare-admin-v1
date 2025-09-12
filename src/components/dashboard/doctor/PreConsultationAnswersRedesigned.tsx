@@ -59,7 +59,6 @@ export default function PreConsultationAnswersRedesigned({
       <CardContent>
         <ScrollArea className="h-[52vh] pr-4">
           <div className="space-y-4">
-            {/* Preliminary Diagnosis Section */}
             {apptDtls?.source === "nextcare" &&
               apptDtls?.symptom_data_nc?.diagnosis && (
                 <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-xl">
@@ -77,7 +76,6 @@ export default function PreConsultationAnswersRedesigned({
                 </div>
               )}
 
-            {/* Content based on source */}
             {apptDtls?.source === "nextcare" ? (
               showAiSummary ? (
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
@@ -227,73 +225,32 @@ export default function PreConsultationAnswersRedesigned({
                           <div className="flex items-center gap-2">
                             <Brain className="h-5 w-5 text-blue-600" />
                             <span className="font-semibold text-blue-800 text-base">
-                              AI Summary{" "}
-                              {apptDtls.pre_appointment_qa_ai_summaries.length >
-                              1
-                                ? `#${index + 1}`
-                                : ""}
+                              AI Summary
                             </span>
                           </div>
-                          <Badge
-                            variant="secondary"
-                            className="bg-blue-100 text-blue-700 border-blue-200"
-                          >
-                            {new Date().toLocaleDateString()}
-                          </Badge>
                         </div>
 
-                        <div className="bg-white p-4 rounded-lg border border-blue-100 shadow-sm mb-4">
-                          <div className="prose prose-sm max-w-none">
-                            <div className="text-gray-900 leading-relaxed whitespace-pre-wrap">
-                              {summary.summary}
-                            </div>
-                          </div>
-                        </div>
-
-                        {summary.key_findings &&
-                          summary.key_findings.length > 0 && (
-                            <div className="p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-lg">
-                              <div className="flex items-center gap-2 mb-3">
-                                <AlertCircle className="h-5 w-5 text-amber-600" />
-                                <span className="font-semibold text-amber-800 text-base">
-                                  Key Findings
-                                </span>
-                              </div>
-                              <div className="grid gap-3">
-                                {summary.key_findings.map(
-                                  (finding, findingIndex) => {
-                                    const colonIndex = finding.indexOf(": ");
-                                    const question =
-                                      colonIndex !== -1
-                                        ? finding.substring(0, colonIndex + 1)
-                                        : finding;
-                                    const answer =
-                                      colonIndex !== -1
-                                        ? finding.substring(colonIndex + 2)
-                                        : "";
-
-                                    return (
-                                      <div
-                                        key={findingIndex}
-                                        className="p-3 bg-white rounded-lg border border-amber-100 shadow-sm"
-                                      >
-                                        <div className="text-gray-700 text-sm">
-                                          <span className="font-medium">
-                                            {question}
-                                          </span>
-                                          {answer && (
-                                            <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-800 rounded font-semibold">
-                                              {answer}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    );
-                                  }
-                                )}
-                              </div>
-                            </div>
-                          )}
+                        <div
+                          dangerouslySetInnerHTML={{
+                            __html: summary.summary
+                              .replace(
+                                /class="alert-high"/g,
+                                'class="text-red-600 font-bold"'
+                              )
+                              .replace(
+                                /class="alert-medium"/g,
+                                'class="text-orange-500 font-bold"'
+                              )
+                              .replace(
+                                /class="positive"/g,
+                                'class="text-green-600 font-bold"'
+                              )
+                              .replace(
+                                /class="medical-summary"/g,
+                                'class="p-4 rounded-lg border border-gray-200"'
+                              ),
+                          }}
+                        />
                       </div>
                     )
                   )}
