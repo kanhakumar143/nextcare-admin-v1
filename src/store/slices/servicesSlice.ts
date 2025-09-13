@@ -14,6 +14,7 @@ interface ServicesState {
   items: any[];
   loading: boolean;
   error: string | null;
+  pricing?: any; // Add this line
 }
 
 const initialState: ServicesState = {

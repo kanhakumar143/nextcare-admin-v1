@@ -10,28 +10,36 @@ export async function createPricing(
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message || "Failed to add pricing");
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to add pricing"
+      );
     }
     throw new Error("Unexpected error occurred while creating pricing.");
   }
 }
 
 // ✅ Get Pricing by SubService
-export const getAllPricing = async (
-  subServiceId: string
-): Promise<PricingResponse[]> => {
-  try {
-    const response = await api.get("service-pricing/by-sub-service", {
-      params: { sub_service_id: subServiceId },
-    });
-    return response.data;
-  } catch (error: any) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message || "Failed to fetch pricing");
-    }
-    throw new Error("Unexpected error occurred while fetching pricing.");
-  }
-};
+// export const getAllPricing = async (
+//   subServiceId: string
+// ): Promise<PricingResponse[]> => {
+//   try {
+//     const response = await api.get("service-pricing/by-sub-service", {
+//       params: { sub_service_id: subServiceId },
+//     });
+//     return response.data;
+//   } catch (error: any) {
+//     if (axios.isAxiosError(error)) {
+//       throw new Error(
+//         error.response?.data?.message ||
+//           error.message ||
+//           "Failed to fetch pricing"
+//       );
+//     }
+//     throw new Error("Unexpected error occurred while fetching pricing.");
+//   }
+// };
 
 // ✅ Update Pricing
 export const updatePricing = async (
@@ -42,14 +50,20 @@ export const updatePricing = async (
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message || "Failed to update pricing");
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update pricing"
+      );
     }
     throw new Error("Unexpected error occurred while updating pricing.");
   }
 };
 
 // ✅ Delete Pricing
-export const deletePricing = async (id: string): Promise<{ success: boolean }> => {
+export const deletePricing = async (
+  id: string
+): Promise<{ success: boolean }> => {
   try {
     const response = await api.delete("service-pricing/", {
       params: { id },
@@ -57,8 +71,21 @@ export const deletePricing = async (id: string): Promise<{ success: boolean }> =
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
-      throw new Error(error.response?.data?.message || error.message || "Failed to delete pricing");
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete pricing"
+      );
     }
     throw new Error("Unexpected error occurred while deleting pricing.");
   }
+};
+
+export const searchSubService = async (
+  name: string
+): Promise<PricingResponse[]> => {
+  const response = await api.get(
+    `/sub-service/search?name=${encodeURIComponent(name)}`
+  );
+  return response.data;
 };

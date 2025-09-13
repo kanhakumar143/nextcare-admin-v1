@@ -21,6 +21,9 @@ import {
   IndianRupee,
   Wallet,
   ScrollText,
+  Album,
+  Gem,
+  Landmark,
 } from "lucide-react";
 
 export type Route = {
@@ -128,12 +131,17 @@ export const adminRoutes: Route[] = [
       {
         href: "/dashboard/admin/pricing-planes/tax-management",
         name: "Tax Management",
-        icon: ScrollText,
+        icon: Landmark,
       },
       {
         href: "/dashboard/admin/pricing-planes",
         name: "Services Pricing",
         icon: ScrollText,
+      },
+      {
+        href: "/dashboard/admin/pricing-planes/subscription",
+        name: "Subscription",
+        icon: Gem,
       },
     ],
   },

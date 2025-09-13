@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
 import { fetchServices } from "@/store/slices/servicesSlice";
 import {
-  fetchAllPricing,
+  // fetchAllPricing,
   postPricing,
   resetPricingState,
 } from "@/store/slices/pricingSlice";
@@ -80,29 +80,40 @@ export default function AddPricingModal({
   }, [isOpen, dispatch]);
 
   // Reset state on close
-  useEffect(() => {
-    if (!isOpen) {
-      setStep(1);
-      setSelectedServiceId("");
-      setSelectedService(null);
-      setSelectedSubserviceId("");
-      setSelectedSubservice(null);
-      setPrice(100);
-      setSelectedTaxId("");
-    }
-  }, [isOpen]);
+// Reset state only when closing without an entry
+useEffect(() => {
+  if (!isOpen) {
+    setStep(1);
+    setSelectedServiceId("");
+    setSelectedService(null);
+    setSelectedSubserviceId("");
+    setSelectedSubservice(null);
+    setPrice(100);
+    setSelectedTaxId("");
+  }
+}, [isOpen]);
 
-  // Prefill for editing
-  useEffect(() => {
-    if (entry) {
-      setSelectedService(entry.service || null);
-      setSelectedServiceId(entry.service?.id || "");
-      setSelectedSubservice(entry.subservice || null);
-      setSelectedSubserviceId(entry.subservice?.id || "");
-      setPrice(entry.price ?? 100);
-      setSelectedTaxId(entry.tax_id || "");
+// Prefill when entry is passed
+useEffect(() => {
+  if (entry) {
+    setSelectedServiceId(String(entry.service?.id || ""));
+    setSelectedService(entry.service || null);
+
+    setSelectedSubserviceId(String(entry.subservice?.id || ""));
+    setSelectedSubservice(entry.subservice || null);
+
+    setPrice(entry.price ?? 100);
+    setSelectedTaxId(entry.tax_id || "");
+    
+    // Jump to Pricing step if service + subservice are already prefilled
+    if (entry.service?.id && entry.subservice?.id) {
+      setStep(3);
     }
-  }, [entry]);
+  }
+}, [entry]);
+
+
+
 
   // Fetch subservices when service changes
   useEffect(() => {
@@ -132,7 +143,7 @@ export default function AddPricingModal({
           service_subservice_id: selectedSubservice.id,
           isActive: selectedSubservice?.is_active ?? true,
         });
-        dispatch(fetchAllPricing(process.env.NEXT_PUBLIC_TENANT_ID || ""));
+        dispatch(fetchServices());
         dispatch(resetPricingState());
         onClose();
       }
@@ -186,63 +197,65 @@ export default function AddPricingModal({
           {step === 1 && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Service</label>
-              <Select
-                value={selectedServiceId}
-                onValueChange={(val) => {
-                  setSelectedServiceId(val);
-                  const srv = services.find((s) => s.id === val);
-                  setSelectedService(srv || null);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      servicesLoading ? "Loading..." : "Select a service"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {services.map((srv) => (
-                    <SelectItem key={srv.id} value={srv.id}>
-                      {srv.name || srv.service_label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Select
+  value={selectedServiceId}
+  onValueChange={(val) => {
+    setSelectedServiceId(val);
+    const srv = services.find((s) => s.id === val);
+    setSelectedService(srv || null);
+  }}
+>
+  <SelectTrigger className="w-full">
+    <SelectValue placeholder={servicesLoading ? "Loading..." : "Select a service"} />
+  </SelectTrigger>
+  <SelectContent>
+    {services.map((srv) => (
+      <SelectItem key={srv.id} value={srv.id}>
+        {srv.name || srv.service_label}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
+
+
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-2">
               <label className="text-sm font-medium">Subservice</label>
-              <Select
-                value={selectedSubserviceId}
-                onValueChange={(val) => {
-                  setSelectedSubserviceId(val);
-                  const sp = subservices.find((s: any) => s.id === val);
-                  setSelectedSubservice(sp || null);
-                }}
-                disabled={subservicesLoading || subservices.length === 0}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={
-                      subservicesLoading
-                        ? "Loading..."
-                        : subservices.length === 0
-                        ? "No subservices found"
-                        : "Select a subservice"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {subservices.map((sp: any) => (
-                    <SelectItem key={sp.id} value={sp.id}>
-                      {sp.subservice_label || sp.display || sp.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <Select
+  value={selectedSubserviceId}
+  onValueChange={(val) => {
+    setSelectedSubserviceId(val);
+    const sp = subservices.find((s: any) => s.id === val);
+    setSelectedSubservice(sp || null);
+  }}
+  disabled={subservicesLoading || subservices.length === 0}
+>
+  <SelectTrigger className="w-full">
+    <SelectValue
+      placeholder={
+        subservicesLoading
+          ? "Loading..."
+          : subservices.length === 0
+          ? "No subservices found"
+          : "Select a subservice"
+      }
+    />
+  </SelectTrigger>
+  <SelectContent>
+    {subservices.map((sp: any) => (
+      <SelectItem key={sp.id} value={sp.id}>
+        {sp.subservice_label || sp.display || sp.name}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
+
+
+
             </div>
           )}
 

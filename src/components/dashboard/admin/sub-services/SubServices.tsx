@@ -104,7 +104,7 @@ export default function SubServices() {
     },
   ];
 
-  // ✅ Add SubService handler (form sends CreateSubServiceDto, backend returns SubService)
+  // Add SubService handler (form sends CreateSubServiceDto, backend returns SubService)
   const handleAddSubService = async (formData: CreateSubServiceDto) => {
     // Check if sub-service already exists for the selected service
     const exists = items.some(
@@ -112,22 +112,10 @@ export default function SubServices() {
     );
 
     if (exists) {
-      toast.error("This sub-service already exists under the selected service.");
+      toast.error(
+        "This sub-service already exists under the selected service."
+      );
       return;
-    }
-
-    try {
-      const resultAction = await dispatch(addSubService(formData));
-
-      if (addSubService.fulfilled.match(resultAction)) {
-        toast.success("Sub-service added successfully!");
-        setOpenModal(false);
-        dispatch(fetchSubServicesByServiceId(selectedServiceId));
-      } else {
-        toast.error(resultAction.payload as string);
-      }
-    } catch {
-      toast.error("Something went wrong while adding the sub-service.");
     }
   };
 

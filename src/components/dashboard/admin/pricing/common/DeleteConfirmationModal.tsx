@@ -12,14 +12,15 @@ import { AlertTriangle } from "lucide-react";
 
 interface PricingEntry {
   id: string;
-  service_specialty_id: string;
-  service: string;
-  specialty: string;
+  sub_service_id: string;
+  service: { id: string; name: string };     // <-- object
+  subservice: { id: string; name: string };  // <-- object
   price: number;
-  tax: number;
+  taxRate: number;
   totalPrice: number;
   isActive: boolean;
 }
+
 
 interface DeleteConfirmationModalProps {
   isOpen: boolean;
@@ -60,30 +61,36 @@ export default function DeleteConfirmationModal({
             Are you sure you want to delete this pricing entry?
           </p>
           
-          {entry && (
-            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Service:</span>
-                <span>{entry.service}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Sub Service:</span>
-                <span>{entry.specialty}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Price:</span>
-                <span className="font-semibold text-primary">₹{entry.totalPrice}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="font-medium">Status:</span>
-                <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                  entry.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}>
-                  {entry.isActive ? 'Active' : 'Inactive'}
-                </span>
-              </div>
-            </div>
-          )}
+         {entry && (
+  <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+    <div className="flex justify-between text-sm">
+      <span className="font-medium">Service:</span>
+      <span>{entry.service.name}</span>
+    </div>
+    <div className="flex justify-between text-sm">
+      <span className="font-medium">Sub Service:</span>
+      <span>{entry.subservice.name}</span>
+    </div>
+    <div className="flex justify-between text-sm">
+      <span className="font-medium">Price:</span>
+      <span className="font-semibold text-primary">₹{entry.totalPrice}</span>
+    </div>
+    <div className="flex justify-between text-sm">
+      <span className="font-medium">Tax Rate:</span>
+      <span>{entry.taxRate}%</span>
+    </div>
+    <div className="flex justify-between text-sm">
+      <span className="font-medium">Status:</span>
+      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+        entry.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+      }`}>
+        {entry.isActive ? 'Active' : 'Inactive'}
+      </span>
+    </div>
+  </div>
+)}
+
+
         </div>
 
         <DialogFooter className="gap-3">

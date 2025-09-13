@@ -2,56 +2,63 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { PricingPayload, PricingResponse } from "@/types/pricing.types";
 import {
   createPricing,
-  getAllPricing,
   updatePricing,
   deletePricing,
+  searchSubService,
 } from "@/services/pricing.api";
 
+// -------------------- State --------------------
 interface PricingState {
   loading: boolean;
+  searchLoading: boolean;
   error: string | null;
   success: boolean;
-  message?: string;
+  message: string;
   items: PricingResponse[];
 }
 
 const initialState: PricingState = {
   loading: false,
+  searchLoading: false,
   error: null,
   success: false,
   message: "",
   items: [],
 };
 
+// -------------------- Thunks --------------------
+
 // Create pricing
 export const postPricing = createAsyncThunk<PricingResponse, PricingPayload>(
   "pricing/postPricing",
   async (payload, { rejectWithValue }) => {
     try {
-      // ✅ Ensure backend gets number for base_price
       const response = await createPricing({
         ...payload,
-        base_price: Number(payload.base_price),
+        base_price: Number(payload.base_price), // ensure number
       });
       return response;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to post pricing"
+        error.response?.data?.message || "Failed to create pricing"
       );
     }
   }
 );
 
-// Fetch all pricing (sub_service_id based)
-export const fetchAllPricing = createAsyncThunk<PricingResponse[], string>(
-  "pricing/fetchAllPricing",
-  async (sub_service_id, { rejectWithValue }) => {
+// Update pricing
+export const updatePricingThunk = createAsyncThunk<PricingResponse, PricingPayload>(
+  "pricing/updatePricing",
+  async (payload, { rejectWithValue }) => {
     try {
-      const data = await getAllPricing(sub_service_id);
-      return data;
+      const response = await updatePricing({
+        ...payload,
+        base_price: Number(payload.base_price), // ensure number
+      });
+      return response;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch pricing"
+        error.response?.data?.message || "Failed to update pricing"
       );
     }
   }
@@ -72,20 +79,38 @@ export const removePricing = createAsyncThunk<string, string>(
   }
 );
 
+// Search pricing by sub-service name (global search)
+export const searchSubServicePricing = createAsyncThunk<
+  PricingResponse[],
+  string
+>("pricing/searchSubServicePricing", async (name, { rejectWithValue }) => {
+  try {
+    const data = await searchSubService(name);
+    return data;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || "Failed to search pricing"
+    );
+  }
+});
+
+// -------------------- Slice --------------------
 const pricingSlice = createSlice({
   name: "pricing",
   initialState,
   reducers: {
     resetPricingState: (state) => {
       state.loading = false;
+      state.searchLoading = false;
       state.error = null;
       state.success = false;
       state.message = "";
+      state.items = [];
     },
   },
   extraReducers: (builder) => {
     builder
-      // POST
+      // CREATE
       .addCase(postPricing.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -97,30 +122,35 @@ const pricingSlice = createSlice({
         state.success = true;
         state.error = null;
         state.message = "Pricing created successfully";
-        if (action.payload) state.items.push(action.payload);
+        state.items.push(action.payload);
       })
       .addCase(postPricing.rejected, (state, action) => {
         state.loading = false;
         state.success = false;
         state.error = action.payload as string;
-        state.message = "";
       })
 
-      // FETCH
-      .addCase(fetchAllPricing.pending, (state) => {
+      // UPDATE
+      .addCase(updatePricingThunk.pending, (state) => {
         state.loading = true;
         state.error = null;
+        state.success = false;
+        state.message = "";
       })
-      .addCase(fetchAllPricing.fulfilled, (state, action) => {
+      .addCase(updatePricingThunk.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload || [];
         state.success = true;
         state.error = null;
+        state.message = "Pricing updated successfully";
+        const index = state.items.findIndex((item) => item.id === action.payload.id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
       })
-      .addCase(fetchAllPricing.rejected, (state, action) => {
+      .addCase(updatePricingThunk.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
         state.success = false;
+        state.error = action.payload as string;
       })
 
       // DELETE
@@ -134,14 +164,35 @@ const pricingSlice = createSlice({
         state.loading = false;
         state.success = true;
         state.items = state.items.filter((item) => item.id !== action.payload);
+        state.message = "Pricing deleted successfully";
       })
       .addCase(removePricing.rejected, (state, action) => {
         state.loading = false;
+        state.success = false;
+        state.error = action.payload as string;
+      })
+
+      // SEARCH
+      .addCase(searchSubServicePricing.pending, (state) => {
+        state.searchLoading = true;
+        state.error = null;
+        state.success = false;
+      })
+      .addCase(searchSubServicePricing.fulfilled, (state, action) => {
+        state.searchLoading = false;
+        state.success = true;
+        state.error = null;
+        state.items = action.payload || [];
+        state.message = "Search results loaded";
+      })
+      .addCase(searchSubServicePricing.rejected, (state, action) => {
+        state.searchLoading = false;
         state.success = false;
         state.error = action.payload as string;
       });
   },
 });
 
+// -------------------- Export --------------------
 export const { resetPricingState } = pricingSlice.actions;
 export default pricingSlice.reducer;
