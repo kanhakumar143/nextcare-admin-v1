@@ -8,13 +8,15 @@ import { getSubscriptionPlansByTenant } from "@/services/subscription.api";
 import SubscriptionDetailsModal from "./modals/SubscriptionDetailsModal";
 import EditSubscriptionModal from "./modals/EditSubscriptionModal";
 import { Eye, Pencil } from "lucide-react";
+import CreateSubscriptionModal from "./modals/AddSubscriptionModal";
 
 export default function SubscriptionPage() {
   const tenantId = "4896d272-e201-4dce-9048-f93b1e3ca49f";
   const [plans, setPlans] = useState<GetSubscriptionPlan[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<GetSubscriptionPlan | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<GetSubscriptionPlan | null>(
+    null
+  );
 
-  // modal states
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -33,11 +35,17 @@ export default function SubscriptionPage() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Subscription Plans</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h1 className="text-2xl font-bold">Subscription Plans</h1>
+        <CreateSubscriptionModal tenantId={tenantId} />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
-          <Card key={plan.id} className="rounded-2xl shadow-sm border hover:shadow-md transition">
+          <Card
+            key={plan.id}
+            className="rounded-2xl shadow-sm border hover:shadow-md transition"
+          >
             <CardHeader className="flex flex-row justify-between items-center">
               {/* Left: Plan name */}
               <h2 className="text-lg font-semibold">{plan.name}</h2>
@@ -96,7 +104,6 @@ export default function SubscriptionPage() {
         ))}
       </div>
 
-      {/* Details modal */}
       {selectedPlan && (
         <SubscriptionDetailsModal
           plan={selectedPlan}
