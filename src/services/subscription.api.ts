@@ -27,9 +27,9 @@ export async function createSubscriptionPlan(
 }
 
 // ✅ Get Subscription Plans by Tenant
-export const getSubscriptionPlansByTenant = async (
+export async function getSubscriptionPlansByTenant(
   tenantId: string
-): Promise<GetSubscriptionPlansResponse> => {
+): Promise<GetSubscriptionPlansResponse> {
   try {
     const response = await api.get("subscription-plans/by-tenant/", {
       params: { tenant_id: tenantId },
@@ -45,14 +45,14 @@ export const getSubscriptionPlansByTenant = async (
     }
     throw new Error("Unexpected error occurred while fetching subscription plans.");
   }
-};
+}
 
 // ✅ Update Subscription Plan
-export const updateSubscriptionPlan = async (
-  payload: UpdateSubscriptionPlan // ✅ use correct type
-): Promise<GetSubscriptionPlan> => {
+export async function updateSubscriptionPlan(
+  payload: UpdateSubscriptionPlan
+): Promise<GetSubscriptionPlan> {
   try {
-    const response = await api.put("subscription-plans/", payload);
+    const response = await api.put("subscription-plans/", payload); // ✅ body contains id
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -64,15 +64,15 @@ export const updateSubscriptionPlan = async (
     }
     throw new Error("Unexpected error occurred while updating subscription plan.");
   }
-};
+}
 
 // ✅ Delete Subscription Plan
-export const deleteSubscriptionPlan = async (
+export async function deleteSubscriptionPlan(
   id: string
-): Promise<{ success: boolean }> => {
+): Promise<{ success: boolean }> {
   try {
-    const response = await api.delete("subscription-plans/?plan_id=", {
-      params: { id },
+    const response = await api.delete("subscription-plans/", {
+      params: { plan_id: id }, // ✅ corrected
     });
     return response.data;
   } catch (error: any) {
@@ -85,4 +85,4 @@ export const deleteSubscriptionPlan = async (
     }
     throw new Error("Unexpected error occurred while deleting subscription plan.");
   }
-};
+}

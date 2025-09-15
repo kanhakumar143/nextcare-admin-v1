@@ -9,8 +9,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X, Edit2, Trash2 } from "lucide-react";
-import { GetSubscriptionPlan } from "@/types/subscription.type";
+import { X, Edit2 } from "lucide-react";
+import { GetSubscriptionPlan, SubscriptionPlanFeature } from "@/types/subscription.type";
 import { useAppDispatch } from "@/store/hooks";
 import { removeSubscriptionPlan } from "@/store/slices/subscriptionSlice";
 import EditSubscriptionModal from "./EditSubscriptionModal";
@@ -37,11 +37,10 @@ export default function SubscriptionDetailsModal({
   const [deleting, setDeleting] = useState(false);
 
   const handleDelete = async () => {
-    // if (!confirm(`Are you sure you want to delete "${plan.name}"?`)) return;
     try {
       setDeleting(true);
       await dispatch(removeSubscriptionPlan(plan.id)).unwrap();
-      onDeleted();
+      await onDeleted();
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to delete plan:", error);
@@ -55,9 +54,6 @@ export default function SubscriptionDetailsModal({
       <DialogContent className="sm:max-w-2xl w-full rounded-3xl p-6">
         <DialogHeader className="flex justify-between items-center">
           <DialogTitle className="text-2xl font-bold">{plan.name}</DialogTitle>
-          <div className="flex gap-2">
-           
-          </div>
         </DialogHeader>
 
         <div className="mt-4 space-y-6">
@@ -67,22 +63,30 @@ export default function SubscriptionDetailsModal({
             <p className="text-sm text-muted-foreground">
               Duration: <span className="font-medium">{plan.duration_days} days</span>
             </p>
-            <p className="text-sm text-muted-foreground">
-              Support: <span className="font-medium">{plan.features.support}</span>
-            </p>
           </div>
 
           {/* Features */}
           <div>
             <h3 className="text-lg font-semibold mb-2">Features</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto">
-              {Object.entries(plan.features).map(([key, value]) => (
+              {plan.features.map((feature: SubscriptionPlanFeature, index: number) => (
                 <div
-                  key={key}
-                  className="p-3 border rounded-xl flex justify-between items-center bg-white shadow-sm"
+                  key={index}
+                  className="p-3 border rounded-xl flex flex-col gap-1 bg-white shadow-sm"
                 >
-                  <span className="text-sm font-medium capitalize">{key.replace(/_/g, " ")}</span>
-                  <span className="text-sm text-muted-foreground">{value.toString()}</span>
+                  <span className="font-medium">{feature.name}</span>
+                  <span className="text-sm text-muted-foreground">
+                    Type: {feature.feature_type || "-"}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Quantity: {feature.quantity ?? "-"}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Discount: {feature.discount_percent ?? "-"}%
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    Description: {feature.description || "-"}
+                  </span>
                 </div>
               ))}
             </div>
@@ -90,23 +94,13 @@ export default function SubscriptionDetailsModal({
         </div>
 
         <DialogFooter className="mt-6 flex justify-end gap-2">
-             <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setEditOpen(true)}
-              className="hover:bg-gray-100 cursor-pointer"
-            >
-              <Edit2 className="w-5 h-5" />
-            </Button>
-            {/* <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDelete}
-              className="hover:bg-red-100 text-red-600 cursor-pointer"
-              disabled={deleting}
-            >
-              <Trash2 className="w-5 h-5" />
-            </Button> */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setEditOpen(true)}
+          >
+            <Edit2 className="w-5 h-5" />
+          </Button>
           <Button variant="outline" className="cursor-pointer" onClick={() => onOpenChange(false)}>
             Close
           </Button>
@@ -119,7 +113,7 @@ export default function SubscriptionDetailsModal({
             tenantId={tenantId}
             open={editOpen}
             onClose={() => setEditOpen(false)}
-            onUpdated={onUpdated} // refresh parent list after update
+            onUpdated={onUpdated} 
           />
         )}
       </DialogContent>
