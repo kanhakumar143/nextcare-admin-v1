@@ -35,9 +35,11 @@ import {
   User,
   BookOpen,
   ArrowLeft,
+  Video,
 } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
 import EditVitalsModal from "./modals/EditVitalsModal";
+import ReferPatientModal from "./modals/ReferPatientModal";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setConfirmConsultationModal,
@@ -49,7 +51,10 @@ import {
 } from "@/store/slices/doctorSlice";
 import { RootState } from "@/store";
 import { useParams, useRouter } from "next/navigation";
-import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
+import {
+  getAssignedAppointmentDtlsById,
+  getMeetingURL,
+} from "@/services/doctor.api";
 import { toast } from "sonner";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 import DentalProcedureEntry from "./DentalProcedureEntry";
@@ -59,8 +64,10 @@ import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageRepo
 import ConsultationRecorder from "./ConsultationRecorder";
 import PreConsultationAnswers from "./PreConsultationAnswersRedesigned";
 import EhrModal from "./modals/ehrModal";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 
 export default function PatientConsultation() {
+  const { practitionerId } = useAuthInfo();
   const dispatch = useDispatch();
   const { patient_name } = useParams();
   const {
@@ -74,7 +81,11 @@ export default function PatientConsultation() {
     null
   );
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [meetingURL, setMeetingURL] = useState<string>(
+    "https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjU1NmY3NjYtOWI0Yi00NzZkLWJlN2YtYWY2NDU0YjA0YzAy%40thread.v2/0?context=%7b%22Tid%22%3a%22774486a0-0b12-4dc4-8826-7509c0aba4b5%22%2c%22Oid%22%3a%220aa623a3-9104-44e4-8ea2-4056cf08a2f2%22%7d"
+  );
   const [selectedImage, setSelectedImage] = useState<string>("");
+  const [referralSheetOpen, setReferralSheetOpen] = useState(false);
   const router = useRouter();
 
   const [ehrModalOpen, setEhrModalOpen] = useState(false);
@@ -122,6 +133,18 @@ export default function PatientConsultation() {
       populateExistingConsultationData();
     }
   }, [consultationMode, apptDtls]);
+
+  const getMeetingLink = async () => {
+    try {
+      const response = await getMeetingURL(apptDtls?.id || "");
+      setMeetingURL(response.meeting_url);
+    } catch (error) {
+      setMeetingURL(
+        "https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjU1NmY3NjYtOWI0Yi00NzZkLWJlN2YtYWY2NDU0YjA0YzAy%40thread.v2/0?context=%7b%22Tid%22%3a%22774486a0-0b12-4dc4-8826-7509c0aba4b5%22%2c%22Oid%22%3a%220aa623a3-9104-44e4-8ea2-4056cf08a2f2%22%7d"
+      );
+      console.log("Error fetching meeting URL:", error);
+    }
+  };
 
   const populateExistingConsultationData = () => {
     if (!apptDtls) return;
@@ -276,6 +299,14 @@ export default function PatientConsultation() {
             </div>
 
             <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => window.open(meetingURL, "_blank")}
+                className="flex items-center gap-1 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+              >
+                <Video className="h-3 w-3" />
+                Start Meet
+              </Button>
               <Button
                 variant="outline"
                 onClick={handlePatientHealthRecord}
@@ -597,14 +628,19 @@ export default function PatientConsultation() {
               : "Complete the consultation to generate prescription"}
           </div>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex items-center gap-1"
+            <ReferPatientModal
+              isOpen={referralSheetOpen}
+              onOpenChange={setReferralSheetOpen}
+              patientName={apptDtls?.patient?.user?.name}
+              patientId={apptDtls?.patient?.id}
+              practitionerId={practitionerId || ""}
+              originAppointmentId={apptDtls?.id}
             >
-              <ArrowLeft className="h-3 w-3" />
-              Cancel
-            </Button>
+              <Button variant="outline" className="flex items-center gap-1">
+                Refer Patient
+              </Button>
+            </ReferPatientModal>
+
             <Button
               onClick={handleConfirmConsultationCheck}
               className="flex items-center gap-1"

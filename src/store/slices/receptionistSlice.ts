@@ -44,6 +44,7 @@ const initialState: staffSliceInitialState = {
   patientDetails: null,
   appoinmentDetails: null,
   paymentDetails: null,
+  referallId: null,
   medicationDetailsForReminder: null,
   practitionerAttendanceData: null,
   practitionersList: [],
@@ -121,6 +122,21 @@ const receptionistSlice = createSlice({
     clearEditingMedicationReminder: (state) => {
       state.editingMedicationReminder = null;
     },
+    clearPaymentDetails: (state) => {
+      state.paymentDetails = null;
+    },
+    clearAllReceptionistData: (state) => {
+      state.patientDetails = null;
+      state.appoinmentDetails = null;
+      state.paymentDetails = null;
+      state.referallId = null;
+      state.medicationDetailsForReminder = null;
+      state.downloadReportsData = null;
+      state.scanQrMessage = null;
+      state.error = null;
+      state.editingMedicationReminder = null;
+      state.storedAccessToken = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -135,6 +151,7 @@ const receptionistSlice = createSlice({
           state.patientDetails = action.payload.data;
           state.appoinmentDetails = action.payload.data.appointment || null;
           state.paymentDetails = action.payload.data.payment || null;
+          state.referallId = action.payload.data.referral_id || null;
           state.error = null;
           state.scanQrMessage = null;
         } else {
@@ -183,6 +200,8 @@ export const {
   clearPractitionerAttendanceData,
   setEditingMedicationReminder,
   clearEditingMedicationReminder,
+  clearPaymentDetails,
+  clearAllReceptionistData,
 } = receptionistSlice.actions;
 
 export default receptionistSlice.reducer;

@@ -559,7 +559,7 @@ export default function PatientConsultation() {
 
       <div className="flex w-full gap-3 justify-end px-6 py-4">
         <Button variant={"outline"} onClick={() => router.back()}>
-          Cancel
+          Refer Patient
         </Button>
         <Button onClick={handleConfirmConsultationCheck}>
           {isEditingConsultation

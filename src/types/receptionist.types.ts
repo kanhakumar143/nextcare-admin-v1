@@ -1,5 +1,216 @@
 import { ExtendedDoctorData, DoctorData } from "./admin.types";
 
+// Appointment booking interfaces
+export interface AvailableSlot {
+  slot_id: string;
+  start: string;
+  end: string;
+  schedule_id: string;
+  practitioner_id: string;
+  schedule_panning_start: string;
+  schedule_planning_end: string;
+  rule_score: number;
+  predicted_wait_time: number;
+  cancellation_risk: number;
+  final_score: number;
+  reason: string[];
+}
+
+export interface ReferralData {
+  referral: {
+    id: string;
+    reason: string;
+    status: string;
+    patient: {
+      id: string;
+      patient_display_id: string;
+      gender: string;
+      birth_date: string;
+      user: {
+        id: string;
+        name: string;
+        email: string;
+        phone: string;
+      };
+    };
+    practitioner: {
+      practitioner_display_id: string;
+      name: {
+        text: string;
+        prefix: string[];
+      };
+    };
+    service_specialty: {
+      id: string;
+      display: string;
+      specialty_label: string;
+      description: string;
+    };
+  };
+  available_slots: AvailableSlot[];
+  scoring_basis: {
+    rule_based: string;
+    ml_prediction: string;
+    final_score: string;
+    reasons: string;
+  };
+  sub_services?: SubService[];
+}
+
+export interface BookAppointmentProps {
+  referralId: string;
+}
+
+// Regular slots interfaces
+export interface RegularSlot {
+  id: string;
+  schedule_id: string;
+  status: "free" | "booked" | "cancelled" | string;
+  start: string;
+  end: string;
+  overbooked: boolean;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Schedule {
+  planning_start: string;
+  planning_end: string;
+  comment: string;
+  practitioner_id: string;
+  specialty_id: string;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  slots: RegularSlot[];
+  flag: string | null;
+}
+
+export interface RecentSuggestedSlotsData {
+  reason: string;
+  status: string;
+  schedules: Schedule[];
+  patient: {
+    id: string;
+    patient_display_id: string;
+    gender: string;
+    birth_date: string;
+    user_id: string;
+    created_at: string;
+    updated_at: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+      user_role: string;
+      is_active: boolean;
+      created_at: string;
+      updated_at: string;
+      tenant: {
+        id: string;
+        active: boolean;
+        name: string;
+        alias: string[];
+        contact: {
+          name: string;
+          telecom: {
+            system: string;
+            value: string;
+            use: string | null;
+          }[];
+          address: any | null;
+          purpose: any | null;
+        }[];
+      };
+    };
+  };
+  practitioner: {
+    practitioner_display_id: string;
+    identifiers: {
+      system: string;
+      value: string;
+    }[];
+    name: {
+      use: string;
+      text: string;
+      family: string;
+      given: string[];
+      prefix: string[];
+      suffix: string | null;
+      period: any | null;
+    };
+    telecom: {
+      system: string;
+      value: string;
+      use: string;
+      rank: number;
+      period: any | null;
+    }[];
+    gender: string;
+    birth_date: string;
+    qualification: {
+      year: string;
+      degree: string;
+      institution: string;
+    }[];
+    is_active: boolean;
+    license_details: {
+      expiry: string;
+      number: string;
+      issued_by: string;
+    };
+    profile_picture_url: string;
+    license_url: string;
+    e_sign_path: string | null;
+    status: string;
+    service_specialty_id: string | null;
+    id: string;
+    user_id: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string | null;
+      user_role: string;
+      is_active: boolean;
+      created_at: string;
+      updated_at: string;
+      tenant: {
+        id: string;
+        active: boolean;
+        name: string;
+        alias: string[];
+        contact: {
+          name: string;
+          telecom: {
+            system: string;
+            value: string;
+            use: string | null;
+          }[];
+          address: any | null;
+          purpose: any | null;
+        }[];
+      };
+    };
+    availability_status: any | null;
+  };
+  service_specialty: {
+    system: string;
+    code: string;
+    display: string;
+    specialty_label: string;
+    description: string;
+    is_active: boolean;
+    id: string;
+    tenant_service_id: string;
+    created_at: string;
+    updated_at: string;
+  };
+  sub_services: SubService[];
+}
+
 // Lab test order interface
 export interface LabTestOrder {
   id: string;
@@ -214,6 +425,7 @@ export interface qrDecodedDetails {
 export interface staffSliceInitialState {
   patientDetails: qrDecodedDetails | null;
   medicationDetailsForReminder: any | null;
+  referallId: string | null;
   paymentDetails: PendingOrdersResponse | null;
   appoinmentDetails: any | null;
   practitionerAttendanceData: ExtendedDoctorData | null;
@@ -442,4 +654,64 @@ export interface Pricing {
   id: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface CreateNewAppointmentPayload {
+  step_count?: number;
+  id?: string;
+  patient_id: string;
+  status: string;
+  sub_service_ids?: string[];
+  description?: string;
+  start?: string; // ISO datetime string
+  end?: string; // ISO datetime string
+  specialty_id?: string;
+  participants?: {
+    actor_reference: string;
+    status: string;
+  }[];
+  reasons?: {
+    concept_text: string;
+    reference_resource_type: string;
+    reference_resource_id: string;
+    reference_display: string;
+  }[];
+  class_concept?: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+    text: string;
+  };
+  service_category?: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+    text: string;
+  }[];
+  service_id?: string | null;
+  slot_id?: string | null;
+  slot_info?: {
+    start?: string | null;
+    end?: string | null;
+    id?: string | null;
+    overbooked?: boolean | null;
+  };
+  recurrence_template?: {
+    recurrence_type: "daily" | "weekly" | "monthly";
+    occurrence_count: number;
+    weekly_template?: {
+      monday?: boolean;
+      tuesday?: boolean;
+      wednesday?: boolean;
+      thursday?: boolean;
+      friday?: boolean;
+      saturday?: boolean;
+      sunday?: boolean;
+      week_interval: number;
+    };
+  };
 }

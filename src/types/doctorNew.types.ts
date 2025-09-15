@@ -331,3 +331,11 @@ export interface PractitionerData {
     user_id: string;
   };
 }
+
+export interface referConsultationPayload {
+  origin_appointment_id: string;
+  patient_id: string;
+  practitioner_id: string;
+  service_specialty_id: string;
+  reason?: string;
+}

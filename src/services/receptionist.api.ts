@@ -1,9 +1,11 @@
 import { api, axios } from "@/lib/axios";
 import {
+  CreateNewAppointmentPayload,
   medicationReminderCreatePayload,
   MedicationReminderUpdatePayload,
   UserPatientProfileResponse,
 } from "@/types/receptionist.types";
+import { tr } from "date-fns/locale";
 const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 
 export const checkInPatient = async (payload: {
@@ -210,6 +212,72 @@ export const reminderForMedication = async (
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
       const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const getAiSuggestedSlots = async (referalId: string) => {
+  try {
+    const response = await api.post(
+      `ai/referrals/recommend-slots/${referalId}`
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const getRecentSuggestedSlots = async (referalId: string) => {
+  try {
+    const response = await api.get(`appointment_referral/slots/${referalId}`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to fetch details from QR code";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const updateAppointmentReferral = async (
+  payload: {
+    booked_appointment_id?: string;
+    payment_id?: string;
+    status?: string;
+  },
+  referalId: string
+) => {
+  try {
+    const response = await api.put(
+      `appointment_referral/${referalId}`,
+      payload
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const createNewAppointment = async (
+  payload: CreateNewAppointmentPayload
+) => {
+  try {
+    const response = await api.post(`appointment/`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
       throw new Error(message);
     }
     throw new Error("Unexpected error occurred.");
