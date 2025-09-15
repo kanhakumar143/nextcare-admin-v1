@@ -8,6 +8,7 @@ import RazorpayPayment from "@/components/payment/razorpayPayment";
 import { updateBulkStatusPaymentRequest } from "@/services/razorpay.api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { submitInvoiceGenerate } from "@/services/invoice.api";
 
 const PendingPayments = () => {
   const router = useRouter();
@@ -26,6 +27,12 @@ const PendingPayments = () => {
           status: "completed",
         }));
         await updateBulkStatusPaymentRequest(payload);
+
+        const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
+
+        const invoiceData = await submitInvoiceGenerate({
+          order_request_ids: orderRequestIds,
+        });
       }
 
       toast.success("Payment successful");
@@ -47,7 +54,9 @@ const PendingPayments = () => {
   };
 
   if (!patientDetails || !paymentDetails) {
-    return <div className="text-center text-gray-600">No payment data found.</div>;
+    return (
+      <div className="text-center text-gray-600">No payment data found.</div>
+    );
   }
 
   const pendingOrders = paymentDetails.pending_orders ?? [];
@@ -73,14 +82,18 @@ const PendingPayments = () => {
               <div className="text-primary font-bold">
                 {paymentDetails.currency} {paymentDetails.total_amount}
               </div>
-              <div className="text-primary font-bold">{paymentDetails.order_count}</div>
+              <div className="text-primary font-bold">
+                {paymentDetails.order_count}
+              </div>
             </div>
           </div>
 
           {/* Pending Services Table (always show) */}
           <div className="mt-4">
             <div className="text-left mb-2">
-              <h3 className="text-sm font-semibold text-gray-800">Pending Services</h3>
+              <h3 className="text-sm font-semibold text-gray-800">
+                Pending Services
+              </h3>
             </div>
             <div className="border rounded-lg overflow-hidden">
               <table className="w-full text-xs">
@@ -102,7 +115,9 @@ const PendingPayments = () => {
                     pendingOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50">
                         <td className="px-2 py-2 text-gray-800">
-                          <div className="font-medium">{order.sub_service.name}</div>
+                          <div className="font-medium">
+                            {order.sub_service.name}
+                          </div>
                           <div className="text-gray-500 text-xs truncate">
                             {order.sub_service.description}
                           </div>
@@ -158,17 +173,17 @@ const PendingPayments = () => {
             />
           ) : (
             <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-            <p className="text-sm text-green-700 text-center">
-                      ₹25 already paid during appointment booking
-                    </p>
-                
-            <button
-              onClick={handleNext}
-              disabled={loading}
-              className="w-full bg-primary text-white py-2 rounded-lg font-medium"
-            >
-              Next
-            </button>
+              <p className="text-sm text-green-700 text-center">
+                ₹25 already paid during appointment booking
+              </p>
+
+              <button
+                onClick={handleNext}
+                disabled={loading}
+                className="w-full bg-primary text-white py-2 rounded-lg font-medium"
+              >
+                Next
+              </button>
             </div>
           )}
         </CardContent>
