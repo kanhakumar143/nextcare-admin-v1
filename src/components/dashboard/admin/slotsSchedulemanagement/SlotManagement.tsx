@@ -190,8 +190,8 @@ export default function SlotManagement() {
   }, [error, doctorsError, dispatch]);
 
   const handleDoctorSelect = (value: string) => {
-    console.log(value);
-    console.log("Selected Practitioner ID:", value);
+    // console.log(value);
+    // console.log("Selected Practitioner ID:", value);
     dispatch(setSelectedPractitionerId(value));
   };
 
