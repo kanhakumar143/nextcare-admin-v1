@@ -8,7 +8,10 @@ import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { checkInPatient } from "@/services/receptionist.api";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
-import { setDecodedDetails, setQrToken } from "@/store/slices/receptionistSlice";
+import {
+  setDecodedDetails,
+  setQrToken,
+} from "@/store/slices/receptionistSlice";
 import moment from "moment";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -59,99 +62,104 @@ const ScannedPatientDetails = () => {
   return (
     <div className="w-full max-w-md mx-auto">
       <Card className="w-full max-w-md mx-auto rounded-xl shadow py-4 bg-white">
-      <CardContent className="space-y-4">
-        {/* Patient Details */}
-        <div className="text-left">
-          <h2 className="text-md font-semibold text-gray-800">
-            Patient <span className="">Details</span>
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-          <div className="space-y-1">
-            <div className="font-medium">Full name:</div>
-            <div className="font-medium">Phone:</div>
+        <CardContent className="space-y-4">
+          {/* Patient Details */}
+          <div className="text-left">
+            <h2 className="text-md font-semibold text-gray-800">
+              Patient <span className="">Details</span>
+            </h2>
           </div>
-          <div className="space-y-1">
-            <div className="text-primary font-bold">
-              {patientDetails.patient.name}
+
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+            <div className="space-y-1">
+              <div className="font-medium">Full name:</div>
+              <div className="font-medium">Phone:</div>
             </div>
-            <div className="text-primary font-bold">
-              {patientDetails.patient.phone}
+            <div className="space-y-1">
+              <div className="text-primary font-bold">
+                {patientDetails.patient.name}
+              </div>
+              <div className="text-primary font-bold">
+                {patientDetails.patient.phone}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Booking Details */}
-        <div className="text-left mt-6">
-          <h2 className="text-md font-semibold text-gray-800">
-            Booking <span className="">Details</span>
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-          <div className="space-y-1">
-            <div className="font-medium">Service:</div>
-            <div className="font-medium">Date of Booking:</div>
-            <div className="font-medium">Slot Time:</div>
-            <div className="font-medium">Booking Status:</div>
+          {/* Booking Details */}
+          <div className="text-left mt-6">
+            <h2 className="text-md font-semibold text-gray-800">
+              Booking <span className="">Details</span>
+            </h2>
           </div>
-          <div className="space-y-1">
-            <div className="text-primary font-bold">
-              {patientDetails.appointment.service_category[0].text}
+
+          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
+            <div className="space-y-1">
+              <div className="font-medium">Service:</div>
+              <div className="font-medium">Date of Booking:</div>
+              <div className="font-medium">Slot Time:</div>
+              <div className="font-medium">Booking Status:</div>
             </div>
-            <div className="text-primary font-bold">
+            <div className="space-y-1">
+              <div className="text-primary font-bold">
+                {patientDetails.appointment.service_category[0].text}
+              </div>
+              {/* <div className="text-primary font-bold">
               {formatDate(patientDetails.appointment.slot_info.start)}
-            </div>
-            <div className="text-primary font-bold">
-              {moment
-                .utc(patientDetails.appointment.slot_info.start)
-                .format("hh:mm a")}{" "}
-              -{" "}
-              {moment
-                .utc(patientDetails.appointment.slot_info.end)
-                .format("hh:mm a")}
-            </div>
-            <div>
-              <Badge
-                className={`${
-                  patientDetails.appointment.status === "booked"
-                    ? "bg-sky-700"
-                    : patientDetails.appointment.status === "checked_in"
-                    ? "bg-green-600"
-                    : "bg-primary"
-                }`}
-              >
-                {patientDetails.appointment.status === "checked_in"
-                  ? "Checked In"
-                  : patientDetails.appointment.status}
-              </Badge>
+            </div> */}
+              <div className="text-primary font-bold">
+                {moment(patientDetails.appointment.slot_info.start).format(
+                  "DD MMM YYYY, h:mm A"
+                )}
+              </div>
+              <div className="text-primary font-bold">
+                {moment
+                  .utc(patientDetails.appointment.slot_info.start)
+                  .format("hh:mm a")}{" "}
+                -{" "}
+                {moment
+                  .utc(patientDetails.appointment.slot_info.end)
+                  .format("hh:mm a")}
+              </div>
+              <div>
+                <Badge
+                  className={`${
+                    patientDetails.appointment.status === "booked"
+                      ? "bg-sky-700"
+                      : patientDetails.appointment.status === "checked_in"
+                      ? "bg-green-600"
+                      : "bg-primary"
+                  }`}
+                >
+                  {patientDetails.appointment.status === "checked_in"
+                    ? "Checked In"
+                    : patientDetails.appointment.status}
+                </Badge>
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Actions */}
-        {/* <div className="flex flex-col gap-3 mt-6">
+          {/* Actions */}
+          {/* <div className="flex flex-col gap-3 mt-6">
           {verificationStatus !== "verified" && ( */}
-            <Button
-              variant="outline"
-              className="w-full border-yellow-400 text-yellow-700"
-              onClick={handleVerify}
-            >
-              Verify Patient
-            </Button>
+          <Button
+            variant="outline"
+            className="w-full border-yellow-400 text-yellow-700"
+            onClick={handleVerify}
+          >
+            Verify Patient
+          </Button>
           {/* )} */}
 
           <Button
-            // onClick={handleCheckIn}
-            // disabled={verificationStatus !== "verified" || loading}
-            // className="w-full bg-green-600 text-white"
+          // onClick={handleCheckIn}
+          // disabled={verificationStatus !== "verified" || loading}
+          // className="w-full bg-green-600 text-white"
           >
             {loading ? "Checking In..." : "Confirm Check-In"}
           </Button>
-        {/* </div> */}
-      </CardContent>
-    </Card>
+          {/* </div> */}
+        </CardContent>
+      </Card>
     </div>
   );
 };
