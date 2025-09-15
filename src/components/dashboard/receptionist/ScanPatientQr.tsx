@@ -11,11 +11,11 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "@/store";
 import { AlertCircleIcon, AlertTriangle, CheckCircle } from "lucide-react";
 import QrScannerBox from "@/components/common/QrScannerBox";
-import ScannedPatientDetails from "./ScanedPatientDetails";
-import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { Alert, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
+import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
+import ScannedPatientDetails from "./ScanedPatientDetails";
 
 const ScanPatientQr: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -59,15 +59,16 @@ const ScanPatientQr: React.FC = () => {
       })
     );
     dispatch(setQrToken(token));
+
+    // Always go to Pending Payments after scan
+    // router.push("/dashboard/receptionist/pending-payments");
   };
 
   return (
     <div className="flex flex-col items-center justify-start p-6 gap-6">
-      <div className="text-center space-y-2">
-        <h1 className="text-2xl font-bold text-primary">
-          Patient QR Code Check-In
-        </h1>
-      </div>
+      <h1 className="text-2xl font-bold text-primary text-center">
+        Patient QR Code Check-In
+      </h1>
 
       {!patientDetails && (
         <div className="w-full max-w-md">

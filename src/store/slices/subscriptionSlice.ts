@@ -88,13 +88,24 @@ const subscriptionSlice = createSlice({
   name: "subscription",
   initialState,
   reducers: {
-    // Set entire subscription plans (used after fetching updated list)
-    setSubscriptionPlans: (state, action: PayloadAction<GetSubscriptionPlansResponse>) => {
+    // Replace all subscription plans
+    setSubscriptionPlans: (
+      state,
+      action: PayloadAction<GetSubscriptionPlansResponse>
+    ) => {
       state.plans = action.payload;
+    },
+    // Clear subscription state (useful on logout/tenant switch)
+    clearSubscriptionPlans: (state) => {
+      state.plans = [];
+      state.loading = false;
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
-    // Fetch
+    // ---------------------------
+    // Fetch Plans
+    // ---------------------------
     builder.addCase(fetchPlansByTenant.pending, (state) => {
       state.loading = true;
       state.error = null;
@@ -111,39 +122,69 @@ const subscriptionSlice = createSlice({
       state.error = action.payload as string;
     });
 
-    // Create
+    // ---------------------------
+    // Create Plan
+    // ---------------------------
+    builder.addCase(addSubscriptionPlan.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
     builder.addCase(
       addSubscriptionPlan.fulfilled,
       (state, action: PayloadAction<GetSubscriptionPlan>) => {
+        state.loading = false;
         state.plans.push(action.payload);
       }
     );
+    builder.addCase(addSubscriptionPlan.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
 
-    // Update
+    // ---------------------------
+    // Update Plan
+    // ---------------------------
+    builder.addCase(editSubscriptionPlan.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
     builder.addCase(
       editSubscriptionPlan.fulfilled,
       (state, action: PayloadAction<GetSubscriptionPlan>) => {
+        state.loading = false;
         state.plans = state.plans.map((plan) =>
           plan.id === action.payload.id ? action.payload : plan
         );
       }
     );
+    builder.addCase(editSubscriptionPlan.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
 
-    // Delete
+    // ---------------------------
+    // Delete Plan
+    // ---------------------------
+    builder.addCase(removeSubscriptionPlan.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    });
     builder.addCase(
       removeSubscriptionPlan.fulfilled,
       (state, action: PayloadAction<string>) => {
+        state.loading = false;
         state.plans = state.plans.filter((plan) => plan.id !== action.payload);
       }
     );
+    builder.addCase(removeSubscriptionPlan.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload as string;
+    });
   },
 });
 
 // Export reducer and actions
-export const { setSubscriptionPlans } = subscriptionSlice.actions;
-export default subscriptionSlice.reducer;
+export const { setSubscriptionPlans, clearSubscriptionPlans } =
+  subscriptionSlice.actions;
 
-// ---------------------------
-// Export reducer
-// ---------------------------
-// export default subscriptionSlice.reducer;
+export default subscriptionSlice.reducer;

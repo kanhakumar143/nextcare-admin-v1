@@ -13,12 +13,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import { X } from "lucide-react";
 
 import {
-  PlanFeatures,
   PostSubscriptionPlan,
   GetSubscriptionPlan,
+  SubscriptionPlanFeature,
+  FeatureTypeEnum,
 } from "@/types/subscription.type";
 
 import { useAppDispatch } from "@/store/hooks";
@@ -38,74 +46,87 @@ export default function CreateSubscriptionModal({
   const [price, setPrice] = useState("");
   const [duration, setDuration] = useState([30]);
   const [loading, setLoading] = useState(false);
-
-  const [support, setSupport] = useState<string>("email"); // required field
-  const [features, setFeatures] = useState<Record<string, string>>({});
+  const [features, setFeatures] = useState<SubscriptionPlanFeature[]>([]);
 
   const dispatch = useAppDispatch();
 
-  // Add new optional feature
+  // ---------------- Feature Templates ----------------
+  const featureTemplates: SubscriptionPlanFeature[] = [
+    {
+      name: "Free Consultation",
+      description: "3 free consultations per month",
+      feature_type: FeatureTypeEnum.Consultation,
+      quantity: 3,
+      discount_percent: 12,
+    },
+    {
+      name: "Lab Test Discount",
+      description: "10% discount on lab tests",
+      feature_type: FeatureTypeEnum.Lab,
+      quantity: null,
+      discount_percent: 10,
+    },
+    {
+      name: "Family Members",
+      description: "Up to 5 family members",
+      feature_type: FeatureTypeEnum.FamilySlot,
+      quantity: 5,
+      discount_percent: 15,
+    },
+  ];
+
+  // ---------------- Feature Handlers ----------------
   const addFeature = () => {
-    setFeatures({
+    setFeatures([
       ...features,
-      [`feature_${Object.keys(features).length + 1}`]: "",
-    });
+      {
+        name: "",
+        description: "",
+        feature_type: "" as FeatureTypeEnum,
+        quantity: null,
+        discount_percent: null,
+      },
+    ]);
   };
 
-  // Remove optional feature
-  const removeFeature = (key: string) => {
-    const updated = { ...features };
-    delete updated[key];
+  const removeFeature = (index: number) => {
+    setFeatures(features.filter((_, i) => i !== index));
+  };
+
+  const updateFeature = (
+    index: number,
+    field: keyof SubscriptionPlanFeature,
+    value: any
+  ) => {
+    const updated = [...features];
+    updated[index] = { ...updated[index], [field]: value };
     setFeatures(updated);
   };
 
-  // Handle submit
+  // ---------------- Submit Handler ----------------
   const handleSubmit = async () => {
     if (!name || !price) return;
 
-    // Prepare payload with type conversion
     const payload: PostSubscriptionPlan = {
       tenant_id: tenantId,
       name,
       price,
       duration_days: duration[0],
-      features: {
-        support,
-        ...Object.fromEntries(
-          Object.entries(features).map(([k, v]) => {
-            // Convert numeric fields
-            if (
-              [
-                "free_consultations",
-                "lab_discount_percent",
-                "max_users",
-              ].includes(k)
-            ) {
-              return [k, Number(v)];
-            }
-            // Convert boolean strings
-            if (v === "true") return [k, true];
-            if (v === "false") return [k, false];
-            return [k, v]; // string
-          })
-        ),
-      } as PlanFeatures,
+      features,
     };
 
     try {
       setLoading(true);
       await dispatch(addSubscriptionPlan(payload)).unwrap();
 
-      // Reset modal fields
+      // Reset fields
       setName("");
       setPrice("");
       setDuration([30]);
-      setSupport("email");
-      setFeatures({});
-
+      setFeatures([]);
       setOpen(false);
 
-      // Refresh subscription list instantly
+      // Refresh subscription plans list
       const updatedPlans: GetSubscriptionPlan[] =
         await getSubscriptionPlansByTenant(tenantId);
       dispatch(setSubscriptionPlans(updatedPlans));
@@ -119,12 +140,10 @@ export default function CreateSubscriptionModal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="text-white rounded-xl shadow-md">
-          + Create Subscription
-        </Button>
+        <Button className="text-white shadow-md">+ Create Subscription</Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg rounded-2xl p-6">
+      <DialogContent className="sm:max-w-lg rounded-2xl p-6 max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
             Create New Subscription
@@ -148,7 +167,7 @@ export default function CreateSubscriptionModal({
             <Label htmlFor="price">Price</Label>
             <Input
               id="price"
-              placeholder="e.g. 499 INR"
+              placeholder="e.g. 4999"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
             />
@@ -182,68 +201,99 @@ export default function CreateSubscriptionModal({
             </div>
           </div>
 
-          {/* Features */}
+          {/* Features Section */}
           <div className="space-y-2">
             <Label>Features</Label>
-            <div className="max-h-40 overflow-y-auto space-y-2 border rounded-md p-2">
-              {/* Support */}
-              <div className="flex items-center gap-2 relative">
-                <Input
-                  placeholder="Feature Key"
-                  value="support"
-                  disabled
-                  className="flex-1"
-                />
-                <Input
-                  placeholder="Value"
-                  value={support}
-                  onChange={(e) => setSupport(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-
-              {/* Optional Features */}
-              {Object.entries(features).map(([key, value], index) => (
+            <div className="max-h-72 overflow-y-auto space-y-3 border rounded-md p-3">
+              {features.map((feature, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 relative group"
+                  className="space-y-2 border rounded-md p-3 relative group"
                 >
-                  {/* Editable key */}
-                  <Input
-                    placeholder="Feature Key"
-                    value={key}
-                    onChange={(e) => {
-                      const newKey = e.target.value;
-                      const updated = { ...features };
-                      delete updated[key];
-                      updated[newKey] = value;
-                      setFeatures(updated);
-                    }}
-                    className="flex-1"
-                  />
-                  {/* Editable value */}
-                  <Input
-                    placeholder="Value"
-                    value={value}
-                    onChange={(e) =>
-                      setFeatures({ ...features, [key]: e.target.value })
-                    }
-                    className="flex-1"
-                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Input
+                      placeholder="Feature Name"
+                      value={feature.name}
+                      onChange={(e) =>
+                        updateFeature(index, "name", e.target.value)
+                      }
+                      className="h-9 text-sm"
+                    />
+
+                    <Select
+                      value={feature.feature_type || undefined}
+                      onValueChange={(val) =>
+                        updateFeature(
+                          index,
+                          "feature_type",
+                          val as FeatureTypeEnum
+                        )
+                      }
+                    >
+                      <SelectTrigger className="h-9 text-sm w-full">
+                        <SelectValue placeholder="Select feature type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(FeatureTypeEnum).map((ft) => (
+                          <SelectItem key={ft} value={ft}>
+                            {ft}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    <Input
+                      placeholder="Quantity"
+                      type="number"
+                      value={feature.quantity ?? ""}
+                      onChange={(e) =>
+                        updateFeature(
+                          index,
+                          "quantity",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="h-9 text-sm"
+                    />
+
+                    <Input
+                      placeholder="Discount %"
+                      type="number"
+                      value={feature.discount_percent ?? ""}
+                      onChange={(e) =>
+                        updateFeature(
+                          index,
+                          "discount_percent",
+                          e.target.value ? Number(e.target.value) : null
+                        )
+                      }
+                      className="h-9 text-sm"
+                    />
+
+                    <Input
+                      placeholder="Description"
+                      value={feature.description}
+                      onChange={(e) =>
+                        updateFeature(index, "description", e.target.value)
+                      }
+                      className="h-9 text-sm col-span-2"
+                    />
+                  </div>
 
                   {/* Remove button */}
                   <button
                     type="button"
-                    onClick={() => removeFeature(key)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeFeature(index)}
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="h-4 w-4 " />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ))}
             </div>
-
-            {/* Add feature */}
+          </div>
+          {/* Add Feature + Suggested Features */}
+          <div className="flex items-start gap-4 mt-2">
             <Button
               type="button"
               variant="outline"
@@ -252,6 +302,31 @@ export default function CreateSubscriptionModal({
             >
               + Add Feature
             </Button>
+
+            {/* Suggested Features Cards */}
+            <div className="flex gap-2 flex-wrap">
+              {featureTemplates.slice(0, 2).map((feature, index) => (
+                <div
+                  key={index}
+                  className="cursor-pointer border rounded-lg p-3 w-36 flex flex-col gap-1
+                             hover:shadow-lg transition-shadow duration-200 bg-white"
+                  onClick={() =>
+                    setFeatures((prev) => [...prev, { ...feature }])
+                  }
+                >
+                  <span className="font-semibold text-sm">{feature.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    Type: {feature.feature_type}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Discount: {feature.discount_percent ?? "-"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    Quantity: {feature.quantity ?? "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 

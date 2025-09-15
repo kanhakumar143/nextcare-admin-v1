@@ -53,7 +53,9 @@ export default function PricingCard({
         </div>
         <div className="flex justify-between text-sm">
           <span>Tax Percentage</span>
-          <span className="font-medium">{entry.tax ?? 0}%</span>
+          {/* <span className="font-medium">{entry.tax ?? 0}%</span> */}
+          <span className="font-medium">{0}%</span>
+
         </div>
         <div className="flex justify-between text-sm border-t pt-2">
           <span className="font-semibold">Total</span>

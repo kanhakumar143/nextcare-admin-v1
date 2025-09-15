@@ -14,6 +14,7 @@ import BackButton from "@/components/common/BackButton";
 import RazorpayPayment from "@/components/payment/razorpayPayment";
 import { updateBulkStatusPaymentRequest } from "@/services/razorpay.api";
 import { toast } from "sonner";
+import { submitInvoiceGenerate } from "@/services/invoice.api";
 
 const PaymentDetailsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -46,8 +47,12 @@ const PaymentDetailsPage: React.FC = () => {
       console.log("Updating payment status", payload);
       setLoading(true);
       await updateBulkStatusPaymentRequest(payload);
-      router.push("/dashboard/receptionist/check-in?payment_success=true");
+      router.push("/dashboard/receptionist/check-in");
+      const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
 
+      const invoiceData = await submitInvoiceGenerate({
+        order_request_ids: orderRequestIds,
+      });
       toast.success("Payment completed successfully!");
     } catch (error) {
       console.error("Error updating payment requests:", error);

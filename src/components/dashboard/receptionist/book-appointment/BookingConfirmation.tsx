@@ -31,6 +31,7 @@ import {
   updateAppointmentReferral,
 } from "@/services/receptionist.api";
 import { CreateNewAppointmentPayload } from "@/types/receptionist.types";
+import { clearAllReceptionistData } from "@/store/slices/receptionistSlice";
 
 const BookingConfirmation: React.FC = () => {
   const dispatch = useDispatch();
@@ -105,6 +106,11 @@ const BookingConfirmation: React.FC = () => {
       console.log("Payment Result:", result);
 
       if (result.success) {
+        //   const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
+
+        //   const invoiceData = await submitInvoiceGenerate({
+        //     order_request_ids: orderRequestIds,
+        //   });
         // setPaymentSuccess(true);
         // toast.success("Payment successful! Appointment booked.");
         // // You can add additional booking confirmation logic here
@@ -209,6 +215,8 @@ const BookingConfirmation: React.FC = () => {
     try {
       await createNewAppointment(updatedPayload);
       toast.success("Appointment confirmed and checked in.");
+      dispatch(clearAllReceptionistData());
+      router.push("/dashboard/receptionist");
       //   updateAppointmentWithPayment(apntId);
       //   dispatch(setConfirmBookingModal(true));
       //   try {

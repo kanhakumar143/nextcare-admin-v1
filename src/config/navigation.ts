@@ -24,6 +24,8 @@ import {
   Album,
   Gem,
   Landmark,
+  Receipt,
+  CreditCard,
 } from "lucide-react";
 
 export type Route = {
@@ -260,6 +262,11 @@ export const receptionistRoutes: Route[] = [
     href: "/dashboard/receptionist/plan-pricing",
     name: "Pricing Plans",
     icon: FileText,
+  },
+  {
+    href: "/dashboard/receptionist/pending-payments",
+    name: "Payments Due",
+    icon: CreditCard,
   },
   {
     href: "/dashboard/receptionist/attendance",

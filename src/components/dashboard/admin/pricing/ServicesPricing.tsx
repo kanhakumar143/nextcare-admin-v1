@@ -27,7 +27,7 @@ import {
 import { PricingResponse } from "@/types/pricing.types";
 import { useDebounce } from "@/hooks/useDebounce";
 
-// -------------------- Types --------------------
+
 interface TaxRate {
   id: string;
   rate: string | number;
@@ -63,7 +63,7 @@ interface SubServiceWithPricing {
   pricings: PricingEntry[];
 }
 
-// -------------------- Component --------------------
+
 export default function ServicesPricing() {
   const dispatch = useDispatch<AppDispatch>();
   const { items: services, loading: servicesLoading } = useSelector(
@@ -129,42 +129,43 @@ export default function ServicesPricing() {
     (srv: Service) => srv.id === selectedServiceId
   );
 
-  // -------------------- NORMAL VIEW --------------------
   const subServiceWithPricing = useMemo(() => {
     if (isSearchMode) return [];
 
-    return selectedService?.sub_services?.map((sub: SubService) => {
-      const pricings: PricingEntry[] =
-        (sub.pricings ?? []).map((entry: PricingResponse) => {
-          const taxObj = taxRates.find((t: TaxRate) => t.id === entry.tax_id);
-          const basePrice = parseFloat(entry.base_price ?? "0");
-          const taxRate = Number(taxObj?.rate ?? 0);
+    return (
+      selectedService?.sub_services?.map((sub: SubService) => {
+        const pricings: PricingEntry[] =
+          (sub.pricings ?? []).map((entry: PricingResponse) => {
+            const taxObj = taxRates.find((t: TaxRate) => t.id === entry.tax_id);
+            const basePrice = parseFloat(entry.base_price ?? "0");
+            const taxRate = Number(taxObj?.rate ?? 0);
 
-          return {
-            id: entry.id,
-            sub_service_id: sub.id,
-            service: {
-              id: selectedService?.id ?? "",
-              name: selectedService?.name ?? "",
-            },
-            subservice: { id: sub.id, name: sub.name },
-            price: basePrice,
-            taxRate,
-            taxId: entry.tax_id,
-            totalPrice: basePrice + basePrice * (taxRate / 100),
-            isActive: entry.active ?? true,
-          };
-        }) ?? [];
+            return {
+              id: entry.id,
+              sub_service_id: sub.id,
+              service: {
+                id: selectedService?.id ?? "",
+                name: selectedService?.name ?? "",
+              },
+              subservice: { id: sub.id, name: sub.name },
+              price: basePrice,
+              taxRate,
+              taxId: entry.tax_id,
+              totalPrice: basePrice + basePrice * (taxRate / 100),
+              isActive: entry.active ?? true,
+            };
+          }) ?? [];
 
-      return {
-        id: sub.id,
-        name: sub.name,
-        pricings,
-      };
-    }) ?? [];
+        return {
+          id: sub.id,
+          name: sub.name,
+          pricings,
+        };
+      }) ?? []
+    );
   }, [selectedService, taxRates, isSearchMode]);
 
-  // -------------------- SEARCH VIEW --------------------
+
   const searchResultsWithPricing = useMemo(() => {
     if (!isSearchMode) return [];
 
@@ -178,10 +179,12 @@ export default function ServicesPricing() {
               sub.name.toLowerCase().includes(query) ||
               service.name.toLowerCase().includes(query)
           )
-          .map((sub:SubService) => {
+          .map((sub: SubService) => {
             const pricings: PricingEntry[] =
               (sub.pricings ?? []).map((entry: PricingResponse) => {
-                const taxObj = taxRates.find((t: TaxRate) => t.id === entry.tax_id);
+                const taxObj = taxRates.find(
+                  (t: TaxRate) => t.id === entry.tax_id
+                );
                 const basePrice = parseFloat(entry.base_price ?? "0");
                 const taxRate = Number(taxObj?.rate ?? 0);
 
@@ -210,7 +213,7 @@ export default function ServicesPricing() {
       .flat();
   }, [services, taxRates, isSearchMode, debouncedSearchQuery]);
 
-  // -------------------- HANDLERS --------------------
+
   const handleEditClick = (entry: PricingEntry) => {
     setEditEntry(entry);
     setIsEditModalOpen(true);
@@ -247,7 +250,7 @@ export default function ServicesPricing() {
     });
   };
 
-  // -------------------- RENDER --------------------
+
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
@@ -394,7 +397,7 @@ export default function ServicesPricing() {
                   >
                     <h3 className="text-lg font-semibold mb-3">{sub.name}</h3>
                     <p className="text-muted-foreground mb-4">
-                      No services added yet
+                      Pricing not added yet
                     </p>
                     <Button
                       onClick={() => {
@@ -404,11 +407,15 @@ export default function ServicesPricing() {
                           service: {
                             id:
                               services.find((s) =>
-                                s.sub_services?.some((ss: SubService) => ss.id === sub.id)
+                                s.sub_services?.some(
+                                  (ss: SubService) => ss.id === sub.id
+                                )
                               )?.id ?? "",
                             name:
                               services.find((s) =>
-                                s.sub_services?.some((ss: SubService) => ss.id === sub.id)
+                                s.sub_services?.some(
+                                  (ss: SubService) => ss.id === sub.id
+                                )
                               )?.name ?? "",
                           },
                           subservice: { id: sub.id, name: sub.name },
@@ -432,37 +439,34 @@ export default function ServicesPricing() {
           </div>
         )}
 
-       {/* NORMAL VIEW */}
-{!isSearchMode && selectedServiceId && (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    {/* With pricing */}
-    {subServiceWithPricing
-      .filter((sub: SubServiceWithPricing) => sub.pricings.length > 0)
-      .map((sub: SubServiceWithPricing) =>
-        sub.pricings.map((entry, index) => (
-          <div
-            key={entry.id}
-            className="animate-fade-in"
-            style={{ animationDelay: `${index * 0.1}s` }}
-          >
-            <PricingCard
-              entry={{
-                id: entry.id,
-                subService: entry.subservice.name,
-                price: entry.price,
-                tax: entry.taxRate ?? 0,
-                totalPrice: entry.totalPrice,
-                isActive: entry.isActive,
-              }}
-              onEditClick={() => handleEditClick(entry)}
-              onDeleteClick={() => handleDeleteClick(entry)}
-            />
-          </div>
-        ))
-      )}
-
-
-
+        {/* NORMAL VIEW */}
+        {!isSearchMode && selectedServiceId && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* With pricing */}
+            {subServiceWithPricing
+              .filter((sub: SubServiceWithPricing) => sub.pricings.length > 0)
+              .map((sub: SubServiceWithPricing) =>
+                sub.pricings.map((entry, index) => (
+                  <div
+                    key={entry.id}
+                    className="animate-fade-in"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <PricingCard
+                      entry={{
+                        id: entry.id,
+                        subService: entry.subservice.name,
+                        price: entry.price,
+                        tax: entry.taxRate ?? 0,
+                        totalPrice: entry.totalPrice,
+                        isActive: entry.isActive,
+                      }}
+                      onEditClick={() => handleEditClick(entry)}
+                      onDeleteClick={() => handleDeleteClick(entry)}
+                    />
+                  </div>
+                ))
+              )}
 
             {/* Without pricing */}
             {subServiceWithPricing
@@ -474,7 +478,7 @@ export default function ServicesPricing() {
                 >
                   <h3 className="text-lg font-semibold mb-3">{sub.name}</h3>
                   <p className="text-muted-foreground mb-4">
-                    No services added yet
+                    Pricing not added yet
                   </p>
                   <Button
                     onClick={() => {
