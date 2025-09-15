@@ -157,9 +157,10 @@ export default function EditPricingModal({
                 <SelectValue placeholder="Select a tax rate" />
               </SelectTrigger>
               <SelectContent>
+                
                 {taxRates.map((tax) => (
                   <SelectItem key={tax.id} value={tax.id}>
-                    {tax.name} ({tax.rate}%)
+                    {/* {tax.name} ({tax.rate}%) */}0%
                   </SelectItem>
                 ))}
               </SelectContent>
