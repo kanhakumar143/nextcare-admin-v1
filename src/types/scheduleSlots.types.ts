@@ -1,6 +1,14 @@
 import { ExtendedDoctorData } from "./admin.types";
 
 export interface Slot {
+  appointments: {
+    id: string;
+    patient: {
+      user: {
+        name: string;
+      };
+    };
+  }[];
   id: string;
   schedule_id: string;
   status: string;

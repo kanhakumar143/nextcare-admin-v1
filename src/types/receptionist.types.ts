@@ -1,5 +1,152 @@
 import { ExtendedDoctorData, DoctorData } from "./admin.types";
 
+// Simplified types for the new API response structure
+export interface SimpleSlot {
+  id: string;
+  schedule_id: string;
+  status: "free" | "booked" | "cancelled" | string;
+  start: string;
+  end: string;
+  overbooked: boolean;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SimpleSchedule {
+  planning_start: string;
+  planning_end: string;
+  comment: string;
+  practitioner_id: string;
+  specialty_id: string;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  slots: SimpleSlot[];
+  flag: string | null;
+}
+
+export interface SimpleTenant {
+  id: string;
+  active: boolean;
+  name: string;
+  alias: string[];
+  contact: {
+    name: string;
+    telecom: {
+      system: string;
+      value: string;
+      use: string | null;
+    }[];
+    address: any | null;
+    purpose: any | null;
+  }[];
+}
+
+export interface SimpleUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  user_role: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  tenant: SimpleTenant;
+}
+
+export interface SimplePatient {
+  id: string;
+  patient_display_id: string;
+  gender: string;
+  birth_date: string;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
+  user: SimpleUser;
+}
+
+export interface SimplePractitioner {
+  practitioner_display_id: string;
+  identifiers: {
+    system: string;
+    value: string;
+  }[];
+  name: {
+    use: string;
+    text: string;
+    family: string;
+    given: string[];
+    prefix: string[];
+    suffix: string | null;
+    period: any | null;
+  };
+  telecom: {
+    system: string;
+    value: string;
+    use: string;
+    rank: number;
+    period: any | null;
+  }[];
+  gender: string;
+  birth_date: string;
+  qualification: {
+    year: string;
+    degree: string;
+    institution: string;
+  }[];
+  is_active: boolean;
+  license_details: {
+    expiry: string;
+    number: string;
+    issued_by: string;
+  };
+  profile_picture_url: string;
+  license_url: string;
+  e_sign_path: string | null;
+  status: string;
+  service_specialty_id: string | null;
+  id: string;
+  user_id: string;
+  user: SimpleUser;
+  availability_status: any | null;
+}
+
+export interface SimpleServiceSpecialty {
+  system: string;
+  code: string;
+  display: string;
+  specialty_label: string;
+  description: string;
+  is_active: boolean;
+  id: string;
+  tenant_service_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SimpleSubService {
+  tenant_service_id: string;
+  name: string;
+  description: string;
+  active: boolean;
+  id: string;
+  created_at: string;
+  updated_at: string;
+  pricings: any[];
+}
+
+// Main simplified API response interface
+export interface SimplifiedRegularSlotsResponse {
+  reason: string;
+  status: string;
+  schedules: SimpleSchedule[];
+  patient: SimplePatient;
+  practitioner: SimplePractitioner;
+  service_specialty: SimpleServiceSpecialty;
+  sub_services: SimpleSubService[];
+}
+
 // Appointment booking interfaces
 export interface AvailableSlot {
   slot_id: string;

@@ -1,72 +1,61 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getRecentSuggestedSlots } from "@/services/receptionist.api";
+import { Loader2, AlertCircle, Calendar, Clock } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { useRouter, useParams } from "next/navigation";
+import { AppDispatch, RootState } from "@/store";
 import {
-  Loader2,
-  AlertCircle,
-  Calendar,
-  Clock,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+  fetchRegularSlotsAsync,
+  setBookingData,
+  clearRegularSlotsData,
+} from "@/store/slices/bookingSlice";
 import {
-  RecentSuggestedSlotsData,
-  Schedule,
-  RegularSlot,
+  SimplifiedRegularSlotsResponse,
+  SimpleSlot,
+  SimpleSchedule,
   AvailableSlot,
   ReferralData,
 } from "@/types/receptionist.types";
-import { useDispatch } from "react-redux";
-import { useRouter, useParams } from "next/navigation";
-import { setBookingData } from "@/store/slices/bookingSlice";
 
 const RegularSlots: React.FC = () => {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const { referallId } = useParams();
   const referralId = (referallId as string) || "";
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<RecentSuggestedSlotsData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { regularSlotsData, regularSlotsLoading, regularSlotsError } =
+    useSelector((state: RootState) => state.booking);
+
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(
-    null
-  );
-  const dispatch = useDispatch();
+  const [selectedSchedule, setSelectedSchedule] =
+    useState<SimpleSchedule | null>(null);
 
   useEffect(() => {
-    const fetchRegularSlots = async () => {
-      try {
-        setLoading(true);
-        const response = await getRecentSuggestedSlots(referralId);
-        setData(response);
-
-        // Auto-select first available date
-        if (response.schedules && response.schedules.length > 0) {
-          const firstSchedule = response.schedules[0];
-          const firstDate = new Date(
-            firstSchedule.planning_start
-          ).toDateString();
-          setSelectedDate(firstDate);
-          setSelectedSchedule(firstSchedule);
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch regular slots");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (referralId) {
-      fetchRegularSlots();
+      dispatch(fetchRegularSlotsAsync(referralId));
     }
-  }, [referralId]);
 
-  const handleBookSlot = (slot: RegularSlot) => {
-    if (!data || !selectedSchedule) return;
+    // Cleanup when component unmounts
+    return () => {
+      dispatch(clearRegularSlotsData());
+    };
+  }, [referralId, dispatch]);
 
-    // Convert RegularSlot to AvailableSlot format for Redux compatibility
+  useEffect(() => {
+    // Auto-select first available date when data loads
+    if (regularSlotsData?.schedules && regularSlotsData.schedules.length > 0) {
+      const firstSchedule = regularSlotsData.schedules[0];
+      const firstDate = new Date(firstSchedule.planning_start).toDateString();
+      setSelectedDate(firstDate);
+      setSelectedSchedule(firstSchedule);
+    }
+  }, [regularSlotsData]);
+
+  const handleBookSlot = (slot: SimpleSlot) => {
+    if (!regularSlotsData || !selectedSchedule) return;
+
+    // Convert SimpleSlot to AvailableSlot format for Redux compatibility
     const availableSlot: AvailableSlot = {
       slot_id: slot.id,
       start: slot.start,
@@ -75,40 +64,55 @@ const RegularSlots: React.FC = () => {
       practitioner_id: selectedSchedule.practitioner_id,
       schedule_panning_start: selectedSchedule.planning_start,
       schedule_planning_end: selectedSchedule.planning_end,
-      rule_score: 1.0, // Default score for regular slots
-      predicted_wait_time: 15, // Default wait time
-      cancellation_risk: 0.1, // Low cancellation risk for regular slots
-      final_score: 1.0, // Default final score
-      reason: ["Regular slot booking"], // Default reason
+      rule_score: 1.0,
+      predicted_wait_time: 15,
+      cancellation_risk: 0.1,
+      final_score: 1.0,
+      reason: ["Regular slot booking"],
     };
 
-    // Convert RecentSuggestedSlotsData to ReferralData format for Redux compatibility
+    // Convert SimplifiedRegularSlotsResponse to ReferralData format
     const referralData: ReferralData = {
       referral: {
         id: referralId,
-        reason: data.reason,
-        status: data.status,
-        patient: data.patient,
+        reason: regularSlotsData.reason,
+        status: regularSlotsData.status,
+        patient: {
+          id: regularSlotsData.patient.id,
+          patient_display_id: regularSlotsData.patient.patient_display_id,
+          gender: regularSlotsData.patient.gender,
+          birth_date: regularSlotsData.patient.birth_date,
+          user: {
+            id: regularSlotsData.patient.user.id,
+            name: regularSlotsData.patient.user.name,
+            email: regularSlotsData.patient.user.email,
+            phone: regularSlotsData.patient.user.phone || "",
+          },
+        },
         practitioner: {
-          practitioner_display_id: data.practitioner.practitioner_display_id,
-          name: data.practitioner.name,
+          practitioner_display_id:
+            regularSlotsData.practitioner.practitioner_display_id,
+          name: {
+            text: regularSlotsData.practitioner.name.text,
+            prefix: regularSlotsData.practitioner.name.prefix,
+          },
         },
         service_specialty: {
-          id: data.service_specialty.id,
-          display: data.service_specialty.display,
-          specialty_label: data.service_specialty.specialty_label,
-          description: data.service_specialty.description,
+          id: regularSlotsData.service_specialty.id,
+          display: regularSlotsData.service_specialty.display,
+          specialty_label: regularSlotsData.service_specialty.specialty_label,
+          description: regularSlotsData.service_specialty.description,
         },
       },
-      available_slots: [availableSlot], // Single slot for regular booking
+      available_slots: [availableSlot],
       scoring_basis: {
         rule_based: "Regular booking - schedule based",
         ml_prediction: "N/A",
         final_score: "1.0",
         reasons: "Regular appointment slot selection",
       },
+      sub_services: regularSlotsData.sub_services,
     };
-
     // Store the selected slot and referral data in Redux
     dispatch(setBookingData({ slot: availableSlot, referralData }));
 
@@ -144,9 +148,9 @@ const RegularSlots: React.FC = () => {
   };
 
   const getAvailableDates = () => {
-    if (!data?.schedules) return [];
+    if (!regularSlotsData?.schedules) return [];
 
-    return data.schedules.map((schedule) => {
+    return regularSlotsData.schedules.map((schedule) => {
       const date = new Date(schedule.planning_start);
       return {
         dateString: date.toDateString(),
@@ -162,7 +166,7 @@ const RegularSlots: React.FC = () => {
     });
   };
 
-  if (loading) {
+  if (regularSlotsLoading) {
     return (
       <div className="flex items-center justify-center p-8">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -170,7 +174,7 @@ const RegularSlots: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (regularSlotsError) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-4">
         <div className="flex">
@@ -179,14 +183,14 @@ const RegularSlots: React.FC = () => {
           </div>
           <div className="ml-3">
             <h3 className="text-sm font-medium text-red-800">Error</h3>
-            <div className="mt-2 text-sm text-red-700">{error}</div>
+            <div className="mt-2 text-sm text-red-700">{regularSlotsError}</div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (!data) {
+  if (!regularSlotsData) {
     return (
       <div className="text-center p-8">
         <p className="text-gray-500">No data available</p>
@@ -203,20 +207,20 @@ const RegularSlots: React.FC = () => {
         <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
           <div className="flex-1">
             <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">
-              {data.patient.user.name}
+              {regularSlotsData.patient.user.name}
             </h2>
             <div className="space-y-1">
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Patient ID:</span>{" "}
-                {data.patient.patient_display_id}
+                {regularSlotsData.patient.patient_display_id}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Specialty:</span>{" "}
-                {data.service_specialty.specialty_label}
+                {regularSlotsData.service_specialty.specialty_label}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Referral Reason:</span>{" "}
-                {data.reason}
+                {regularSlotsData.reason}
               </p>
             </div>
           </div>
@@ -224,12 +228,12 @@ const RegularSlots: React.FC = () => {
             <div className="space-y-1">
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Doctor:</span>{" "}
-                {data.practitioner.name.text}
+                {regularSlotsData.practitioner.name.text}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Status:</span>{" "}
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  {data.status}
+                  {regularSlotsData.status}
                 </span>
               </p>
             </div>
