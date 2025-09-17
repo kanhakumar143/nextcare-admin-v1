@@ -1,22 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { GetSubscriptionPlan } from "@/types/subscription.type";
 import { getSubscriptionPlansByTenant } from "@/services/subscription.api";
-import SubscriptionDetailsModal from "./modals/SubscriptionDetailsModal";
-import CreateSubscriptionModal from "./modals/AddSubscriptionModal";
-import EditSubscriptionModal from "./modals/EditSubscriptionModal";
-import { Eye, Pencil } from "lucide-react";
+import { Eye, Pencil, Plus } from "lucide-react";
 
 export default function SubscriptionPage() {
+  const router = useRouter();
   const tenantId = "4896d272-e201-4dce-9048-f93b1e3ca49f";
   const [plans, setPlans] = useState<GetSubscriptionPlan[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<GetSubscriptionPlan | null>(null);
-
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
 
   const fetchPlans = async () => {
     try {
@@ -33,11 +28,21 @@ export default function SubscriptionPage() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 className="text-2xl font-bold">Subscription Plans</h1>
-        <CreateSubscriptionModal tenantId={tenantId}  />
+        <Button
+          className="cursor-pointer"
+          onClick={() =>
+            router.push("/dashboard/admin/pricing-planes/subscription/add")
+          }
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Create Plan
+        </Button>
       </div>
 
+      {/* Plans Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {plans.map((plan) => (
           <Card
@@ -47,23 +52,30 @@ export default function SubscriptionPage() {
             <CardHeader className="flex flex-row justify-between items-center">
               <h2 className="text-lg font-semibold">{plan.name}</h2>
               <div className="flex items-center gap-2">
+                {/* Navigate to details page */}
                 <Button
                   variant="outline"
+                  className="cursor-pointer"
                   size="icon"
-                  onClick={() => {
-                    setSelectedPlan(plan);
-                    setDetailsOpen(true);
-                  }}
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/admin/pricing-planes/subscription/${plan.id}`
+                    )
+                  }
                 >
                   <Eye className="w-4 h-4" />
                 </Button>
+
+                {/* Navigate to edit page */}
                 <Button
                   variant="outline"
+                  className="cursor-pointer"
                   size="icon"
-                  onClick={() => {
-                    setSelectedPlan(plan);
-                    setEditOpen(true);
-                  }}
+                  onClick={() =>
+                    router.push(
+                      `/dashboard/admin/pricing-planes/subscription/${plan.id}/edit`
+                    )
+                  }
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
@@ -71,16 +83,20 @@ export default function SubscriptionPage() {
             </CardHeader>
 
             <CardContent className="space-y-2">
-              <span className="text-green-600 font-semibold text-lg">₹{plan.price}</span>
+              {/* Admin-set plan price */}
+              <span className="text-green-600 font-semibold text-lg">
+                ₹{plan.price}
+              </span>
               <p className="text-sm text-muted-foreground">
                 Duration: {plan.duration_days} days
               </p>
 
-              {/* Show first 3 features only */}
+              {/* First 3 features descriptions */}
               <ul className="text-sm list-disc list-inside text-muted-foreground">
                 {plan.features.slice(0, 3).map((feature, idx) => (
                   <li key={`${feature.id || feature.name}-${idx}`}>
-                    {feature.name}
+                    {/* {feature.description || feature.name} */}
+                    Includes {feature.quantity} {feature.name} {feature.feature_type}
                   </li>
                 ))}
               </ul>
@@ -88,30 +104,6 @@ export default function SubscriptionPage() {
           </Card>
         ))}
       </div>
-
-      {/* Details Modal */}
-      {selectedPlan && (
-        <SubscriptionDetailsModal
-          plan={selectedPlan}
-          tenantId={tenantId}
-          open={detailsOpen}
-          onOpenChange={setDetailsOpen}
-          onDeleted={fetchPlans}
-          onUpdated={fetchPlans}
-        />
-      )}
-
-      {/* Edit Modal */}
-      {selectedPlan && (
-        <EditSubscriptionModal
-          key={selectedPlan.id} // important to reset state when editing another plan
-          plan={selectedPlan}
-          tenantId={tenantId}
-          open={editOpen}
-          onClose={() => setEditOpen(false)}
-          onUpdated={fetchPlans}
-        />
-      )}
     </div>
   );
 }

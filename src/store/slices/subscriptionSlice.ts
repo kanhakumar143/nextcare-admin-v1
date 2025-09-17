@@ -25,7 +25,7 @@ export const fetchPlansByTenant = createAsyncThunk<
   try {
     return await getSubscriptionPlansByTenant(tenantId);
   } catch (error: any) {
-    return rejectWithValue(error.message);
+    return rejectWithValue(error.message || "Failed to fetch plans");
   }
 });
 
@@ -37,7 +37,7 @@ export const addSubscriptionPlan = createAsyncThunk<
   try {
     return await createSubscriptionPlan(payload);
   } catch (error: any) {
-    return rejectWithValue(error.message);
+    return rejectWithValue(error.message || "Failed to create plan");
   }
 });
 
@@ -49,7 +49,7 @@ export const editSubscriptionPlan = createAsyncThunk<
   try {
     return await updateSubscriptionPlan(payload);
   } catch (error: any) {
-    return rejectWithValue(error.message);
+    return rejectWithValue(error.message || "Failed to update plan");
   }
 });
 
@@ -62,7 +62,7 @@ export const removeSubscriptionPlan = createAsyncThunk<
     await deleteSubscriptionPlan(id);
     return id;
   } catch (error: any) {
-    return rejectWithValue(error.message);
+    return rejectWithValue(error.message || "Failed to delete plan");
   }
 });
 
