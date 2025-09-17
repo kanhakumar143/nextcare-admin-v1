@@ -5,6 +5,7 @@ import {
   updatePricing,
   deletePricing,
   searchSubService,
+  getPricingBySubServiceId,
 } from "@/services/pricing.api";
 
 // -------------------- State --------------------
@@ -15,6 +16,7 @@ interface PricingState {
   success: boolean;
   message: string;
   items: PricingResponse[];
+  subServicePricing: PricingResponse[]; // 👈 added for storing subservice pricing
 }
 
 const initialState: PricingState = {
@@ -24,6 +26,7 @@ const initialState: PricingState = {
   success: false,
   message: "",
   items: [],
+  subServicePricing: [],
 };
 
 // -------------------- Thunks --------------------
@@ -35,7 +38,7 @@ export const postPricing = createAsyncThunk<PricingResponse, PricingPayload>(
     try {
       const response = await createPricing({
         ...payload,
-        base_price: Number(payload.base_price), // ensure number
+        base_price: Number(payload.base_price),
       });
       return response;
     } catch (error: any) {
@@ -53,7 +56,7 @@ export const updatePricingThunk = createAsyncThunk<PricingResponse, PricingPaylo
     try {
       const response = await updatePricing({
         ...payload,
-        base_price: Number(payload.base_price), // ensure number
+        base_price: Number(payload.base_price),
       });
       return response;
     } catch (error: any) {
@@ -79,7 +82,7 @@ export const removePricing = createAsyncThunk<string, string>(
   }
 );
 
-// Search pricing by sub-service name (global search)
+// Search pricing by sub-service name
 export const searchSubServicePricing = createAsyncThunk<
   PricingResponse[],
   string
@@ -90,6 +93,21 @@ export const searchSubServicePricing = createAsyncThunk<
   } catch (error: any) {
     return rejectWithValue(
       error.response?.data?.message || "Failed to search pricing"
+    );
+  }
+});
+
+// ✅ Get Pricing by SubService Id
+export const fetchPricingBySubServiceId = createAsyncThunk<
+  PricingResponse[],
+  string
+>("pricing/fetchPricingBySubServiceId", async (subServiceId, { rejectWithValue }) => {
+  try {
+    const data = await getPricingBySubServiceId(subServiceId);
+    return data;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || "Failed to fetch subservice pricing"
     );
   }
 });
@@ -106,6 +124,7 @@ const pricingSlice = createSlice({
       state.success = false;
       state.message = "";
       state.items = [];
+      state.subServicePricing = [];
     },
   },
   extraReducers: (builder) => {
@@ -187,6 +206,23 @@ const pricingSlice = createSlice({
       })
       .addCase(searchSubServicePricing.rejected, (state, action) => {
         state.searchLoading = false;
+        state.success = false;
+        state.error = action.payload as string;
+      })
+
+      // ✅ FETCH PRICING BY SUBSERVICE
+      .addCase(fetchPricingBySubServiceId.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPricingBySubServiceId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.subServicePricing = action.payload;
+        state.success = true;
+        state.message = "SubService pricing loaded";
+      })
+      .addCase(fetchPricingBySubServiceId.rejected, (state, action) => {
+        state.loading = false;
         state.success = false;
         state.error = action.payload as string;
       });

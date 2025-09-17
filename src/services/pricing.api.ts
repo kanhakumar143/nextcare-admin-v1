@@ -21,25 +21,25 @@ export async function createPricing(
 }
 
 // ✅ Get Pricing by SubService
-// export const getAllPricing = async (
-//   subServiceId: string
-// ): Promise<PricingResponse[]> => {
-//   try {
-//     const response = await api.get("service-pricing/by-sub-service", {
-//       params: { sub_service_id: subServiceId },
-//     });
-//     return response.data;
-//   } catch (error: any) {
-//     if (axios.isAxiosError(error)) {
-//       throw new Error(
-//         error.response?.data?.message ||
-//           error.message ||
-//           "Failed to fetch pricing"
-//       );
-//     }
-//     throw new Error("Unexpected error occurred while fetching pricing.");
-//   }
-// };
+export async function getPricingBySubServiceId(
+  subServiceId: string
+): Promise<PricingResponse[]> {
+  try {
+    const response = await api.get("service-pricing/by-sub-service", {
+      params: { sub_service_id: subServiceId },
+    });
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch pricing"
+      );
+    }
+    throw new Error("Unexpected error occurred while fetching pricing.");
+  }
+}
 
 // ✅ Update Pricing
 export const updatePricing = async (

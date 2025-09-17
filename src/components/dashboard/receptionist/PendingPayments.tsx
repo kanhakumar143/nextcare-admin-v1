@@ -8,7 +8,6 @@ import RazorpayPayment from "@/components/payment/razorpayPayment";
 import { updateBulkStatusPaymentRequest } from "@/services/razorpay.api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { submitInvoiceGenerate } from "@/services/invoice.api";
 
 const PendingPayments = () => {
   const router = useRouter();
@@ -27,12 +26,6 @@ const PendingPayments = () => {
           status: "completed",
         }));
         await updateBulkStatusPaymentRequest(payload);
-
-        const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
-
-        const invoiceData = await submitInvoiceGenerate({
-          order_request_ids: orderRequestIds,
-        });
       }
 
       toast.success("Payment successful");

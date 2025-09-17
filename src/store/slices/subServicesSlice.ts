@@ -88,6 +88,11 @@ const subServiceSlice = createSlice({
     closeEditModal: (state) => {
       state.editing = null;
     },
+    clearSubServices: (state) => {
+      state.items = [];
+      state.loading = false;
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -98,7 +103,11 @@ const subServiceSlice = createSlice({
       })
       .addCase(fetchSubServicesByServiceId.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        // Merge new sub-services with existing ones, avoiding duplicates
+        const newSubServices = action.payload;
+        const existingIds = new Set(state.items.map(item => item.id));
+        const uniqueNewSubServices = newSubServices.filter(subService => !existingIds.has(subService.id));
+        state.items = [...state.items, ...uniqueNewSubServices];
       })
       .addCase(fetchSubServicesByServiceId.rejected, (state, action) => {
         state.loading = false;
