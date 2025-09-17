@@ -46,11 +46,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 
 // Icons
 import {
@@ -60,7 +55,6 @@ import {
   User,
   Users,
   ArrowRightLeft,
-  MoreVertical,
 } from "lucide-react";
 
 // Types
@@ -70,6 +64,7 @@ import { Schedule, Slot } from "@/types/scheduleSlots.types";
 import { SlotTile } from "./SlotTile";
 import SlotTransferModal from "./modals/SlotTransferModal";
 import SlotShiftModal from "./modals/SlotShiftModal";
+import TimeShiftPopover from "./TimeShiftPopover";
 import {
   ActiveSlotState,
   PractitionerData,
@@ -635,13 +630,6 @@ export default function AppointmentManagement() {
     setSelectedShiftData(null);
   };
 
-  const toggleShiftPopover = (key: string) => {
-    setShiftPopoverOpen((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
-  };
-
   return (
     <div className="w-full overflow-hidden">
       <div className="container mx-auto p-6 space-y-6">
@@ -1018,8 +1006,8 @@ export default function AppointmentManagement() {
 
                                               {/* Options Button */}
                                               {dateSchedules.length > 0 && (
-                                                <Popover
-                                                  open={
+                                                <TimeShiftPopover
+                                                  isOpen={
                                                     shiftPopoverOpen[
                                                       `multi-${doctorId}-${date}`
                                                     ] || false
@@ -1033,154 +1021,17 @@ export default function AppointmentManagement() {
                                                       })
                                                     );
                                                   }}
-                                                >
-                                                  <PopoverTrigger asChild>
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="icon"
-                                                      className="h-6 w-6 p-0 hover:bg-gray-200"
-                                                      onClick={() =>
-                                                        toggleShiftPopover(
-                                                          `multi-${doctorId}-${date}`
-                                                        )
-                                                      }
-                                                    >
-                                                      <MoreVertical className="w-3 h-3" />
-                                                    </Button>
-                                                  </PopoverTrigger>
-                                                  <PopoverContent
-                                                    className="w-48"
-                                                    align="end"
-                                                  >
-                                                    <div className="space-y-2">
-                                                      <div className="text-sm font-medium text-gray-900 border-b pb-2">
-                                                        Shift Slot Times
-                                                      </div>
-                                                      <div className="grid grid-cols-2 gap-1">
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-8 text-xs justify-start"
-                                                          onClick={() => {
-                                                            if (
-                                                              dateSchedules.length >
-                                                              0
-                                                            ) {
-                                                              handleTimeSelection(
-                                                                dateSchedules,
-                                                                date,
-                                                                5,
-                                                                doctorData.doctorName
-                                                              );
-                                                            }
-                                                          }}
-                                                        >
-                                                          5 min
-                                                        </Button>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-8 text-xs justify-start"
-                                                          onClick={() => {
-                                                            if (
-                                                              dateSchedules.length >
-                                                              0
-                                                            ) {
-                                                              handleTimeSelection(
-                                                                dateSchedules,
-                                                                date,
-                                                                10,
-                                                                doctorData.doctorName
-                                                              );
-                                                            }
-                                                          }}
-                                                        >
-                                                          10 min
-                                                        </Button>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-8 text-xs justify-start"
-                                                          onClick={() => {
-                                                            if (
-                                                              dateSchedules.length >
-                                                              0
-                                                            ) {
-                                                              handleTimeSelection(
-                                                                dateSchedules,
-                                                                date,
-                                                                15,
-                                                                doctorData.doctorName
-                                                              );
-                                                            }
-                                                          }}
-                                                        >
-                                                          15 min
-                                                        </Button>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-8 text-xs justify-start"
-                                                          onClick={() => {
-                                                            if (
-                                                              dateSchedules.length >
-                                                              0
-                                                            ) {
-                                                              handleTimeSelection(
-                                                                dateSchedules,
-                                                                date,
-                                                                30,
-                                                                doctorData.doctorName
-                                                              );
-                                                            }
-                                                          }}
-                                                        >
-                                                          30 min
-                                                        </Button>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-8 text-xs justify-start"
-                                                          onClick={() => {
-                                                            if (
-                                                              dateSchedules.length >
-                                                              0
-                                                            ) {
-                                                              handleTimeSelection(
-                                                                dateSchedules,
-                                                                date,
-                                                                45,
-                                                                doctorData.doctorName
-                                                              );
-                                                            }
-                                                          }}
-                                                        >
-                                                          45 min
-                                                        </Button>
-                                                        <Button
-                                                          variant="ghost"
-                                                          size="sm"
-                                                          className="h-8 text-xs justify-start"
-                                                          onClick={() => {
-                                                            if (
-                                                              dateSchedules.length >
-                                                              0
-                                                            ) {
-                                                              handleTimeSelection(
-                                                                dateSchedules,
-                                                                date,
-                                                                60,
-                                                                doctorData.doctorName
-                                                              );
-                                                            }
-                                                          }}
-                                                        >
-                                                          1 hour
-                                                        </Button>
-                                                      </div>
-                                                    </div>
-                                                  </PopoverContent>
-                                                </Popover>
+                                                  onTimeSelect={(delayMinutes) => {
+                                                    if (dateSchedules.length > 0) {
+                                                      handleTimeSelection(
+                                                        dateSchedules,
+                                                        date,
+                                                        delayMinutes,
+                                                        doctorData.doctorName
+                                                      );
+                                                    }
+                                                  }}
+                                                />
                                               )}
                                             </div>
                                           </div>
@@ -1340,8 +1191,8 @@ export default function AppointmentManagement() {
 
                                   {/* Options Button */}
                                   {dateSchedules.length > 0 && (
-                                    <Popover
-                                      open={
+                                    <TimeShiftPopover
+                                      isOpen={
                                         shiftPopoverOpen[`single-${date}`] ||
                                         false
                                       }
@@ -1351,128 +1202,16 @@ export default function AppointmentManagement() {
                                           [`single-${date}`]: open,
                                         }));
                                       }}
-                                    >
-                                      <PopoverTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8 p-0 hover:bg-gray-100"
-                                          onClick={() =>
-                                            toggleShiftPopover(`single-${date}`)
-                                          }
-                                        >
-                                          <MoreVertical className="w-4 h-4" />
-                                        </Button>
-                                      </PopoverTrigger>
-                                      <PopoverContent
-                                        className="w-48"
-                                        align="end"
-                                      >
-                                        <div className="space-y-2">
-                                          <div className="text-sm font-medium text-gray-900 border-b pb-2">
-                                            Shift Slot Times
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-1">
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-8 text-xs justify-start"
-                                              onClick={() => {
-                                                if (dateSchedules.length > 0) {
-                                                  handleTimeSelection(
-                                                    dateSchedules,
-                                                    date,
-                                                    5
-                                                  );
-                                                }
-                                              }}
-                                            >
-                                              5 min
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-8 text-xs justify-start"
-                                              onClick={() => {
-                                                if (dateSchedules.length > 0) {
-                                                  handleTimeSelection(
-                                                    dateSchedules,
-                                                    date,
-                                                    10
-                                                  );
-                                                }
-                                              }}
-                                            >
-                                              10 min
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-8 text-xs justify-start"
-                                              onClick={() => {
-                                                if (dateSchedules.length > 0) {
-                                                  handleTimeSelection(
-                                                    dateSchedules,
-                                                    date,
-                                                    15
-                                                  );
-                                                }
-                                              }}
-                                            >
-                                              15 min
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-8 text-xs justify-start"
-                                              onClick={() => {
-                                                if (dateSchedules.length > 0) {
-                                                  handleTimeSelection(
-                                                    dateSchedules,
-                                                    date,
-                                                    30
-                                                  );
-                                                }
-                                              }}
-                                            >
-                                              30 min
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-8 text-xs justify-start"
-                                              onClick={() => {
-                                                if (dateSchedules.length > 0) {
-                                                  handleTimeSelection(
-                                                    dateSchedules,
-                                                    date,
-                                                    45
-                                                  );
-                                                }
-                                              }}
-                                            >
-                                              45 min
-                                            </Button>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              className="h-8 text-xs justify-start"
-                                              onClick={() => {
-                                                if (dateSchedules.length > 0) {
-                                                  handleTimeSelection(
-                                                    dateSchedules,
-                                                    date,
-                                                    60
-                                                  );
-                                                }
-                                              }}
-                                            >
-                                              1 hour
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      </PopoverContent>
-                                    </Popover>
+                                      onTimeSelect={(delayMinutes) => {
+                                        if (dateSchedules.length > 0) {
+                                          handleTimeSelection(
+                                            dateSchedules,
+                                            date,
+                                            delayMinutes
+                                          );
+                                        }
+                                      }}
+                                    />
                                   )}
                                 </div>
                               </div>
