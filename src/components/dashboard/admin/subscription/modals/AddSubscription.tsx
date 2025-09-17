@@ -64,6 +64,27 @@ export default function AddSubscriptionPage() {
 
   const tenantId = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 
+  // Load services on component mount
+  useEffect(() => {
+    dispatch(fetchServices());
+  }, [dispatch]);
+
+  // Load sub-services for all services when services are loaded
+  useEffect(() => {
+    if (services.length > 0) {
+      console.log("Loading sub-services for all services:", services.map(s => s.name));
+      services.forEach(service => {
+        dispatch(fetchSubServicesByServiceId(service.id));
+      });
+    }
+  }, [services, dispatch]);
+
+  // Debug logging
+  useEffect(() => {
+    console.log("AddSubscription - Services state:", services);
+    console.log("AddSubscription - SubServices state:", subServices);
+  }, [services, subServices]);
+
   // Auto-select single sub-service when subServices load
   useEffect(() => {
     setFeatures((prev) =>
@@ -343,9 +364,9 @@ export default function AddSubscriptionPage() {
                         }
                       }}
                       placeholder="Search or type service"
-                      list="service-options"
+                      list={`service-options-${idx}`}
                     />
-                    <datalist id="service-options">
+                    <datalist id={`service-options-${idx}`}>
                       {services.map((s) => (
                         <option key={s.id} value={s.name} />
                       ))}

@@ -96,7 +96,7 @@ export default function SubscriptionDetailsPage() {
           >
             <Edit2 className="w-4 h-4 mr-2" /> Edit
           </Button>
-          <Button
+          {/* <Button
             variant="destructive"
             className="cursor-pointer"
             onClick={handleDelete}
@@ -104,7 +104,7 @@ export default function SubscriptionDetailsPage() {
           >
             <Trash2 className="w-4 h-4 mr-2" />
             {deleting ? "Deleting..." : "Delete"}
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -135,7 +135,7 @@ export default function SubscriptionDetailsPage() {
                   )}
                   {feature.description && (
                     <p className="text-sm text-muted-foreground">
-                       Includes {feature.quantity} {feature.name} {feature.feature_type}
+                      Includes {feature.quantity} {feature.name} {feature.feature_type}
                     </p>
                   )}
                 </CardContent>
