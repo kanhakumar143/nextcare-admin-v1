@@ -1,9 +1,20 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import {
   AvailableSlot,
   ReferralData,
   SubService,
+  SimplifiedRegularSlotsResponse,
 } from "@/types/receptionist.types";
+import { getRecentSuggestedSlots } from "@/services/receptionist.api";
+
+// Async thunk for fetching regular slots
+export const fetchRegularSlotsAsync = createAsyncThunk(
+  "booking/fetchRegularSlots",
+  async (referralId: string) => {
+    const response = await getRecentSuggestedSlots(referralId);
+    return response as SimplifiedRegularSlotsResponse;
+  }
+);
 
 // Booking state interface
 export interface BookingState {
@@ -15,6 +26,10 @@ export interface BookingState {
   setAppointmentId: string | null;
   paymentInProgress: boolean;
   paymentError: string | null;
+  // New states for regular slots
+  regularSlotsData: SimplifiedRegularSlotsResponse | null;
+  regularSlotsLoading: boolean;
+  regularSlotsError: string | null;
 }
 
 // Initial state
@@ -27,6 +42,10 @@ const initialState: BookingState = {
   bookingError: null,
   paymentInProgress: false,
   paymentError: null,
+  // New initial states for regular slots
+  regularSlotsData: null,
+  regularSlotsLoading: false,
+  regularSlotsError: null,
 };
 
 // Create the booking slice
@@ -103,13 +122,42 @@ const bookingSlice = createSlice({
       state.bookingError = null;
       state.paymentInProgress = false;
       state.paymentError = null;
+      state.regularSlotsData = null;
+      state.regularSlotsLoading = false;
+      state.regularSlotsError = null;
     },
 
     // Clear only errors
     clearBookingErrors: (state) => {
       state.bookingError = null;
       state.paymentError = null;
+      state.regularSlotsError = null;
     },
+
+    // Clear regular slots data
+    clearRegularSlotsData: (state) => {
+      state.regularSlotsData = null;
+      state.regularSlotsLoading = false;
+      state.regularSlotsError = null;
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchRegularSlotsAsync.pending, (state) => {
+        state.regularSlotsLoading = true;
+        state.regularSlotsError = null;
+      })
+      .addCase(fetchRegularSlotsAsync.fulfilled, (state, action) => {
+        state.regularSlotsLoading = false;
+        state.regularSlotsData = action.payload;
+        state.regularSlotsError = null;
+      })
+      .addCase(fetchRegularSlotsAsync.rejected, (state, action) => {
+        state.regularSlotsLoading = false;
+        state.regularSlotsData = null;
+        state.regularSlotsError =
+          action.error.message || "Failed to fetch regular slots";
+      });
   },
 });
 
@@ -126,6 +174,7 @@ export const {
   setPaymentError,
   clearBookingData,
   clearBookingErrors,
+  clearRegularSlotsData,
 } = bookingSlice.actions;
 
 // Export reducer

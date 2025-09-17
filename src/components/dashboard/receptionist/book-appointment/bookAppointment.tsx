@@ -31,7 +31,7 @@ const BookAppointment: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ReferralData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isAiMode, setIsAiMode] = useState(true); // Default to AI mode
+  const [isAiMode, setIsAiMode] = useState(false); // Default to Regular mode
   const dispatch = useDispatch();
   const { selectedSlot, referralData: storedReferralData } = useSelector(
     (state: RootState) => state.booking
@@ -93,15 +93,15 @@ const BookAppointment: React.FC = () => {
     return "text-orange-600 bg-orange-50";
   };
 
-  const handleToggleMode = () => {
-    setIsAiMode(!isAiMode);
-  };
+  // const handleToggleMode = () => {
+  //   setIsAiMode(!isAiMode);
+  // };
 
   const handleBackToQrScanner = () => {
     // Clear all receptionist data from Redux
     dispatch(clearAllReceptionistData());
     // Navigate back to the receptionist dashboard (QR scanner page)
-    router.push("/dashboard/receptionist");
+    router.back();
   };
 
   // Show loading only for AI mode
@@ -144,7 +144,7 @@ const BookAppointment: React.FC = () => {
         </button>
 
         {/* Toggle Switch */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4">
+        {/* <div className="bg-white rounded-lg border border-gray-200 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-lg font-semibold text-gray-900">
@@ -176,7 +176,7 @@ const BookAppointment: React.FC = () => {
               </span>
             </button>
           </div>
-        </div>
+        </div> */}
 
         <RegularSlots />
       </div>
@@ -204,6 +204,7 @@ const BookAppointment: React.FC = () => {
       </button>
 
       {/* Toggle Switch */}
+      {/* 
       <div className="bg-white rounded-lg border border-gray-200 p-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -237,6 +238,7 @@ const BookAppointment: React.FC = () => {
           </button>
         </div>
       </div>
+      */}
 
       {/* Patient & Referral Info */}
       <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg p-4 sm:p-6 border border-gray-200">

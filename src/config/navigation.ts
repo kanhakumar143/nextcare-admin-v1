@@ -67,7 +67,11 @@ export const adminRoutes: Route[] = [
     name: "Slots Management",
     icon: Calendar1,
   },
-
+  {
+    href: "/dashboard/admin/appointment-management",
+    name: "Appointment Management",
+    icon: Album,
+  },
   {
     name: "Users",
     icon: Users,

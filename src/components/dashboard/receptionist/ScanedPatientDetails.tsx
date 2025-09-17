@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/store";
 import {
+  clearAllReceptionistData,
   setDecodedDetails,
   setQrToken,
 } from "@/store/slices/receptionistSlice";
@@ -16,6 +17,8 @@ import { checkInPatient } from "@/services/receptionist.api";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
+import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
 
 const ScannedPatientDetails = () => {
   const { patientDetails } = useSelector(
@@ -141,21 +144,48 @@ const ScannedPatientDetails = () => {
           <div className="flex flex-col gap-2 mt-5">
             {patientDetails.patient.patient_profile.verifications[0]
               .verification_status !== "verified" ? (
-              <Button
-                className="w-full border-primary border-2"
-                onClick={() => {
-                  router.push("/dashboard/receptionist/verify-patient");
-                }}
-              >
-                Verify Patient
-              </Button>
-            ) : (
               <>
                 <Button
-                  onClick={handleCheckIn}
-                  className="w-full bg-green-500 hover:bg-green-400 text-white font-semibold"
+                  className="w-full border-primary border-2"
+                  onClick={() => {
+                    router.push("/dashboard/receptionist/verify-patient");
+                  }}
                 >
-                  {loading ? "Checking In..." : "Confirm Check-In"}
+                  Verify Patient
+                </Button>
+                <Button
+                  variant={"outline"}
+                  className="w-full border-primary border-2"
+                  onClick={() => {
+                    router.back();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <>
+                {patientDetails.appointment.status !== "checked_in" ? (
+                  <Button
+                    onClick={handleCheckIn}
+                    className="w-full bg-green-500 hover:bg-green-400 text-white font-semibold"
+                  >
+                    {loading ? "Checking In..." : "Confirm Check-In"}
+                  </Button>
+                ) : (
+                  <Label className="text-center w-full text-green-600 font-semibold">
+                    Patient already checked in
+                  </Label>
+                )}
+                <Button
+                  variant={"outline"}
+                  className="w-full"
+                  onClick={() => {
+                    dispatch(clearAllReceptionistData());
+                    router.back();
+                  }}
+                >
+                  Cancel
                 </Button>
                 <p className="text-sm text-gray-500">
                   {patientDetails.time_alert}
@@ -165,6 +195,7 @@ const ScannedPatientDetails = () => {
           </div>
         </CardContent>
       </Card>
+      <ConfirmCheckedInModal />
     </div>
   );
 };

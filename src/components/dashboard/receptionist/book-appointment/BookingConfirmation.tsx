@@ -32,6 +32,7 @@ import {
 } from "@/services/receptionist.api";
 import { CreateNewAppointmentPayload } from "@/types/receptionist.types";
 import { clearAllReceptionistData } from "@/store/slices/receptionistSlice";
+import { Button } from "@/components/ui/button";
 
 const BookingConfirmation: React.FC = () => {
   const dispatch = useDispatch();
@@ -53,6 +54,7 @@ const BookingConfirmation: React.FC = () => {
 
   // Redirect if no booking data
   useEffect(() => {
+    console.log(subServices);
     if (!selectedSlot || !referralData) {
       router.push("/dashboard/receptionist");
     }
@@ -87,15 +89,14 @@ const BookingConfirmation: React.FC = () => {
   const startDateTime = formatDateTime(selectedSlot.start);
   const endDateTime = formatDateTime(selectedSlot.end);
 
-  // Calculate consultation fee (you can adjust this logic based on your requirements)
-  const consultationFee = 500; // Default fee in rupees
-
   const handlePayment = async () => {
     try {
       dispatch(setPaymentInProgress(true));
 
       const paymentData: PaymentData = {
-        amount: consultationFee,
+        amount: Number(
+          referralData?.sub_services?.[0]?.pricings[0]?.base_price
+        ),
         patient_name: referralData.referral.patient.user.name,
         patient_email: referralData.referral.patient.user.email,
         patient_phone: referralData.referral.patient.user.phone,
@@ -295,10 +296,10 @@ const BookingConfirmation: React.FC = () => {
   //   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+        <div className="p-4 sm:p-6 mb-6">
           <div className="flex items-center gap-4 mb-4">
             <button
               onClick={handleBackToSlots}
@@ -319,39 +320,45 @@ const BookingConfirmation: React.FC = () => {
         {/* Patient & Appointment Details */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Patient Information */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Patient Information
-            </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Name:</span>
-                <span className="font-medium">
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-blue-50 rounded-lg">
+                <User className="h-5 w-5 text-blue-600" />
+              </div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Patient Information
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">Name</span>
+                <span className="col-span-2 text-sm text-gray-900 font-medium">
                   {referralData.referral.patient.user.name}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Patient ID:</span>
-                <span className="font-medium">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">ID</span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {referralData.referral.patient.patient_display_id}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Email:</span>
-                <span className="font-medium">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">Email</span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {referralData.referral.patient.user.email}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Phone:</span>
-                <span className="font-medium">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">Phone</span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {referralData.referral.patient.user.phone}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Gender:</span>
-                <span className="font-medium capitalize">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">
+                  Gender
+                </span>
+                <span className="col-span-2 text-sm text-gray-900 capitalize">
                   {referralData.referral.patient.gender}
                 </span>
               </div>
@@ -359,37 +366,49 @@ const BookingConfirmation: React.FC = () => {
           </div>
 
           {/* Appointment Details */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              Appointment Details
-            </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Date:</span>
-                <span className="font-medium">{startDateTime.date}</span>
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-green-50 rounded-lg">
+                <Calendar className="h-5 w-5 text-green-600" />
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Time:</span>
-                <span className="font-medium">
+              <h2 className="text-lg font-semibold text-gray-900">
+                Appointment Details
+              </h2>
+            </div>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">Date</span>
+                <span className="col-span-2 text-sm text-gray-900 font-medium">
+                  {startDateTime.date}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">Time</span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {startDateTime.time} - {endDateTime.time}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Doctor:</span>
-                <span className="font-medium">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">
+                  Doctor
+                </span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {referralData.referral.practitioner.name.text}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Specialty:</span>
-                <span className="font-medium">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">
+                  Specialty
+                </span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {referralData.referral.service_specialty.specialty_label}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Reason:</span>
-                <span className="font-medium">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">
+                  Reason
+                </span>
+                <span className="col-span-2 text-sm text-gray-900">
                   {referralData.referral.reason}
                 </span>
               </div>
@@ -400,52 +419,46 @@ const BookingConfirmation: React.FC = () => {
         {/* Payment Section */}
         <div className="space-y-6">
           {/* Payment Summary */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <CreditCard className="h-5 w-5" />
-              Payment Summary
-            </h2>
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Consultation Fee:</span>
-                <span className="font-medium">₹{consultationFee}</span>
+          <div className="bg-white rounded-xl border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-purple-50 rounded-lg">
+                <CreditCard className="h-5 w-5 text-purple-600" />
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Taxes & Fees:</span>
-                <span className="font-medium">₹0</span>
-              </div>
-              <hr className="border-gray-200" />
-              <div className="flex justify-between text-lg font-semibold">
-                <span>Total Amount:</span>
-                <span className="text-blue-600">₹{consultationFee}</span>
-              </div>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Payment Summary
+              </h2>
             </div>
-          </div>
-
-          {/* Error Display */}
-          {(paymentError || razorpayError) && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-medium text-red-800">
-                    Payment Error
-                  </h3>
-                  <p className="text-sm text-red-700 mt-1">
-                    {paymentError || razorpayError}
-                  </p>
+            <div className="space-y-4">
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">
+                  Consultation Fee
+                </span>
+                <span className="col-span-2 text-sm text-gray-900 font-medium">
+                  ₹{referralData?.sub_services?.[0]?.pricings[0]?.base_price}
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <span className="text-sm text-gray-500 font-medium">
+                  Taxes & Fees
+                </span>
+                <span className="col-span-2 text-sm text-gray-900">₹0</span>
+              </div>
+              <div className="border-t border-gray-100 pt-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <span className="text-base text-gray-900 font-semibold">
+                    Total Amount
+                  </span>
+                  <span className="col-span-2 text-base text-gray-900 font-semibold">
+                    ₹{referralData?.sub_services?.[0]?.pricings[0]?.base_price}
+                  </span>
                 </div>
               </div>
             </div>
-          )}
-
-          {/* Payment Button */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
-            <div className="space-y-4">
-              <button
+            <div className="flex justify-end items-center mt-6 gap-4">
+              <Button
                 onClick={handlePayment}
                 disabled={paymentInProgress || razorpayLoading}
-                className="w-full bg-blue-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                className="text-white py-4 px-6 flex items-center justify-center gap-2"
               >
                 {paymentInProgress || razorpayLoading ? (
                   <>
@@ -455,20 +468,16 @@ const BookingConfirmation: React.FC = () => {
                 ) : (
                   <>
                     <CreditCard className="h-5 w-5" />
-                    Pay ₹{consultationFee} & Confirm Booking
+                    Pay ₹
+                    {referralData?.sub_services?.[0]?.pricings[0]?.base_price}
                   </>
                 )}
-              </button>
-
-              <button
-                onClick={handleCancelBooking}
-                disabled={paymentInProgress || razorpayLoading}
-                className="w-full bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-medium hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Cancel Booking
-              </button>
+              </Button>
             </div>
+          </div>
 
+          {/* Payment Button */}
+          <div className=" p-4 sm:p-6">
             <div className="mt-4 text-xs text-gray-500 text-center">
               <p>Secure payment powered by Razorpay</p>
               <p>Your payment information is encrypted and secure</p>

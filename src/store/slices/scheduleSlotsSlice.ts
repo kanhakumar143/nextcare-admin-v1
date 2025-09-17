@@ -175,6 +175,53 @@ const scheduleSlotsSlice = createSlice({
         });
       }
     },
+    transferSlotLocal: (
+      state,
+      action: PayloadAction<{
+        sourceScheduleId: string;
+        sourceSlotId: string;
+        targetScheduleId: string;
+        targetSlotId: string;
+      }>
+    ) => {
+      const { sourceScheduleId, sourceSlotId, targetScheduleId, targetSlotId } =
+        action.payload;
+
+      // Find source and target schedules
+      const sourceSchedule = state.schedules.find(
+        (s) => s.id === sourceScheduleId
+      );
+      const targetSchedule = state.schedules.find(
+        (s) => s.id === targetScheduleId
+      );
+
+      if (sourceSchedule && targetSchedule) {
+        // Find source and target slots
+        const sourceSlot = sourceSchedule.slots.find(
+          (slot) => slot.id === sourceSlotId
+        );
+        const targetSlot = targetSchedule.slots.find(
+          (slot) => slot.id === targetSlotId
+        );
+
+        if (
+          sourceSlot &&
+          targetSlot &&
+          sourceSlot.overbooked &&
+          !targetSlot.overbooked
+        ) {
+          // Transfer the booking status
+          sourceSlot.overbooked = false;
+          targetSlot.overbooked = true;
+
+          // Optionally transfer any comments or additional data
+          if (sourceSlot.comment) {
+            targetSlot.comment = sourceSlot.comment;
+            sourceSlot.comment = "";
+          }
+        }
+      }
+    },
   },
   extraReducers: (builder) => {
     // Fetch Doctors
@@ -242,6 +289,7 @@ export const {
   deleteSlotLocal,
   deleteMultipleSlotsLocal,
   deleteSlotsByTimeRangeLocal,
+  transferSlotLocal,
 } = scheduleSlotsSlice.actions;
 
 export default scheduleSlotsSlice.reducer;
