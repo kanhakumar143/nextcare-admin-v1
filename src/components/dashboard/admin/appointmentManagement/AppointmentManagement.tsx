@@ -657,8 +657,8 @@ export default function AppointmentManagement() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* User Type Selection */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* User Type Selection and View Mode in one line */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-end">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">User Type:</label>
                   <Select
@@ -678,6 +678,53 @@ export default function AppointmentManagement() {
                 </div>
 
                 {/* Multi-Doctor View Toggle */}
+
+                {/* Single Doctor Selection moved to same row */}
+                {!isMultiDoctorView && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">
+                      Select{" "}
+                      {selectedUserType === "doctor"
+                        ? "Doctor"
+                        : "Lab Technician"}
+                      :
+                    </label>
+                    <Select
+                      value={selectedPractitionerId || ""}
+                      onValueChange={handlePractitionerSelect}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue
+                          placeholder={`Select a ${
+                            selectedUserType === "doctor"
+                              ? "doctor"
+                              : "lab technician"
+                          }...`}
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getCurrentPractitioners().map((practitioner) => (
+                          <SelectItem
+                            key={practitioner.id}
+                            value={practitioner.id}
+                          >
+                            <div className="flex gap-3 items-center">
+                              <span className="font-medium">
+                                {practitioner.name}
+                              </span>
+                              {practitioner.practitioner_display_id && (
+                                <span className="text-xs text-muted-foreground">
+                                  ID: {practitioner.practitioner_display_id}
+                                </span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">View Mode:</label>
                   <div className="flex items-center space-x-2">
@@ -710,52 +757,6 @@ export default function AppointmentManagement() {
                   </div>
                 </div>
               </div>
-
-              {/* Single Doctor Selection */}
-              {!isMultiDoctorView && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    Select{" "}
-                    {selectedUserType === "doctor"
-                      ? "Doctor"
-                      : "Lab Technician"}
-                    :
-                  </label>
-                  <Select
-                    value={selectedPractitionerId || ""}
-                    onValueChange={handlePractitionerSelect}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue
-                        placeholder={`Select a ${
-                          selectedUserType === "doctor"
-                            ? "doctor"
-                            : "lab technician"
-                        }...`}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {getCurrentPractitioners().map((practitioner) => (
-                        <SelectItem
-                          key={practitioner.id}
-                          value={practitioner.id}
-                        >
-                          <div className="flex gap-3 items-center">
-                            <span className="font-medium">
-                              {practitioner.name}
-                            </span>
-                            {practitioner.practitioner_display_id && (
-                              <span className="text-xs text-muted-foreground">
-                                ID: {practitioner.practitioner_display_id}
-                              </span>
-                            )}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
 
               {/* Multi-Doctor Selection */}
               {isMultiDoctorView && (
@@ -809,8 +810,8 @@ export default function AppointmentManagement() {
         </Card>
 
         {/* Calendar View */}
-        <Card className="max-w-[78vw]">
-          <CardHeader>
+        <Card className="max-w-[78vw] flex flex-col">
+          <CardHeader className="flex-shrink-0">
             <CardTitle className="flex items-center gap-2">
               <CalendarDays className="w-5 h-5" />
               Appointment Calendar
@@ -871,7 +872,7 @@ export default function AppointmentManagement() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-0 relative overflow-hidden">
+          <CardContent className="p-0 relative">
             {/* Scroll hint overlay for multiple days */}
 
             {isMultiDoctorView ? (
@@ -896,12 +897,12 @@ export default function AppointmentManagement() {
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                 >
-                  <div className="w-full h-[700px] overflow-auto">
+                  <div className="w-full">
                     {/* Split Screen Layout for 2 doctors, Grid for more */}
                     <div
                       className={`p-6 ${
                         selectedDoctorsForComparison.length === 2
-                          ? "grid grid-cols-2 gap-6 h-full"
+                          ? "grid grid-cols-2 gap-6"
                           : "space-y-6"
                       }`}
                     >
@@ -909,11 +910,7 @@ export default function AppointmentManagement() {
                         ([doctorId, doctorData]) => (
                           <div
                             key={doctorId}
-                            className={`border rounded-lg p-4 bg-white shadow-sm ${
-                              selectedDoctorsForComparison.length === 2
-                                ? "h-full flex flex-col"
-                                : ""
-                            }`}
+                            className="border rounded-lg p-4 bg-white shadow-sm"
                           >
                             {/* Doctor Header */}
                             <div className="flex items-center justify-between mb-4 p-3 bg-gray-50 rounded-lg border">
@@ -963,18 +960,12 @@ export default function AppointmentManagement() {
                             </div>
 
                             {/* Doctor's Schedule Days */}
-                            <div
-                              className={`${
-                                selectedDoctorsForComparison.length === 2
-                                  ? "flex-1 overflow-hidden"
-                                  : ""
-                              }`}
-                            >
+                            <div>
                               {/* Horizontal scrolling container for days */}
-                              <div className="w-full h-full overflow-hidden">
-                                <div className="w-full h-full overflow-x-auto overflow-y-hidden">
+                              <div className="w-full">
+                                <div className="w-full overflow-x-auto">
                                   <div
-                                    className="flex gap-4 h-full py-2"
+                                    className="flex gap-4 py-2"
                                     style={{
                                       width: `${
                                         Object.keys(doctorData.schedulesByDate)
@@ -988,11 +979,11 @@ export default function AppointmentManagement() {
                                     ).map(([date, dateSchedules]) => (
                                       <div
                                         key={`${doctorId}-${date}`}
-                                        className="w-[260px] flex-shrink-0 h-full"
+                                        className="w-[260px]"
                                       >
-                                        <div className="bg-gray-50 rounded-lg p-3 border h-full flex flex-col">
+                                        <div className="bg-gray-50 rounded-lg p-3 border">
                                           {/* Day Header */}
-                                          <div className="mb-3 pb-2 border-b border-gray-200 flex-shrink-0">
+                                          <div className="mb-3 pb-2 border-b border-gray-200">
                                             <div className="flex items-center justify-between">
                                               <div>
                                                 <h4 className="font-semibold text-gray-800 flex items-center gap-2">
@@ -1021,8 +1012,12 @@ export default function AppointmentManagement() {
                                                       })
                                                     );
                                                   }}
-                                                  onTimeSelect={(delayMinutes) => {
-                                                    if (dateSchedules.length > 0) {
+                                                  onTimeSelect={(
+                                                    delayMinutes
+                                                  ) => {
+                                                    if (
+                                                      dateSchedules.length > 0
+                                                    ) {
                                                       handleTimeSelection(
                                                         dateSchedules,
                                                         date,
@@ -1037,19 +1032,17 @@ export default function AppointmentManagement() {
                                           </div>
 
                                           {/* Slots for this day */}
-                                          <div className="flex-1 overflow-auto">
-                                            <div className="space-y-2 pr-2">
-                                              {dateSchedules.map((schedule) =>
-                                                schedule.slots.map((slot) => (
-                                                  <SlotTile
-                                                    key={`${doctorId}-${schedule.id}-${slot.id}`}
-                                                    slot={slot}
-                                                    scheduleId={schedule.id}
-                                                    doctorId={doctorId}
-                                                  />
-                                                ))
-                                              )}
-                                            </div>
+                                          <div className="space-y-2 pb-4">
+                                            {dateSchedules.map((schedule) =>
+                                              schedule.slots.map((slot) => (
+                                                <SlotTile
+                                                  key={`${doctorId}-${schedule.id}-${slot.id}`}
+                                                  slot={slot}
+                                                  scheduleId={schedule.id}
+                                                  doctorId={doctorId}
+                                                />
+                                              ))
+                                            )}
                                           </div>
                                         </div>
                                       </div>
@@ -1130,10 +1123,10 @@ export default function AppointmentManagement() {
                 onDragEnd={handleDragEnd}
               >
                 {/* Kanban Board Layout with horizontal scrolling */}
-                <div className="w-full h-[700px] overflow-hidden">
-                  <div className="w-full h-full overflow-x-auto overflow-y-hidden">
+                <div className="w-full">
+                  <div className="w-full overflow-x-auto">
                     <div
-                      className="flex gap-4 h-full px-6 py-4"
+                      className="flex gap-4 px-6 py-4"
                       style={{
                         width: `${
                           Object.keys(groupSchedulesByDate()).length * 300
@@ -1145,10 +1138,10 @@ export default function AppointmentManagement() {
                         ([date, dateSchedules]) => (
                           <div
                             key={date}
-                            className="w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] xl:w-[320px] flex-shrink-0 h-full"
+                            className="w-[240px] sm:w-[260px] md:w-[280px] lg:w-[300px] xl:w-[320px] flex-shrink-0"
                           >
                             {/* Day Column Header */}
-                            <div className="my-3">
+                            <div className="mb-3">
                               <div className="p-3 flex justify-between items-start">
                                 <div>
                                   <h3 className="text-lg font-semibold flex items-center gap-2 text-blue-900">
@@ -1218,8 +1211,8 @@ export default function AppointmentManagement() {
                             </div>
 
                             {/* Slots Column */}
-                            <div className="h-[580px]">
-                              <div className="space-y-3 pr-2">
+                            <div className="bg-gray-50 rounded-lg border p-3">
+                              <div className="space-y-3 pb-4">
                                 {dateSchedules.map((schedule) => (
                                   <div key={schedule.id} className="space-y-2">
                                     {/* Schedule Time Header */}
@@ -1237,7 +1230,7 @@ export default function AppointmentManagement() {
                                     </div> */}
 
                                     {/* Slots for this schedule */}
-                                    <div className="space-y-2 mb-15">
+                                    <div className="space-y-2">
                                       {schedule.slots.map((slot) => (
                                         <SlotTile
                                           key={slot.id}
