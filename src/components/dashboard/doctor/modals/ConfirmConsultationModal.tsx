@@ -27,6 +27,7 @@ import { VisitSummaryPayload } from "@/types/doctor.types";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { submitCompleteAppointmentSummaryToAi } from "@/services/ai.api";
 
 export default function ConfirmConsultationModal() {
   const { patient_name } = useParams();
@@ -47,6 +48,7 @@ export default function ConfirmConsultationModal() {
   const handleConfirm = () => {
     handleAddVisitSummary();
     handleCancel();
+    submitCompleteAppointmentSummaryToAi(singlePatientDetails?.id);
   };
   const handleCancel = () => {
     dispatch(setConfirmConsultationModal(false));
