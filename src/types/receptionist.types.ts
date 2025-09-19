@@ -574,6 +574,7 @@ export interface staffSliceInitialState {
   medicationDetailsForReminder: any | null;
   referallId: string | null;
   paymentDetails: PendingOrdersResponse | null;
+  subscriptionDetails: Subscription | null;
   appoinmentDetails: any | null;
   practitionerAttendanceData: ExtendedDoctorData | null;
   practitionersList: DoctorData[];
@@ -601,6 +602,38 @@ export type medicationReminderCreatePayload = {
   created_by_id?: string;
   creator_role: string;
 };
+
+interface Subscription {
+  start_date: string; // ISO date string
+  end_date: string; // ISO date string
+  status: string; // e.g., 'active', 'expired'
+  allowances: Allowance[];
+}
+
+interface Allowance {
+  subscription_id: string;
+  feature_id: string;
+  total_quantity: number;
+  remaining_quantity: number;
+  id: string;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  feature: Feature;
+}
+
+interface Feature {
+  name: string;
+  description: string;
+  feature_type: "consultation" | "lab" | string;
+  quantity: number;
+  discount_percent: number | null;
+  sub_service_id: string;
+  id: string;
+  plan_id: string;
+  created_at: string; // ISO date string
+  updated_at: string; // ISO date string
+  sub_service: SubService;
+}
 
 // User profile response
 export interface UserPatientProfileResponse {

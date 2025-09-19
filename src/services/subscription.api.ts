@@ -22,7 +22,9 @@ export async function createSubscriptionPlan(
           "Failed to create subscription plan"
       );
     }
-    throw new Error("Unexpected error occurred while creating subscription plan.");
+    throw new Error(
+      "Unexpected error occurred while creating subscription plan."
+    );
   }
 }
 
@@ -43,7 +45,9 @@ export async function getSubscriptionPlansByTenant(
           "Failed to fetch subscription plans"
       );
     }
-    throw new Error("Unexpected error occurred while fetching subscription plans.");
+    throw new Error(
+      "Unexpected error occurred while fetching subscription plans."
+    );
   }
 }
 
@@ -62,7 +66,9 @@ export async function updateSubscriptionPlan(
           "Failed to update subscription plan"
       );
     }
-    throw new Error("Unexpected error occurred while updating subscription plan.");
+    throw new Error(
+      "Unexpected error occurred while updating subscription plan."
+    );
   }
 }
 
@@ -83,6 +89,53 @@ export async function deleteSubscriptionPlan(
           "Failed to delete subscription plan"
       );
     }
-    throw new Error("Unexpected error occurred while deleting subscription plan.");
+    throw new Error(
+      "Unexpected error occurred while deleting subscription plan."
+    );
+  }
+}
+
+export async function checkSubscriptionAllowance(
+  subscription_id: string,
+  feature_id: string
+): Promise<{ success: boolean }> {
+  try {
+    const response = await api.get(
+      `billing/feature-allowances/${subscription_id}/check/${feature_id}`
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete subscription plan"
+      );
+    }
+    throw new Error(
+      "Unexpected error occurred while deleting subscription plan."
+    );
+  }
+}
+
+export async function consumeSubscriptionAllowance(
+  feature_id: string
+): Promise<{ success: boolean }> {
+  try {
+    const response = await api.post(
+      `billing/feature-allowances/${feature_id}/consume?quantity=1`
+    );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete subscription plan"
+      );
+    }
+    throw new Error(
+      "Unexpected error occurred while deleting subscription plan."
+    );
   }
 }

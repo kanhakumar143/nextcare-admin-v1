@@ -10,6 +10,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -22,6 +24,7 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import { updateAppointmentBySlots } from "@/services/appointmentManagement.api";
+import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { toast } from "sonner";
 
 interface SlotTransferData {
@@ -69,6 +72,13 @@ export default function SlotTransferModal({
   onRefreshData,
 }: SlotTransferModalProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [reason, setReason] = useState("Requested by admin");
+  const { practitionerId } = useAuthInfo();
+
+  const handleClose = () => {
+    setReason("Requested by admin"); // Reset reason when closing
+    onClose();
+  };
 
   if (!transferData) return null;
 
@@ -105,6 +115,16 @@ export default function SlotTransferModal({
   );
 
   const handleConfirm = async () => {
+    if (!reason.trim()) {
+      toast.error("Please provide a reason for transferring the appointment");
+      return;
+    }
+
+    if (!practitionerId) {
+      toast.error("Practitioner ID not found. Please log in again.");
+      return;
+    }
+
     setIsLoading(true);
 
     console.log("Modal Transfer Data:", {
@@ -118,17 +138,12 @@ export default function SlotTransferModal({
     try {
       // If we have appointment ID, call the API
       if (appointmentId && targetSlotId) {
-        console.log("Calling API with:", {
-          appointment_id: appointmentId,
-          new_slot_id: targetSlotId,
-        });
-
         await updateAppointmentBySlots({
           appointment_id: appointmentId,
           new_slot_id: targetSlotId,
+          reason: reason.trim(),
+          changed_by: practitionerId,
         });
-
-        console.log("API call successful");
 
         // Small delay to ensure server data is updated
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -145,7 +160,7 @@ export default function SlotTransferModal({
       // Call the refresh data function to reload appointment data
       if (onRefreshData) {
         console.log("Refreshing appointment data...");
-        await onRefreshData();
+        onRefreshData();
       }
 
       // Show success message
@@ -173,6 +188,7 @@ export default function SlotTransferModal({
       }
 
       toast.success(message);
+      setReason("Requested by admin"); // Reset reason on success
       onClose();
     } catch (error) {
       console.error("Failed to transfer appointment:", error);
@@ -183,7 +199,7 @@ export default function SlotTransferModal({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -304,6 +320,19 @@ export default function SlotTransferModal({
             </Card>
           </div>
 
+          {/* Reason Input Field */}
+          <div className="space-y-2">
+            <Label htmlFor="reason">Reason for transferring appointment</Label>
+            <Input
+              id="reason"
+              type="text"
+              placeholder="Enter reason for transferring this appointment..."
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              className="w-full"
+            />
+          </div>
+
           {/* Summary */}
           <div className="rounded-lg p-4">
             <h4 className="font-medium mb-2">Transfer Summary</h4>
@@ -329,7 +358,7 @@ export default function SlotTransferModal({
         </div>
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>
+          <Button variant="outline" onClick={handleClose} disabled={isLoading}>
             Cancel
           </Button>
           <Button onClick={handleConfirm} disabled={isLoading} className="">

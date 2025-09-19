@@ -8,6 +8,8 @@ const headers = {
 export const updateAppointmentBySlots = async (payload: {
   appointment_id: string;
   new_slot_id: string;
+  reason: string;
+  changed_by: string;
 }) => {
   try {
     const { data } = await api.put(
@@ -27,9 +29,15 @@ export const updateAppointmentBySlots = async (payload: {
 export const shiftAppointmentSlots = async (payload: {
   schedule_id: string;
   delay_minutes: number;
+  reason: string;
+  changed_by: string;
 }) => {
   try {
-    const { data } = await api.put(`schedule/shift-slots`, payload, headers);
+    const { data } = await api.put(
+      `appointment-management/shift-slots`,
+      payload,
+      headers
+    );
     return data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -57,6 +65,8 @@ export const searchAppointments = async (name: string, date: string) => {
 export const shiftAppointmentSlotsBydays = async (payload: {
   schedule_id: string;
   shift_value: number | string; //days
+  reason: string;
+  changed_by: string;
 }) => {
   try {
     const { data } = await api.put(
