@@ -59,17 +59,17 @@ export default function AllDoctors() {
       accessorKey: "practitioner_display_id",
     },
     {
-      header: "License Number",
-      accessorKey: "license_details.number",
-      cell: ({ row }) => row.original.license_details?.number ?? "N/A",
+      header: "Service Specialty",
+      accessorKey: "service_specialty.display",
+      cell: ({ row }) => row.original.service_specialty?.display ?? "N/A",
     },
-    {
-      header: "Qualification",
-      cell: ({ row }) =>
-        row.original.qualification?.[0]?.degree
-          ? `${row.original.qualification[0].degree}, ${row.original.qualification[0].institution}`
-          : "N/A",
-    },
+    // {
+    //   header: "Qualification",
+    //   cell: ({ row }) =>
+    //     row.original.qualification?.[0]?.degree
+    //       ? `${row.original.qualification[0].degree}, ${row.original.qualification[0].institution}`
+    //       : "N/A",
+    // },
     {
       header: "Status",
       accessorFn: (row) => row.is_active,

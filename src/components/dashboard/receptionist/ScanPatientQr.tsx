@@ -51,9 +51,6 @@ const ScanPatientQr: React.FC = () => {
       })
     );
     dispatch(setQrToken(token));
-
-    // Always go to Pending Payments after scan
-    // router.push("/dashboard/receptionist/pending-payments");
   };
 
   return (

@@ -10,6 +10,7 @@ export const DraggableSlot: React.FC<SlotComponentProps> = ({
   slot,
   scheduleId,
   doctorId,
+  scheduleDate,
 }) => {
   const draggableId = doctorId
     ? `${doctorId}:${scheduleId}:${slot.id}`

@@ -64,7 +64,9 @@ import { Schedule, Slot } from "@/types/scheduleSlots.types";
 import { SlotTile } from "./SlotTile";
 import SlotTransferModal from "./modals/SlotTransferModal";
 import SlotShiftModal from "./modals/SlotShiftModal";
+import SlotDayShiftModal from "./modals/SlotDayShiftModal";
 import TimeShiftPopover from "./TimeShiftPopover";
+import SearchPatient from "./SearchPatient";
 import {
   ActiveSlotState,
   PractitionerData,
@@ -90,6 +92,11 @@ export default function AppointmentManagement() {
     [doctorId: string]: Schedule[];
   }>({});
 
+  // View mode state
+  const [viewMode, setViewMode] = useState<"single" | "multi" | "patient">(
+    "single"
+  );
+
   // Drag and drop state
   const [activeSlot, setActiveSlot] = useState<ActiveSlotState | null>(null);
 
@@ -114,6 +121,15 @@ export default function AppointmentManagement() {
   const [selectedShiftData, setSelectedShiftData] = useState<{
     schedules: Schedule[];
     delayMinutes: number;
+    date: string;
+    doctorName?: string;
+  } | null>(null);
+
+  // Day shift state
+  const [dayShiftModalOpen, setDayShiftModalOpen] = useState(false);
+  const [selectedDayShiftData, setSelectedDayShiftData] = useState<{
+    schedules: Schedule[];
+    shiftDays: number;
     date: string;
     doctorName?: string;
   } | null>(null);
@@ -237,10 +253,10 @@ export default function AppointmentManagement() {
 
   useEffect(() => {
     // Fetch schedules for multiple doctors when in comparison view
-    if (isMultiDoctorView && selectedDoctorsForComparison.length > 0) {
+    if (viewMode === "multi" && selectedDoctorsForComparison.length > 0) {
       fetchMultiDoctorSchedules(selectedDoctorsForComparison);
     }
-  }, [isMultiDoctorView, selectedDoctorsForComparison]);
+  }, [viewMode, selectedDoctorsForComparison]);
 
   useEffect(() => {
     if (error) {
@@ -261,15 +277,37 @@ export default function AppointmentManagement() {
     setSelectedUserType(userType);
     // Clear current selection when switching user types
     dispatch(setSelectedPractitionerId(""));
-    // Reset multi-doctor view when switching user types
+    // Reset view mode to single when switching user types
+    setViewMode("single");
     setIsMultiDoctorView(false);
     setSelectedDoctorsForComparison([]);
     setMultiDoctorSchedules({});
   };
 
   const handleMultiDoctorToggle = () => {
-    setIsMultiDoctorView(!isMultiDoctorView);
-    if (!isMultiDoctorView) {
+    const newMultiState = !isMultiDoctorView;
+    setIsMultiDoctorView(newMultiState);
+    setViewMode(newMultiState ? "multi" : "single");
+
+    if (!newMultiState) {
+      // When disabling multi-doctor view, clear the comparison data
+      setSelectedDoctorsForComparison([]);
+      setMultiDoctorSchedules({});
+    } else {
+      // When enabling multi-doctor view, select first 2 doctors by default
+      const availableDoctors = getCurrentPractitioners();
+      const defaultSelection = availableDoctors
+        .slice(0, Math.min(2, availableDoctors.length))
+        .map((d) => d.id);
+      setSelectedDoctorsForComparison(defaultSelection);
+    }
+  };
+
+  const handleViewModeChange = (mode: "single" | "multi" | "patient") => {
+    setViewMode(mode);
+
+    if (mode === "multi") {
+      setIsMultiDoctorView(true);
       // When enabling multi-doctor view, select first 2 doctors by default
       const availableDoctors = getCurrentPractitioners();
       const defaultSelection = availableDoctors
@@ -277,7 +315,7 @@ export default function AppointmentManagement() {
         .map((d) => d.id);
       setSelectedDoctorsForComparison(defaultSelection);
     } else {
-      // When disabling multi-doctor view, clear the comparison data
+      setIsMultiDoctorView(false);
       setSelectedDoctorsForComparison([]);
       setMultiDoctorSchedules({});
     }
@@ -572,23 +610,25 @@ export default function AppointmentManagement() {
       console.log("Refreshing appointment data...");
 
       // If in multi-doctor view, refresh schedules for all selected doctors
-      if (isMultiDoctorView && selectedDoctorsForComparison.length > 0) {
+      if (viewMode === "multi" && selectedDoctorsForComparison.length > 0) {
         console.log("Refreshing multi-doctor schedules...");
         await fetchMultiDoctorSchedules(selectedDoctorsForComparison);
       }
 
       // If in single-doctor view and a practitioner is selected, refresh their schedules
-      if (!isMultiDoctorView && selectedPractitionerId) {
+      if (viewMode === "single" && selectedPractitionerId) {
         console.log("Refreshing single practitioner schedules...");
         dispatch(fetchSchedulesByPractitioner(selectedPractitionerId));
       }
 
-      // Always refresh the practitioners list to ensure we have the latest data
-      console.log("Refreshing practitioners list...");
-      if (selectedUserType === "doctor") {
-        dispatch(fetchDoctors());
-      } else {
-        await fetchPractitionersByRole(selectedUserType);
+      // Always refresh the practitioners list to ensure we have the latest data (except in patient view)
+      if (viewMode !== "patient") {
+        console.log("Refreshing practitioners list...");
+        if (selectedUserType === "doctor") {
+          dispatch(fetchDoctors());
+        } else {
+          await fetchPractitionersByRole(selectedUserType);
+        }
       }
 
       console.log("Appointment data refresh completed successfully");
@@ -628,6 +668,36 @@ export default function AppointmentManagement() {
   const handleCancelShift = () => {
     setShiftModalOpen(false);
     setSelectedShiftData(null);
+  };
+
+  // Day shift handlers
+  const handleDaySelection = (
+    dateSchedules: Schedule[],
+    date: string,
+    shiftDays: number,
+    doctorName?: string
+  ) => {
+    // Close all popovers first
+    setShiftPopoverOpen({});
+
+    if (!dateSchedules.length) {
+      toast.error("No schedules found for this date");
+      return;
+    }
+
+    // Set the day shift data and open modal immediately
+    setSelectedDayShiftData({
+      schedules: dateSchedules,
+      shiftDays,
+      date,
+      doctorName,
+    });
+    setDayShiftModalOpen(true);
+  };
+
+  const handleCancelDayShift = () => {
+    setDayShiftModalOpen(false);
+    setSelectedDayShiftData(null);
   };
 
   return (
@@ -680,7 +750,7 @@ export default function AppointmentManagement() {
                 {/* Multi-Doctor View Toggle */}
 
                 {/* Single Doctor Selection moved to same row */}
-                {!isMultiDoctorView && (
+                {viewMode === "single" && (
                   <div className="space-y-2">
                     <label className="text-sm font-medium">
                       Select{" "}
@@ -727,39 +797,46 @@ export default function AppointmentManagement() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-medium">View Mode:</label>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant={!isMultiDoctorView ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        if (isMultiDoctorView) {
-                          handleMultiDoctorToggle();
-                        }
-                      }}
-                      disabled={!isMultiDoctorView}
-                    >
-                      Single{" "}
-                      {selectedUserType === "doctor" ? "Doctor" : "Lab Tech"}
-                    </Button>
-                    <Button
-                      variant={isMultiDoctorView ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        if (!isMultiDoctorView) {
-                          handleMultiDoctorToggle();
-                        }
-                      }}
-                      disabled={isMultiDoctorView}
-                    >
-                      <Users className="w-4 h-4 mr-1" />
-                      Compare Multiple
-                    </Button>
-                  </div>
+                  <Select
+                    value={viewMode}
+                    onValueChange={(value: "single" | "multi" | "patient") =>
+                      handleViewModeChange(value)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select view mode..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          <span>
+                            Single{" "}
+                            {selectedUserType === "doctor"
+                              ? "Doctor"
+                              : "Lab Tech"}
+                          </span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="multi">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          <span>Compare Multiple</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="patient">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          <span>Single Patient</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
               {/* Multi-Doctor Selection */}
-              {isMultiDoctorView && (
+              {viewMode === "multi" && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium">
                     Select{" "}
@@ -813,69 +890,96 @@ export default function AppointmentManagement() {
         <Card className="max-w-[78vw] flex flex-col">
           <CardHeader className="flex-shrink-0">
             <CardTitle className="flex items-center gap-2">
-              <CalendarDays className="w-5 h-5" />
-              Appointment Calendar
-              {!isMultiDoctorView && selectedPractitionerId && (
-                <span className="font-normal text-base text-muted-foreground">
-                  -{" "}
-                  {
-                    getCurrentPractitioners().find(
-                      (p) => p.id === selectedPractitionerId
-                    )?.name
-                  }
-                </span>
-              )}
-              {isMultiDoctorView && (
-                <span className="font-normal text-base text-muted-foreground">
-                  - Multi-
-                  {selectedUserType === "doctor" ? "Doctor" : "Lab Tech"}{" "}
-                  Comparison
-                </span>
+              {viewMode === "patient" ? (
+                <>
+                  <User className="w-5 h-5" />
+                  Patient Search & Details
+                </>
+              ) : (
+                <>
+                  <CalendarDays className="w-5 h-5" />
+                  Appointment Calendar
+                  {viewMode === "single" && selectedPractitionerId && (
+                    <span className="font-normal text-base text-muted-foreground">
+                      -{" "}
+                      {
+                        getCurrentPractitioners().find(
+                          (p) => p.id === selectedPractitionerId
+                        )?.name
+                      }
+                    </span>
+                  )}
+                  {viewMode === "multi" && (
+                    <span className="font-normal text-base text-muted-foreground">
+                      - Multi-
+                      {selectedUserType === "doctor"
+                        ? "Doctor"
+                        : "Lab Tech"}{" "}
+                      Comparison
+                    </span>
+                  )}
+                </>
               )}
             </CardTitle>
             <div className="space-y-1">
-              <p className="text-sm text-muted-foreground">
-                {isMultiDoctorView
-                  ? selectedDoctorsForComparison.length === 2
-                    ? "Split-screen view showing two doctors side by side. Drag red (occupied) cards across doctors to transfer appointments between them."
-                    : "Multi-doctor view. Drag red (occupied) cards across doctors to transfer appointments between them."
-                  : "Each column represents a day. Drag red (occupied) cards to green (available) cards to transfer appointments."}
-                {((!isMultiDoctorView &&
-                  Object.keys(groupSchedulesByDate()).length > 3) ||
-                  (isMultiDoctorView &&
-                    selectedDoctorsForComparison.length > 2)) &&
-                  " Scroll to view all."}
-              </p>
-              {((isMultiDoctorView &&
-                Object.values(multiDoctorSchedules).some((schedules) =>
-                  schedules.some((s) => s.slots.some((slot) => slot.overbooked))
-                )) ||
-                (!isMultiDoctorView &&
-                  schedules.length > 0 &&
-                  getTotalOverbookedSlots() > 0)) && (
-                <div className="flex items-center gap-4 text-xs">
-                  <span className="flex items-center gap-1 text-red-600">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    Draggable - Occupied appointments
-                  </span>
-                  <span className="flex items-center gap-1 text-green-600">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    Drop targets - Available slots
-                  </span>
-                  {isMultiDoctorView && (
-                    <span className="flex items-center gap-1 text-blue-600">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      Cross-doctor transfers enabled
-                    </span>
+              {viewMode === "patient" ? (
+                <p className="text-sm text-muted-foreground">
+                  Search for patients and view their appointment history and
+                  details.
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm text-muted-foreground">
+                    {viewMode === "multi"
+                      ? selectedDoctorsForComparison.length === 2
+                        ? "Split-screen view showing two doctors side by side. Drag red (occupied) cards across doctors to transfer appointments between them."
+                        : "Multi-doctor view. Drag red (occupied) cards across doctors to transfer appointments between them."
+                      : "Each column represents a day. Drag red (occupied) cards to green (available) cards to transfer appointments."}
+                    {((viewMode === "single" &&
+                      Object.keys(groupSchedulesByDate()).length > 3) ||
+                      (viewMode === "multi" &&
+                        selectedDoctorsForComparison.length > 2)) &&
+                      " Scroll to view all."}
+                  </p>
+                  {((viewMode === "multi" &&
+                    Object.values(multiDoctorSchedules).some((schedules) =>
+                      schedules.some((s) =>
+                        s.slots.some((slot) => slot.overbooked)
+                      )
+                    )) ||
+                    (viewMode === "single" &&
+                      schedules.length > 0 &&
+                      getTotalOverbookedSlots() > 0)) && (
+                    <div className="flex items-center gap-4 text-xs">
+                      <span className="flex items-center gap-1 text-red-600">
+                        <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                        Draggable - Occupied appointments
+                      </span>
+                      <span className="flex items-center gap-1 text-green-600">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        Drop targets - Available slots
+                      </span>
+                      {viewMode === "multi" && (
+                        <span className="flex items-center gap-1 text-blue-600">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          Cross-doctor transfers enabled
+                        </span>
+                      )}
+                    </div>
                   )}
-                </div>
+                </>
               )}
             </div>
           </CardHeader>
           <CardContent className="p-0 relative">
             {/* Scroll hint overlay for multiple days */}
 
-            {isMultiDoctorView ? (
+            {viewMode === "patient" ? (
+              // Patient Search View
+              <div className="p-6">
+                <SearchPatient />
+              </div>
+            ) : viewMode === "multi" ? (
               // Multi-Doctor View
               selectedDoctorsForComparison.length === 0 ? (
                 <div className="flex items-center justify-center py-12">
@@ -1026,6 +1130,18 @@ export default function AppointmentManagement() {
                                                       );
                                                     }
                                                   }}
+                                                  onDaySelect={(shiftDays) => {
+                                                    if (
+                                                      dateSchedules.length > 0
+                                                    ) {
+                                                      handleDaySelection(
+                                                        dateSchedules,
+                                                        date,
+                                                        shiftDays,
+                                                        doctorData.doctorName
+                                                      );
+                                                    }
+                                                  }}
                                                 />
                                               )}
                                             </div>
@@ -1087,7 +1203,7 @@ export default function AppointmentManagement() {
                 </DndContext>
               )
             ) : // Single Doctor View (existing logic)
-            !selectedPractitionerId ? (
+            viewMode === "single" && !selectedPractitionerId ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
                   <Calendar className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -1201,6 +1317,15 @@ export default function AppointmentManagement() {
                                             dateSchedules,
                                             date,
                                             delayMinutes
+                                          );
+                                        }
+                                      }}
+                                      onDaySelect={(shiftDays) => {
+                                        if (dateSchedules.length > 0) {
+                                          handleDaySelection(
+                                            dateSchedules,
+                                            date,
+                                            shiftDays
                                           );
                                         }
                                       }}
@@ -1318,6 +1443,14 @@ export default function AppointmentManagement() {
         isOpen={shiftModalOpen}
         onClose={handleCancelShift}
         shiftData={selectedShiftData}
+        onRefreshData={handleRefreshAppointmentData}
+      />
+
+      {/* Slot Day Shift Confirmation Modal */}
+      <SlotDayShiftModal
+        isOpen={dayShiftModalOpen}
+        onClose={handleCancelDayShift}
+        shiftData={selectedDayShiftData}
         onRefreshData={handleRefreshAppointmentData}
       />
     </div>

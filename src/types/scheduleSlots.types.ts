@@ -59,6 +59,38 @@ export interface SlotSubmissionData {
   use_template?: boolean | null;
 }
 
+// Search appointment types
+export interface SearchAppointmentResult {
+  id: string;
+  patient_id: string;
+  status: string;
+  appointment_display_id: string;
+  slot_info: {
+    id: string;
+    status: string;
+    start: string;
+    end: string;
+    overbooked: boolean;
+    comment: string;
+  };
+  patient: {
+    id: string;
+    patient_display_id: string;
+    gender: string;
+    birth_date: string;
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      phone: string;
+    };
+  };
+  service_specialty?: {
+    specialty_label: string;
+    description: string;
+  };
+}
+
 export interface ScheduleSlotsState {
   schedules: Schedule[];
   doctors: ExtendedDoctorData[];
@@ -68,4 +100,8 @@ export interface ScheduleSlotsState {
   isLoadingDoctors: boolean;
   error: string | null;
   doctorsError: string | null;
+  // Search appointments state
+  searchResults: SearchAppointmentResult[];
+  isSearchingAppointments: boolean;
+  searchError: string | null;
 }

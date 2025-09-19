@@ -121,6 +121,7 @@ export const useRazorpay = () => {
                   resolve({
                     success: true,
                     payment_id: response.razorpay_payment_id,
+                    payment_record_id: verification.data.payment_record_id,
                     order_id: response.razorpay_order_id,
                     verified: true,
                   });

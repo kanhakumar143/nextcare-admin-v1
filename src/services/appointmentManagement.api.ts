@@ -38,3 +38,37 @@ export const shiftAppointmentSlots = async (payload: {
     throw new Error("Unexpected error occurred.");
   }
 };
+
+export const searchAppointments = async (name: string, date: string) => {
+  try {
+    const { data } = await api.get(
+      `appointment-management/appointment-by-patient?name=${name}&date=${date}`,
+      headers
+    );
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error?.message || "Failed to fetch practitioner");
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const shiftAppointmentSlotsBydays = async (payload: {
+  schedule_id: string;
+  shift_value: number | string; //days
+}) => {
+  try {
+    const { data } = await api.put(
+      `appointment-management/shift-slots-day`,
+      payload,
+      headers
+    );
+    return data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error?.message || "Failed to fetch practitioner");
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};

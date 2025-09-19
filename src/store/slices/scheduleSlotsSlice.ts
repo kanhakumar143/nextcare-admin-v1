@@ -3,12 +3,14 @@ import {
   getAllSchedulesByPractitioner,
   getAllSchedules,
 } from "@/services/availabilityTemplate.api";
+import { searchAppointments } from "@/services/appointmentManagement.api";
 import { getPractitionerByRole } from "@/services/admin.api";
 import { DoctorData, ExtendedDoctorData } from "@/types/admin.types";
 import {
   Schedule,
   ScheduleSlotsState,
   SlotSubmissionData,
+  SearchAppointmentResult,
 } from "@/types/scheduleSlots.types";
 
 const initialState: ScheduleSlotsState = {
@@ -20,6 +22,10 @@ const initialState: ScheduleSlotsState = {
   isLoadingDoctors: false,
   error: null,
   doctorsError: null,
+  // Search appointments state
+  searchResults: [],
+  isSearchingAppointments: false,
+  searchError: null,
 };
 
 // Async thunks
@@ -75,6 +81,29 @@ export const fetchAllSchedules = createAsyncThunk(
     } catch (error: any) {
       console.error("Failed to fetch all schedules:", error);
       return rejectWithValue(error.message || "Failed to fetch all schedules");
+    }
+  }
+);
+
+export const searchAppointmentsByPatient = createAsyncThunk(
+  "scheduleSlots/searchAppointmentsByPatient",
+  async (
+    { name, date }: { name: string; date: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await searchAppointments(name, date);
+      console.log("Search API Response:", response); // Debug log
+
+      // Handle the response - it might be an array directly or have a data property
+      const searchData = Array.isArray(response)
+        ? response
+        : response.data || response.results || [];
+
+      return searchData;
+    } catch (error: any) {
+      console.error("Failed to search appointments:", error);
+      return rejectWithValue(error.message || "Failed to search appointments");
     }
   }
 );
@@ -222,6 +251,14 @@ const scheduleSlotsSlice = createSlice({
         }
       }
     },
+    // Search appointments reducers
+    clearSearchResults: (state) => {
+      state.searchResults = [];
+      state.searchError = null;
+    },
+    clearSearchError: (state) => {
+      state.searchError = null;
+    },
   },
   extraReducers: (builder) => {
     // Fetch Doctors
@@ -273,6 +310,23 @@ const scheduleSlotsSlice = createSlice({
         state.schedules = [];
         state.error = action.payload as string;
       });
+
+    // Search Appointments
+    builder
+      .addCase(searchAppointmentsByPatient.pending, (state) => {
+        state.isSearchingAppointments = true;
+        state.searchError = null;
+      })
+      .addCase(searchAppointmentsByPatient.fulfilled, (state, action) => {
+        state.isSearchingAppointments = false;
+        state.searchResults = action.payload;
+        state.searchError = null;
+      })
+      .addCase(searchAppointmentsByPatient.rejected, (state, action) => {
+        state.isSearchingAppointments = false;
+        state.searchResults = [];
+        state.searchError = action.payload as string;
+      });
   },
 });
 
@@ -290,6 +344,8 @@ export const {
   deleteMultipleSlotsLocal,
   deleteSlotsByTimeRangeLocal,
   transferSlotLocal,
+  clearSearchResults,
+  clearSearchError,
 } = scheduleSlotsSlice.actions;
 
 export default scheduleSlotsSlice.reducer;

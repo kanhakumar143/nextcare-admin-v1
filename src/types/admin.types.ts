@@ -187,6 +187,13 @@ export interface DoctorData {
     year?: string | null | undefined;
   }[];
   service_specialty_id?: string;
+  service_specialty: {
+    display: string;
+    specialty_label: string;
+    is_active: boolean;
+    tenant_service_id: string;
+    description: string;
+  };
   availability_status: {
     practitioner_id: string;
     practitioner_name: string;

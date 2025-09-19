@@ -26,6 +26,9 @@ const RegularSlots: React.FC = () => {
 
   const { regularSlotsData, regularSlotsLoading, regularSlotsError } =
     useSelector((state: RootState) => state.booking);
+  const { paymentDetails } = useSelector(
+    (state: RootState) => state.receptionistData
+  );
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedSchedule, setSelectedSchedule] =
@@ -93,8 +96,8 @@ const RegularSlots: React.FC = () => {
           practitioner_display_id:
             regularSlotsData.practitioner.practitioner_display_id,
           name: {
-            text: regularSlotsData.practitioner.name.text,
-            prefix: regularSlotsData.practitioner.name.prefix,
+            text: regularSlotsData.practitioner.name?.text,
+            prefix: regularSlotsData.practitioner.name?.prefix,
           },
         },
         service_specialty: {
@@ -228,7 +231,7 @@ const RegularSlots: React.FC = () => {
             <div className="space-y-1">
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Doctor:</span>{" "}
-                {regularSlotsData.practitioner.name.text}
+                {regularSlotsData.practitioner.user.name}
               </p>
               <p className="text-sm text-gray-600">
                 <span className="font-medium">Status:</span>{" "}
@@ -300,7 +303,7 @@ const RegularSlots: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="mb-3">
+                    {/* <div className="mb-3">
                       <span
                         className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium w-full justify-center ${getStatusColor(
                           slot.status
@@ -309,25 +312,27 @@ const RegularSlots: React.FC = () => {
                         {slot.status.charAt(0).toUpperCase() +
                           slot.status.slice(1)}
                       </span>
-                    </div>
+                    </div> */}
 
                     {slot.overbooked && (
-                      <p className="text-xs text-orange-600 text-center mb-2">
-                        ⚠️ Overbooked
+                      <p className="text-sm text-orange-600 text-center mb-2 font-bold">
+                        ⚠️ Booked
                       </p>
                     )}
 
-                    <button
-                      onClick={() => handleBookSlot(slot)}
-                      disabled={slot.status !== "free"}
-                      className={`w-full py-2.5 px-3 rounded-md text-xs font-medium transition-colors touch-manipulation ${
-                        slot.status === "free"
-                          ? "bg-black hover:bg-gray-800 active:bg-gray-900 text-white"
-                          : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      }`}
-                    >
-                      {slot.status === "free" ? "Book Slot" : "Unavailable"}
-                    </button>
+                    {!slot.overbooked && (
+                      <button
+                        onClick={() => handleBookSlot(slot)}
+                        disabled={slot.status !== "free"}
+                        className={`w-full py-2.5 px-3 rounded-md text-xs font-medium transition-colors touch-manipulation ${
+                          slot.status === "free"
+                            ? "bg-black hover:bg-gray-800 active:bg-gray-900 text-white"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        }`}
+                      >
+                        {!slot.overbooked ? "Book Slot" : "Unavailable"}
+                      </button>
+                    )}
                   </div>
                 );
               })}

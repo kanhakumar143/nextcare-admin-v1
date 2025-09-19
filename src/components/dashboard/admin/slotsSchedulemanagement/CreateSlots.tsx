@@ -706,7 +706,6 @@ export default function CreateSlots() {
       } appointments`,
       practitioner_id: selectedPractitionerId || "",
       specialty_id: selectedDoctor?.service_specialty_id || "",
-      // user_email: selectedDoctor?.telecom[1]?.value || "",
     };
 
     // Set submission data in Redux

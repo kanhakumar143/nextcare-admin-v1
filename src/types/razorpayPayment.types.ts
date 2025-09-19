@@ -71,6 +71,7 @@ export interface PatientData {
 
 export interface PaymentResult {
   success: boolean;
+  payment_record_id: string;
   payment_id?: string;
   order_id?: string;
   verified?: boolean;

@@ -7,10 +7,8 @@ import { AppDispatch, RootState } from "@/store";
 import { clearPaymentDetails } from "@/store/slices/receptionistSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircleIcon, ArrowLeft, Clock, CreditCard } from "lucide-react";
-import BackButton from "@/components/common/BackButton";
 import RazorpayPayment from "@/components/payment/razorpayPayment";
 import { updateBulkStatusPaymentRequest } from "@/services/razorpay.api";
 import { toast } from "sonner";
@@ -36,7 +34,7 @@ const PaymentDetailsPage: React.FC = () => {
     }
   }, [paymentDetails, router]);
 
-  const UpdateBulkStatusPaymentRequest = async () => {
+  const handleBulkStatusPaymentRequest = async () => {
     try {
       if (!paymentDetails) {
         return toast.error("No payment details found");
@@ -47,13 +45,14 @@ const PaymentDetailsPage: React.FC = () => {
       console.log("Updating payment status", payload);
       setLoading(true);
       await updateBulkStatusPaymentRequest(payload);
-      router.push("/dashboard/receptionist/check-in");
+      // router.push("/dashboard/receptionist/check-in");
       const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
 
-      const invoiceData = await submitInvoiceGenerate({
+      await submitInvoiceGenerate({
         order_request_ids: orderRequestIds,
       });
       toast.success("Payment completed successfully!");
+      router.push("/dashboard/receptionist/patientcheckin");
     } catch (error) {
       console.error("Error updating payment requests:", error);
       toast.error("Failed to update payment requests");
@@ -63,13 +62,9 @@ const PaymentDetailsPage: React.FC = () => {
   };
 
   const handlePaymentSuccess = (result: any) => {
-    UpdateBulkStatusPaymentRequest();
+    handleBulkStatusPaymentRequest();
     // Clear payment details from Redux
     dispatch(clearPaymentDetails());
-    // Redirect back to scan page after successful payment with success parameter
-    // setTimeout(() => {
-    //   router.push("/dashboard/receptionist/check-in?payment_success=true");
-    // }, 1500);
   };
 
   const handlePaymentError = (error: any) => {
@@ -170,20 +165,10 @@ const PaymentDetailsPage: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0">
-            {/* Total Amount */}
-            <div className="flex justify-between items-center mb-3 sm:mb-4 p-3 bg-blue-50 rounded-lg">
-              <span className="font-medium text-gray-700 text-sm sm:text-base">
-                Total Amount:
-              </span>
-              <span className="text-lg sm:text-xl font-bold text-blue-600">
-                {paymentDetails.currency} {paymentDetails.total_amount}
-              </span>
-            </div>
-
             {/* Pending Services */}
-            <div className="space-y-2">
+            <div className="space-y-2 mb-3 sm:mb-4">
               <h3 className="font-semibold text-gray-800 mb-2 sm:mb-3 text-sm sm:text-base">
-                Pending Services
+                Consultation Fee
               </h3>
               <div className="space-y-2 sm:space-y-3">
                 {paymentDetails.pending_orders.map((order) => (
@@ -215,11 +200,36 @@ const PaymentDetailsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Payment Note */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-3 mt-3 sm:mt-4">
-              <p className="text-xs sm:text-sm text-green-700 text-center">
-                ₹25 already paid during appointment booking
-              </p>
+            {/* Payment Calculation */}
+            <div className="space-y-2 mb-3 sm:mb-4">
+              <div className="border rounded-lg p-3 bg-gray-50">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-gray-700 text-sm sm:text-base">
+                    Total Services Amount:
+                  </span>
+                  <span className="font-semibold text-gray-900 text-sm sm:text-base">
+                    {paymentDetails.currency} {paymentDetails.total_amount}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="font-medium text-green-700 text-sm sm:text-base">
+                    Advance Payment (Already Paid):
+                  </span>
+                  <span className="font-semibold text-green-600 text-sm sm:text-base">
+                    - ₹25
+                  </span>
+                </div>
+                <hr className="border-gray-300 my-2" />
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-gray-800 text-sm sm:text-base">
+                    Total Payable Amount:
+                  </span>
+                  <span className="text-lg sm:text-xl font-bold text-blue-600">
+                    {paymentDetails.currency}{" "}
+                    {Math.max(0, Number(paymentDetails.total_amount) - 25)}
+                  </span>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

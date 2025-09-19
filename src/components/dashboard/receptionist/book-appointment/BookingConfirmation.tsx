@@ -33,6 +33,8 @@ import {
 import { CreateNewAppointmentPayload } from "@/types/receptionist.types";
 import { clearAllReceptionistData } from "@/store/slices/receptionistSlice";
 import { Button } from "@/components/ui/button";
+import RazorpayPayment from "@/components/payment/razorpayPayment";
+import { submitInvoiceGenerate } from "@/services/invoice.api";
 
 const BookingConfirmation: React.FC = () => {
   const dispatch = useDispatch();
@@ -44,11 +46,9 @@ const BookingConfirmation: React.FC = () => {
     paymentError,
     subServices,
   } = useSelector((state: RootState) => state.booking);
-  const {
-    initiatePayment,
-    isLoading: razorpayLoading,
-    error: razorpayError,
-  } = useRazorpay();
+  const { paymentDetails } = useSelector(
+    (state: RootState) => state.receptionistData
+  );
 
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
@@ -89,22 +89,22 @@ const BookingConfirmation: React.FC = () => {
   const startDateTime = formatDateTime(selectedSlot.start);
   const endDateTime = formatDateTime(selectedSlot.end);
 
-  const handlePayment = async () => {
+  const handlePayment = async (result: PaymentResult) => {
     try {
       dispatch(setPaymentInProgress(true));
 
-      const paymentData: PaymentData = {
-        amount: Number(
-          referralData?.sub_services?.[0]?.pricings[0]?.base_price
-        ),
-        patient_name: referralData.referral.patient.user.name,
-        patient_email: referralData.referral.patient.user.email,
-        patient_phone: referralData.referral.patient.user.phone,
-        // appointment_id: selectedSlot.slot_id,
-      };
+      // const paymentData: PaymentData = {
+      //   amount: Number(
+      //     referralData?.sub_services?.[0]?.pricings[0]?.base_price
+      //   ),
+      //   patient_name: referralData.referral.patient.user.name,
+      //   patient_email: referralData.referral.patient.user.email,
+      //   patient_phone: referralData.referral.patient.user.phone,
+      //   // appointment_id: selectedSlot.slot_id,
+      // };
 
-      const result: PaymentResult = await initiatePayment(paymentData);
-      console.log("Payment Result:", result);
+      // const result: PaymentResult = await initiatePayment(paymentData);
+      // console.log("Payment Result:", result);
 
       if (result.success) {
         //   const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
@@ -120,14 +120,12 @@ const BookingConfirmation: React.FC = () => {
         //   router.push("/dashboard/receptionist");
         // }, 3000);
 
-        // try {
-        //   const response = await updateAppointmentReferral(
-        //     {
-        //       payment_id: result.payment_id || "",
-        //       status: "booked",
-        //     },
-        //     referralData.referral.id
-        //   );
+        // const orderRequestIds = paymentDetails?.pending_orders!.map((o) => o.id);
+
+        // await submitInvoiceGenerate({
+        //   order_request_ids: orderRequestIds,
+        // });
+
         const payload: CreateNewAppointmentPayload = {
           step_count: 1,
           patient_id: referralData?.referral.patient.id || "",
@@ -165,10 +163,7 @@ const BookingConfirmation: React.FC = () => {
             },
           ],
         };
-        handleCreateNewAppointment(payload);
-        // } catch (error) {
-        //   toast.error("Failed to update appointment referral.");
-        // }
+        handleCreateNewAppointment(payload, result);
       }
     } catch (error) {
       const errorMessage =
@@ -181,13 +176,14 @@ const BookingConfirmation: React.FC = () => {
   };
 
   const handleCreateNewAppointment = async (
-    payload: CreateNewAppointmentPayload
+    payload: CreateNewAppointmentPayload,
+    result: PaymentResult
   ) => {
     try {
       const response = await createNewAppointment(payload);
       dispatch(setAppointmentId(response?.appointment_id));
       // dispatch(setIsRegisterActionTrigger(""));
-      handleConfirmBooking(payload, response?.appointment_id);
+      handleConfirmBooking(payload, response?.appointment_id, result);
       return;
     } catch {
       toast.error("Error creating appointment");
@@ -197,7 +193,8 @@ const BookingConfirmation: React.FC = () => {
 
   const handleConfirmBooking = async (
     payload: CreateNewAppointmentPayload,
-    apntId: string
+    apntId: string,
+    result: PaymentResult
   ) => {
     const updatedPayload: CreateNewAppointmentPayload = {
       ...payload,
@@ -211,25 +208,33 @@ const BookingConfirmation: React.FC = () => {
         // end: bookingDetails?.endTime,
         id: selectedSlot?.slot_id || null,
         overbooked: true,
+        status: "busy",
       },
     };
     try {
       await createNewAppointment(updatedPayload);
       toast.success("Appointment confirmed and checked in.");
       dispatch(clearAllReceptionistData());
-      router.push("/dashboard/receptionist");
-      //   updateAppointmentWithPayment(apntId);
-      //   dispatch(setConfirmBookingModal(true));
-      //   try {
-      //     const response = await updateAppointmentReferral(
-      //       {
-      //         booked_appointment_id: apntId,
-      //       },
-      //       referralData.referral.id
-      //     );
-      //   } catch (error) {
-      //     toast.error("Failed to update appointment referral.");
-      //   }
+
+      try {
+        const response = await updateAppointmentReferral(
+          {
+            payment_id: result.payment_record_id || "",
+            status: "booked",
+          },
+          referralData.referral.id
+        );
+        router.push("/dashboard/receptionist");
+        const orderRequestIds = paymentDetails?.pending_orders!.map(
+          (o) => o.id
+        );
+
+        await submitInvoiceGenerate({
+          order_request_ids: orderRequestIds || [],
+        });
+      } catch (error) {
+        toast.error("Failed to update appointment referral.");
+      }
     } catch {
       toast.error("Error confirming appointment");
       return;
@@ -455,7 +460,7 @@ const BookingConfirmation: React.FC = () => {
               </div>
             </div>
             <div className="flex justify-end items-center mt-6 gap-4">
-              <Button
+              {/* <Button
                 onClick={handlePayment}
                 disabled={paymentInProgress || razorpayLoading}
                 className="text-white py-4 px-6 flex items-center justify-center gap-2"
@@ -472,7 +477,28 @@ const BookingConfirmation: React.FC = () => {
                     {referralData?.sub_services?.[0]?.pricings[0]?.base_price}
                   </>
                 )}
-              </Button>
+              </Button> */}
+              <RazorpayPayment
+                amount={Number(
+                  referralData?.sub_services?.[0]?.pricings[0]?.base_price
+                )}
+                patientData={{
+                  name: referralData.referral.patient.user.name || "Patient",
+                  email: referralData.referral.patient.user.email || "",
+                  phone: referralData.referral.patient.user.phone || "",
+                }}
+                onSuccess={(result) => {
+                  console.log("Payment successful:", result);
+                  toast.success(
+                    "Payment successful! Your plan has been activated."
+                  );
+                  handlePayment(result);
+                }}
+                onError={(error) => {
+                  console.error("Payment failed:", error);
+                  toast.error("Payment failed. Please try again.");
+                }}
+              />
             </div>
           </div>
 

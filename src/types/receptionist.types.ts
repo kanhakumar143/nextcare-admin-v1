@@ -845,6 +845,7 @@ export interface CreateNewAppointmentPayload {
     start?: string | null;
     end?: string | null;
     id?: string | null;
+    status: string;
     overbooked?: boolean | null;
   };
   recurrence_template?: {

@@ -8,10 +8,16 @@ export const SlotTile: React.FC<SlotComponentProps> = ({
   slot,
   scheduleId,
   doctorId,
+  scheduleDate,
 }) => {
   return (
     <div className="relative">
-      <DroppableSlot slot={slot} scheduleId={scheduleId} doctorId={doctorId} />
+      <DroppableSlot
+        slot={slot}
+        scheduleId={scheduleId}
+        doctorId={doctorId}
+        scheduleDate={scheduleDate}
+      />
     </div>
   );
 };

@@ -15,6 +15,7 @@ export interface SlotComponentProps {
   slot: Slot;
   scheduleId: string;
   doctorId?: string;
+  scheduleDate?: string; // planning_start date for the schedule
 }
 
 // Active slot state for drag and drop
