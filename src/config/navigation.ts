@@ -26,6 +26,7 @@ import {
   Landmark,
   Receipt,
   CreditCard,
+  Star,
 } from "lucide-react";
 
 export type Route = {
@@ -148,6 +149,11 @@ export const adminRoutes: Route[] = [
         href: "/dashboard/admin/pricing-planes/subscription",
         name: "Subscription",
         icon: Gem,
+      },
+      {
+        href: "/dashboard/admin/pricing-planes/rewards",
+        name: "Rewards",
+        icon: Star,
       },
     ],
   },

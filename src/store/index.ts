@@ -20,6 +20,7 @@ import subServiceReducer from "./slices/subServicesSlice";
 import taxManagementReducer from "./slices/taxManagementSlice";
 import subscriptionReducer from "./slices/subscriptionSlice";
 import bookingReducer from "./slices/bookingSlice";
+import rewardReducer from "./slices/rewardSlice";
 
 const store = configureStore({
   reducer: {
@@ -44,6 +45,7 @@ const store = configureStore({
     taxManagement: taxManagementReducer,
     subscription: subscriptionReducer,
     booking: bookingReducer,
+    reward: rewardReducer,
   },
 });
 
