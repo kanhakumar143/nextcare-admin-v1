@@ -4,7 +4,7 @@ export enum RewardTriggerTypeEnum {
   ON_BOOKING = "on_booking",
   ON_PRESCRIPTION_UPLOAD = "on_prescription_upload",
   MANUAL = "manual",
-  OTHER = "other"
+  OTHER = "other",
 }
 
 export enum RewardPeriodEnum {
@@ -12,19 +12,28 @@ export enum RewardPeriodEnum {
   WEEKLY = "weekly",
   MONTHLY = "monthly",
   YEARLY = "yearly",
-  OTHER = "other"
+  OTHER = "other",
 }
 
-// Rule interface
 export interface RewardRule {
+  id: string;
+  created_at: string;
+  program_id: string;
   trigger_type: RewardTriggerTypeEnum;
   points: number;
-  period_interval: RewardPeriodEnum;
   max_per_period: number;
+  period_interval: RewardPeriodEnum;
   active: boolean;
 }
 
-// Main reward interface
+export interface RewardRuleCreate {
+  trigger_type: RewardTriggerTypeEnum;
+  points: number;
+  max_per_period: number;
+  period_interval: RewardPeriodEnum;
+  active: boolean;
+}
+
 export interface Reward {
   id?: string;
   tenant_id: string;
@@ -36,11 +45,34 @@ export interface Reward {
   updated_at?: string;
 }
 
-// API request/response types
 export interface CreateRewardRequest {
   tenant_id: string;
   name: string;
   description: string;
   active: boolean;
+  rules: RewardRuleCreate[];
+}
+
+export interface ExtendedRewardProgramData {
+  tenant_id: string;
+  name: string;
+  description?: string;
+  active: boolean;
+  id: string;
+  created_at: string;
+  updated_at: string;
   rules: RewardRule[];
+}
+
+export interface AdminRewardSliceInitialStates {
+  items: Reward[];
+  loading: boolean;
+  error: string | null;
+  isCreateModalOpen: boolean;
+
+  rewardsPrograms: {
+    loading: boolean;
+    error: null | string;
+    data: ExtendedRewardProgramData[];
+  };
 }

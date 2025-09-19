@@ -59,7 +59,10 @@ const rewardRuleSchema = z.object({
 const rewardSchema = z.object({
   tenant_id: z.string().min(1, "Tenant ID is required"),
   name: z.string().min(1, "Name is required").max(100, "Name is too long"),
-  description: z.string().min(1, "Description is required").max(500, "Description is too long"),
+  description: z
+    .string()
+    .min(1, "Description is required")
+    .max(500, "Description is too long"),
   active: z.boolean(),
   rules: z.array(rewardRuleSchema).min(1, "At least one rule is required"),
 });
@@ -169,7 +172,8 @@ export default function AddRewardPage() {
                 Create New Reward Program
               </h1>
               <p className="text-muted-foreground mt-1">
-                Set up a new reward program to incentivize patient engagement and loyalty
+                Set up a new reward program to incentivize patient engagement
+                and loyalty
               </p>
             </div>
           </div>
@@ -240,7 +244,9 @@ export default function AddRewardPage() {
                   render={({ field }) => (
                     <FormItem className="flex items-center justify-between rounded-lg border p-4">
                       <div className="space-y-0.5">
-                        <FormLabel className="text-base">Active Program</FormLabel>
+                        <FormLabel className="text-base">
+                          Active Program
+                        </FormLabel>
                         <div className="text-sm text-muted-foreground">
                           Enable this reward program for patients
                         </div>
@@ -292,7 +298,9 @@ export default function AddRewardPage() {
                                     onCheckedChange={field.onChange}
                                   />
                                 </FormControl>
-                                <FormLabel className="text-sm">Active</FormLabel>
+                                <FormLabel className="text-sm">
+                                  Active
+                                </FormLabel>
                               </FormItem>
                             )}
                           />
@@ -328,11 +336,13 @@ export default function AddRewardPage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {Object.values(RewardTriggerTypeEnum).map((type) => (
-                                    <SelectItem key={type} value={type}>
-                                      {getTriggerTypeLabel(type)}
-                                    </SelectItem>
-                                  ))}
+                                  {Object.values(RewardTriggerTypeEnum).map(
+                                    (type) => (
+                                      <SelectItem key={type} value={type}>
+                                        {getTriggerTypeLabel(type)}
+                                      </SelectItem>
+                                    )
+                                  )}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -352,7 +362,9 @@ export default function AddRewardPage() {
                                   min="1"
                                   placeholder="50"
                                   {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -376,11 +388,13 @@ export default function AddRewardPage() {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {Object.values(RewardPeriodEnum).map((period) => (
-                                    <SelectItem key={period} value={period}>
-                                      {getPeriodLabel(period)}
-                                    </SelectItem>
-                                  ))}
+                                  {Object.values(RewardPeriodEnum).map(
+                                    (period) => (
+                                      <SelectItem key={period} value={period}>
+                                        {getPeriodLabel(period)}
+                                      </SelectItem>
+                                    )
+                                  )}
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -400,7 +414,9 @@ export default function AddRewardPage() {
                                   min="1"
                                   placeholder="1"
                                   {...field}
-                                  onChange={(e) => field.onChange(Number(e.target.value))}
+                                  onChange={(e) =>
+                                    field.onChange(Number(e.target.value))
+                                  }
                                 />
                               </FormControl>
                               <FormMessage />
@@ -426,7 +442,11 @@ export default function AddRewardPage() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={loading} className="min-w-[140px]">
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="min-w-[140px]"
+                  >
                     {loading ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
