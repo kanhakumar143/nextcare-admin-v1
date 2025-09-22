@@ -612,7 +612,7 @@ export default function PatientConsultation() {
         <DoctorMedicineLabEntry appointmentDetails={apptDtls} />
       </div>
 
-      {singlePatientDetails?.service_specialty.display === "Dentistry" && (
+      {singlePatientDetails?.service_specialty?.display === "Dentistry" && (
         <div className="mb-6">
           <DentalProcedureEntry
             onAddProcedure={(proc) => console.log("Added:", proc)}
