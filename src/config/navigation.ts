@@ -18,15 +18,12 @@ import {
   AlarmClock,
   BellRing,
   ReceiptText,
-  IndianRupee,
-  Wallet,
   ScrollText,
-  Album,
   Gem,
   Landmark,
-  Receipt,
   CreditCard,
   Star,
+  FileSearch,
 } from "lucide-react";
 
 export type Route = {
@@ -69,9 +66,15 @@ export const adminRoutes: Route[] = [
     icon: Calendar1,
   },
   {
-    href: "/dashboard/admin/appointment-management",
-    name: "Appointment Management",
-    icon: Album,
+    name: "Appointments",
+    icon: FileSearch,
+    children: [
+      {
+        href: "/dashboard/admin/appointment-management",
+        name: "View Appointments",
+        icon: ClipboardList,
+      },
+    ],
   },
   {
     name: "Users",
