@@ -549,6 +549,7 @@ export interface PatientVerification {
 export interface PatientProfile {
   birth_date?: string;
   gender?: string;
+  id?: string;
   gov_url_path?: string;
   verifications: PatientVerification[];
 }
@@ -573,6 +574,10 @@ export interface staffSliceInitialState {
   patientDetails: qrDecodedDetails | null;
   medicationDetailsForReminder: any | null;
   referallId: string | null;
+  health_points: {
+    points_balance: number;
+    id: string;
+  } | null;
   paymentDetails: PendingOrdersResponse | null;
   subscriptionDetails: Subscription | null;
   appoinmentDetails: any | null;
@@ -894,5 +899,22 @@ export interface CreateNewAppointmentPayload {
       sunday?: boolean;
       week_interval: number;
     };
+  };
+}
+
+export interface RedeemRewardPointsPayload {
+  patient_id: string;
+  points: number | string;
+  status: string;
+  meta_data: {
+    note: string;
+  };
+}
+
+export interface UpdateRedeemRewardPointsPayload {
+  points: number | string;
+  status: string;
+  meta_data?: {
+    note: string;
   };
 }

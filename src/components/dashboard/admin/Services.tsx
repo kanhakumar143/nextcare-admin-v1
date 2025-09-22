@@ -26,12 +26,13 @@ import {
 import { DataTable } from "@/components/common/DataTable";
 import { addService, getServices, updateService } from "@/services/admin.api";
 import { toast } from "sonner";
+import { ORG_TENANT_ID } from "@/config/authKeys";
 
 const postSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
 });
 
-const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
+// const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 type PostSchema = z.infer<typeof postSchema>;
 
 type Service = {
@@ -84,7 +85,7 @@ export default function Services() {
     setIsSubmitting(true);
     try {
       if (apiCallFor === "add") {
-        await addService({ tenant_id: tenant_id, name: data.name });
+        await addService({ tenant_id: ORG_TENANT_ID, name: data.name });
         toast.success("Service added successfully");
       } else if (apiCallFor === "edit") {
         await updateService({

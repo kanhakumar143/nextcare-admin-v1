@@ -42,9 +42,6 @@ interface EditPricingModalProps {
   entry: PricingEntry | null;
 }
 
-// const tenant_id =
-//   process.env.NEXT_PUBLIC_TENANT_ID || "4896d272-e201-4dce-9048-f93b1e3ca49f";
-
 export default function EditPricingModal({
   isOpen,
   onClose,
@@ -157,7 +154,6 @@ export default function EditPricingModal({
                 <SelectValue placeholder="Select a tax rate" />
               </SelectTrigger>
               <SelectContent>
-                
                 {taxRates.map((tax) => (
                   <SelectItem key={tax.id} value={tax.id}>
                     {/* {tax.name} ({tax.rate}%) */}0%

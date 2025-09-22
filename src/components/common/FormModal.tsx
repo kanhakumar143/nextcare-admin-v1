@@ -35,6 +35,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { fetchServices } from "@/store/slices/servicesSlice";
 import { AppDispatch, RootState } from "@/store";
+import { ORG_TENANT_ID } from "@/config/authKeys";
 
 const currentYear = new Date().getFullYear();
 const today = new Date().toISOString().split("T")[0];
@@ -114,7 +115,7 @@ export default function PractitionerFormModal({
   const form = useForm<PractitionerFormData>({
     resolver: zodResolver(practitionerFormSchema),
     defaultValues: {
-      tenant_id: "b91a2af6-7c52-4fd3-9a5a-5b4456c34c14",
+      tenant_id: ORG_TENANT_ID, //"b91a2af6-7c52-4fd3-9a5a-5b4456c34c14",
       is_active: true,
       selected_service_name: "",
       selected_specialty_id: "",
@@ -249,7 +250,7 @@ export default function PractitionerFormModal({
               : role === "lab_technician"
               ? "lab_technician"
               : "doctor",
-          tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+          tenant_id: ORG_TENANT_ID,
         },
         practitioner: {
           identifiers: [
@@ -300,7 +301,7 @@ export default function PractitionerFormModal({
     console.log("Default Values:", defaultValues);
     if (defaultValues) {
       form.reset({
-        tenant_id: "b91a2af6-7c52-4fd3-9a5a-5b4456c34c14",
+        tenant_id: ORG_TENANT_ID, //"b91a2af6-7c52-4fd3-9a5a-5b4456c34c14",
         is_active: true,
         selected_service_name: "",
         selected_specialty_id: "",
@@ -358,22 +359,6 @@ export default function PractitionerFormModal({
             {/* User Information Section */}
             <div className="space-y-4 ">
               <div className="flex justify-end items-center">
-                {/* // <FormField */}
-                {/* // control={form.control} */}
-                {/* //name="tenant_id" */}
-                {/* // render={({ field }) => ( */}
-                {/* //   <FormItem> */}
-                {/* //     <FormLabel className=" text-blue-800 rounded-md font-semibold inline-block"> */}
-                {/* //       Tenant ID : {field.value} */}
-                {/* //     </FormLabel> */}
-
-                {/* //     <FormControl> */}
-                {/* <Input placeholder="Enter tenant ID" {...field} /> */}
-                {/* //     </FormControl> */}
-                {/* //     <FormMessage /> */}
-                {/* //   </FormItem> */}
-                {/* // )} */}
-                {/* // /> */}
                 <FormField
                   control={form.control}
                   name="is_active"

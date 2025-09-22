@@ -1,3 +1,4 @@
+import { ORG_TENANT_ID } from "@/config/authKeys";
 import { api, axios } from "@/lib/axios";
 import {
   CreateLocationPayload,
@@ -41,9 +42,7 @@ export const addLocation = async (
 
 export const getServices = async () => {
   try {
-    const { data } = await api.get(
-      `tenant-service/tenant/4896d272-e201-4dce-9048-f93b1e3ca49f`
-    );
+    const { data } = await api.get(`tenant-service/tenant/${ORG_TENANT_ID}`);
     return data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {
@@ -119,7 +118,7 @@ export const getPractitionerByRole = async (
 ) => {
   try {
     const { data } = await api.get(
-      `practitioner/by-tenant-role?tenant_id=4896d272-e201-4dce-9048-f93b1e3ca49f&role=${role}`
+      `practitioner/by-tenant-role?tenant_id=${ORG_TENANT_ID}&role=${role}`
     );
     return data;
   } catch (error: any) {

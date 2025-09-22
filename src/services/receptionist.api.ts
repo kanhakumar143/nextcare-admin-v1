@@ -1,12 +1,13 @@
+import { ORG_TENANT_ID } from "@/config/authKeys";
 import { api, axios } from "@/lib/axios";
 import {
   CreateNewAppointmentPayload,
   medicationReminderCreatePayload,
   MedicationReminderUpdatePayload,
+  RedeemRewardPointsPayload,
+  UpdateRedeemRewardPointsPayload,
   UserPatientProfileResponse,
 } from "@/types/receptionist.types";
-import { tr } from "date-fns/locale";
-const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 
 export const checkInPatient = async (payload: {
   appointment_id: string;
@@ -97,7 +98,7 @@ export const getAppointmentEprescriptionDetails = async (
 export const getAllPricingPlansByTenant = async () => {
   try {
     const response = await api.get(
-      `subscription-plans/by-tenant/?tenant_id=${tenant_id}`
+      `subscription-plans/by-tenant/?tenant_id=${ORG_TENANT_ID}`
     );
     return response.data;
   } catch (error: any) {
@@ -274,6 +275,40 @@ export const createNewAppointment = async (
 ) => {
   try {
     const response = await api.post(`appointment/`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const redeemRewardPoints = async (
+  payload: RedeemRewardPointsPayload
+) => {
+  try {
+    const response = await api.post(`reward-redemption/`, payload);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const updateRedeemedRewardPoints = async (
+  payload: UpdateRedeemRewardPointsPayload,
+  redemption_id: string
+) => {
+  try {
+    const response = await api.put(
+      `reward-redemption/?redemption_id=${redemption_id}`,
+      payload
+    );
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

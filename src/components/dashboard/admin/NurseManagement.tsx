@@ -50,6 +50,7 @@ import {
   setEditNurseData,
   clearEditNurseData,
 } from "@/store/slices/adminSlice";
+import { ORG_TENANT_ID } from "@/config/authKeys";
 
 export default function NurseManagement() {
   const [open, setOpen] = useState(false);
@@ -75,7 +76,7 @@ export default function NurseManagement() {
         : nurse.qualification || {};
 
     return {
-      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      tenant_id: ORG_TENANT_ID,
       name: nurse.name || "",
       email: nurse.user?.email || "",
       phone: nurse.user?.phone || "",

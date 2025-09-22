@@ -45,6 +45,7 @@ const initialState: staffSliceInitialState = {
   appoinmentDetails: null,
   paymentDetails: null,
   referallId: null,
+  health_points: null,
   subscriptionDetails: null,
   medicationDetailsForReminder: null,
   practitionerAttendanceData: null,
@@ -154,6 +155,7 @@ const receptionistSlice = createSlice({
           state.paymentDetails = action.payload.data.payment || null;
           state.referallId = action.payload.data.referral_id || null;
           state.subscriptionDetails = action.payload.data.subscription || null;
+          state.health_points = action.payload.data.health_points || null;
           state.error = null;
           state.scanQrMessage = null;
         } else {

@@ -34,6 +34,7 @@ import {
   RewardPeriodEnum,
   CreateRewardRequest,
 } from "@/types/reward.types";
+import { ORG_TENANT_ID } from "@/config/authKeys";
 
 // Form validation schema
 const rewardRuleSchema = z.object({
@@ -77,7 +78,7 @@ export default function AddRewardPage() {
   const form = useForm<RewardFormData>({
     resolver: zodResolver(rewardSchema),
     defaultValues: {
-      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f", // Default tenant ID
+      tenant_id: ORG_TENANT_ID, // Default tenant ID
       name: "",
       description: "",
       active: true,

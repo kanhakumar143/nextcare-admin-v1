@@ -58,6 +58,7 @@ import {
 import DoctorAvailabilityModal from "./modals/DoctorAvailabilityModal";
 import TempNextDaySlotsModal from "./modals/TempNextDaySlotsModal";
 import ViewAvailableSlotsModal from "./modals/ViewAvailableSlotsModal";
+import { ORG_TENANT_ID } from "@/config/authKeys";
 
 export default function DoctorManagement() {
   const [open, setOpen] = useState(false);
@@ -91,7 +92,7 @@ export default function DoctorManagement() {
     //   : doctor.qualification || {};
 
     return {
-      tenant_id: "4896d272-e201-4dce-9048-f93b1e3ca49f",
+      tenant_id: ORG_TENANT_ID,
       name: doctor.name || "",
       email: doctor.user?.email || "",
       phone: doctor.user?.phone || "",
