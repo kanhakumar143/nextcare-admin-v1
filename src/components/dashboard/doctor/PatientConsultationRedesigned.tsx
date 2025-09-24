@@ -80,6 +80,7 @@ export default function PatientConsultation() {
   const [apptDtls, setApptDtls] = useState<AppointmentDtlsForDoctor | null>(
     null
   );
+  const [transcriptionLoading, setTranscriptionLoading] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [meetingURL, setMeetingURL] = useState<string>(
     "https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjU1NmY3NjYtOWI0Yi00NzZkLWJlN2YtYWY2NDU0YjA0YzAy%40thread.v2/0?context=%7b%22Tid%22%3a%22774486a0-0b12-4dc4-8826-7509c0aba4b5%22%2c%22Oid%22%3a%220aa623a3-9104-44e4-8ea2-4056cf08a2f2%22%7d"
@@ -135,6 +136,7 @@ export default function PatientConsultation() {
   }, [consultationMode, apptDtls]);
 
   const getMeetingLink = async () => {
+    //not working
     try {
       const response = await getMeetingURL(apptDtls?.id || "");
       setMeetingURL(response.meeting_url);
@@ -317,6 +319,7 @@ export default function PatientConsultation() {
               </Button>
               <ConsultationRecorder
                 appointmentId={apptDtls?.appointment_display_id}
+                onTranscriptionLoading={setTranscriptionLoading}
               />
             </div>
           </div>
@@ -471,19 +474,49 @@ export default function PatientConsultation() {
                   <FileText className="h-4 w-4" />
                   Doctor Notes
                 </Label>
-                <Textarea
-                  placeholder="Detailed consultation summary..."
-                  className="min-h-[110px]"
-                  value={visitNote.summary}
-                  onChange={(e) =>
-                    dispatch(
-                      updateVisitNote({
-                        field: "summary",
-                        value: e.target.value,
-                      })
-                    )
-                  }
-                />
+                <div className="relative">
+                  <Textarea
+                    placeholder="Detailed consultation summary..."
+                    className="min-h-[110px]"
+                    value={visitNote.summary}
+                    onChange={(e) =>
+                      dispatch(
+                        updateVisitNote({
+                          field: "summary",
+                          value: e.target.value,
+                        })
+                      )
+                    }
+                    disabled={transcriptionLoading}
+                  />
+                  {transcriptionLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 pointer-events-none">
+                      <svg
+                        className="animate-spin h-6 w-6 text-blue-600"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v8z"
+                        ></path>
+                      </svg>
+                      <span className="ml-2 text-blue-600 text-xs font-semibold">
+                        Transcribing...
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-2">

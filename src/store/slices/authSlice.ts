@@ -1,4 +1,8 @@
-import { authSliceInitialState, userLoginTypes } from "@/types/auth.types";
+import {
+  authSliceInitialState,
+  ScannedData,
+  userLoginTypes,
+} from "@/types/auth.types";
 import { setLocalStorage } from "@/utils/localStorage";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 const initialState: authSliceInitialState = {
@@ -9,6 +13,9 @@ const initialState: authSliceInitialState = {
     practitioner_id: null,
     org_id: null,
   },
+  captureDtls: null,
+  docDtls: null,
+  checkUserPhoneNumber: null,
 };
 
 const authSlice = createSlice({
@@ -30,8 +37,22 @@ const authSlice = createSlice({
       state.userLoginDetails.user_role = user_role;
       state.userLoginDetails.org_id = org_id;
     },
+    setCaptureDtls: (state, action: PayloadAction<ScannedData | null>) => {
+      state.captureDtls = action.payload;
+    },
+    setDocDtls: (state, action: PayloadAction<any>) => {
+      state.docDtls = action.payload;
+    },
+    setCheckUserPhoneNumber: (state, action: PayloadAction<string | null>) => {
+      state.checkUserPhoneNumber = action.payload;
+    },
   },
 });
 
-export const { storeLoginDetails } = authSlice.actions;
+export const {
+  storeLoginDetails,
+  setCaptureDtls,
+  setDocDtls,
+  setCheckUserPhoneNumber,
+} = authSlice.actions;
 export default authSlice.reducer;

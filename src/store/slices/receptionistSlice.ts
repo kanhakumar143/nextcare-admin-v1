@@ -1,14 +1,12 @@
 import {
   qrDecodedDetails,
   staffSliceInitialState,
-  PractitionerAttendanceData,
   MedicationReminder,
 } from "@/types/receptionist.types";
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 import { getPractitionerByRole } from "@/services/admin.api";
 import { toast } from "sonner";
-import { Medication } from "@/types/doctor.types";
 import { ExtendedDoctorData, DoctorData } from "@/types/admin.types";
 
 // Async thunk to fetch QR details
@@ -148,22 +146,14 @@ const receptionistSlice = createSlice({
       })
       .addCase(fetchQrDetailsAsync.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload.success) {
-          // Populate both patientDetails and appoinmentDetails
-          state.patientDetails = action.payload.data;
-          state.appoinmentDetails = action.payload.data.appointment || null;
-          state.paymentDetails = action.payload.data.payment || null;
-          state.referallId = action.payload.data.referral_id || null;
-          state.subscriptionDetails = action.payload.data.subscription || null;
-          state.health_points = action.payload.data.health_points || null;
-          state.error = null;
-          state.scanQrMessage = null;
-        } else {
-          state.error = action.payload.message;
-          state.scanQrMessage = action.payload.message;
-          state.patientDetails = null;
-          state.appoinmentDetails = null;
-        }
+        state.patientDetails = action.payload.data;
+        state.appoinmentDetails = action.payload.data.appointment || null;
+        state.paymentDetails = action.payload.data.payment || null;
+        state.referallId = action.payload.data.referral_id || null;
+        state.subscriptionDetails = action.payload.data.subscription || null;
+        state.health_points = action.payload.data.health_points || null;
+        state.error = null;
+        state.scanQrMessage = null;
       })
       .addCase(fetchQrDetailsAsync.rejected, (state, action) => {
         state.loading = false;
