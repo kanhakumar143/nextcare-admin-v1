@@ -69,7 +69,7 @@ export default function Rewards() {
               placeholder="Search by program name..."
               value={filterValue}
               onChange={handleSearchChange}
-              className="max-w-sm"
+              className="max-w-52"
             />
           </div>
         </CardHeader>

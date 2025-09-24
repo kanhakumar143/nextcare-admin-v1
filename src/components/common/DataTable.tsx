@@ -92,7 +92,7 @@ export function DataTable<TData extends RowData>({
           />
         )}
       </div> */}
-
+  <div className="rounded-md border">
       <Table>
         <TableHeader className="bg-gray-100">
           {table.getHeaderGroups().map((hg) => (
@@ -131,7 +131,7 @@ export function DataTable<TData extends RowData>({
           )}
         </TableBody>
       </Table>
-
+</div>
       <div className="flex justify-end">
         <Pagination>
           <PaginationContent>

@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExtendedRewardProgramData } from "@/types/reward.types";
+import { Edit, Trash, Trash2 } from "lucide-react";
 
 type RewardProgramTableProps = {
   data: ExtendedRewardProgramData[];
@@ -32,7 +33,7 @@ export default function RewardProgramTable({
             <TableHead>Description</TableHead>
             <TableHead>Active</TableHead>
             <TableHead>Created At</TableHead>
-            <TableHead className="text-right">Action</TableHead>
+            {/* <TableHead className="text-center">Action</TableHead> */}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -56,14 +57,14 @@ export default function RewardProgramTable({
               <TableCell>
                 {new Date(program.created_at).toLocaleDateString()}
               </TableCell>
-              <TableCell className="text-right space-x-2">
+              {/* <TableCell className="text-right space-x-2">
                 <Button variant="outline" size="sm">
-                  Edit
+                  <Edit className="w-4 h-4 mr-2" />
                 </Button>
-                <Button variant="destructive" size="sm">
-                  Delete
+                <Button variant="outline" size="sm">
+                  <Trash2 className="w-4 h-4 mr-2 text-red-600" />
                 </Button>
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>

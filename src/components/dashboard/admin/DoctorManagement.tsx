@@ -13,6 +13,7 @@ import {
   Timer,
   Clock,
   Edit,
+  Stethoscope,
 } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ import DoctorAvailabilityModal from "./modals/DoctorAvailabilityModal";
 import TempNextDaySlotsModal from "./modals/TempNextDaySlotsModal";
 import ViewAvailableSlotsModal from "./modals/ViewAvailableSlotsModal";
 import { ORG_TENANT_ID } from "@/config/authKeys";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DoctorManagement() {
   const [open, setOpen] = useState(false);
@@ -558,13 +560,16 @@ export default function DoctorManagement() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <Input
-          placeholder="Filter by Doctor Name..."
-          value={filterValue}
-          onChange={(e) => setFilterValue(e.target.value)}
-          className="max-w-sm"
-        />
-
+       
+ <div>
+          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+            <Stethoscope className="w-8 h-8 text-primary" />
+            Doctor Management
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Manage doctor profiles, schedules, and related activities with ease.
+          </p>
+        </div>
         <Dialog
           open={open}
           onOpenChange={(val) => {
@@ -664,14 +669,27 @@ export default function DoctorManagement() {
           </DialogContent>
         </Dialog>
       </div>
-
+<Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Doctor Management</CardTitle>
+             <Input
+          placeholder="Filter by Doctor Name..."
+          value={filterValue}
+          onChange={(e) => setFilterValue(e.target.value)}
+          className="max-w-48"
+        />
+         </div>
+                </CardHeader>
+                <CardContent>
       <DataTable<ExtendedDoctorData>
         columns={columns}
         data={doctors}
         filterColumn="name"
         externalFilterValue={filterValue}
       />
-
+  </CardContent>
+      </Card>
       <Dialog
         open={open}
         onOpenChange={(val) => {
