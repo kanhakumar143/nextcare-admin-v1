@@ -918,3 +918,160 @@ export interface UpdateRedeemRewardPointsPayload {
     note: string;
   };
 }
+
+// Appointment booking payload interface
+export interface AppointmentBookingPayload {
+  step_count: number;
+  patient_id: string;
+  status: string;
+  description: string;
+  participants: {
+    actor_reference: string;
+    status: string;
+  }[];
+  class_concept: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+    text: string;
+  };
+  slot_id: string;
+  specialty_id: string;
+  service_category: {
+    coding: {
+      system: string;
+      code: string;
+      display: string;
+    }[];
+    text: string;
+  }[];
+  sub_service_ids: string[];
+  trigger_type: string;
+}
+
+export interface createNewUserPayload {
+  user_id?: string | null;
+  name?: string;
+  tenant_id?: string;
+  hashed_password?: string;
+  trigger_type?: string;
+  email?: string;
+  phone?: string;
+  user_role?: string;
+  is_active?: boolean;
+  gender?: string | null;
+
+  patient_profile?: {
+    id?: string;
+    patient_display_id?: string;
+    gender?: string | null;
+    birth_date?: string;
+
+    deceased_boolean?: boolean;
+    deceased_datetime?: string;
+
+    multiple_birth_boolean?: boolean;
+    multiple_birth_integer?: number;
+
+    marital_status_code?: string;
+    marital_status_display?: string;
+
+    managing_organization?: string;
+    general_practitioner?: string;
+
+    profile_url_path?: string;
+    gov_url_path?: string;
+
+    identifiers?: Array<{
+      id?: string | number;
+      use?: string;
+      system?: string | null;
+      value?: string | null;
+      assigner?: string;
+      period_start?: string;
+      period_end?: string;
+    }>;
+
+    names?: Array<{
+      id?: number | string;
+      use?: string;
+      text?: string;
+      family?: string;
+      given?: string;
+      prefix?: string;
+      suffix?: string;
+      period_start?: string;
+      period_end?: string;
+    }>;
+
+    telecoms?: Array<{
+      id?: string | number;
+      system?: string;
+      value?: string;
+      use?: string;
+      rank?: number;
+      period_start?: string;
+      period_end?: string;
+    }>;
+
+    addresses?: Array<{
+      id?: string | number;
+      use?: string;
+      type?: string;
+      text?: string;
+      line?: string;
+      city?: string;
+      district?: string;
+      state?: string;
+      postal_code?: string;
+      country?: string;
+      period_start?: string;
+      period_end?: string;
+    }>;
+
+    contacts?: Array<{
+      id?: string | number;
+      relationship_code?: string;
+      relationship_display?: string;
+      name_prefix?: string;
+      name_given?: string;
+      name_family?: string;
+      telecom_value?: string;
+      telecom_system?: string;
+      address_line?: string;
+      address_city?: string;
+      address_state?: string;
+      address_country?: string;
+      gender?: string;
+      organization_ref?: string;
+      period_start?: string;
+      period_end?: string;
+    }>;
+
+    communications?: Array<{
+      id?: number | string;
+      language_code?: string;
+      language_display?: string;
+      preferred?: boolean;
+    }>;
+
+    links?: Array<{
+      other_reference?: string;
+      type?: string;
+    }>;
+
+    photos?: Array<{
+      content_type?: string;
+      url?: string;
+      title?: string;
+    }>;
+    verifications?: Array<{
+      id?: string | number;
+      verification_status: string;
+      method: string;
+      verify_by: string;
+    }>;
+  } | null;
+}

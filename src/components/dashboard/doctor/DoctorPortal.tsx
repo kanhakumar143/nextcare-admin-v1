@@ -128,9 +128,9 @@ const DoctorPortal = () => {
   ];
 
   useEffect(() => {
-    if (!patientQueueList || patientQueueList.length === 0) {
-      dispatch(fetchAssignedAppointments(practitionerId));
-    }
+    // if (!patientQueueList || patientQueueList.length === 0) {
+    dispatch(fetchAssignedAppointments(practitionerId));
+    // }
   }, []);
 
   return (

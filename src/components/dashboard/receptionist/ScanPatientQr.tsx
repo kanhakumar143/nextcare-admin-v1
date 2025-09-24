@@ -20,10 +20,10 @@ import ScannedPatientDetails from "./ScanedPatientDetails";
 const ScanPatientQr: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  // const searchParams = useSearchParams();
   const { userId } = useAuthInfo();
   const { patientDetails, scanQrMessage, paymentDetails, referallId } =
     useSelector((state: RootState) => state.receptionistData);
+
   // Check for pending payments and redirect if necessary
   useEffect(() => {
     if (
@@ -32,13 +32,11 @@ const ScanPatientQr: React.FC = () => {
       paymentDetails.pending_orders &&
       paymentDetails.pending_orders.length > 0
     ) {
-      // Redirect to payment page if there are pending orders
-      router.push("/dashboard/receptionist/payment-details");
+      router.push("/dashboard/receptionist/payment-details"); // Redirect to payment page if there are pending orders
     } else if (referallId) {
       router.push(`/dashboard/receptionist/referral-id/${referallId}`);
     } else if (patientDetails) {
-      // Redirect to patient check-in page
-      router.push("/dashboard/receptionist/patientcheckin");
+      router.push("/dashboard/receptionist/patientcheckin"); // Redirect to patient check-in page
     }
   }, [patientDetails, paymentDetails, router, referallId]);
 

@@ -1,21 +1,25 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Mic, MicOff, Play } from "lucide-react";
 import { toast } from "sonner";
 import { updateVisitNote } from "@/store/slices/doctorSlice";
 import { useDispatch } from "react-redux";
+import { getTranscriptionText } from "@/services/doctor.api";
 
 interface ConsultationRecorderProps {
   appointmentId?: string;
+  onTranscriptionLoading?: (loading: boolean) => void;
 }
 
 export default function ConsultationRecorder({
   appointmentId,
+  onTranscriptionLoading,
 }: ConsultationRecorderProps) {
   const dispatch = useDispatch();
   const [isRecording, setIsRecording] = useState(false);
+  // const [showRecordingAnim, setShowRecordingAnim] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -54,7 +58,6 @@ export default function ConsultationRecorder({
         setAudioBlob(blob);
         const url = URL.createObjectURL(blob);
         setAudioUrl(url);
-
         // Stop all tracks to release microphone
         stream.getTracks().forEach((track) => track.stop());
 
@@ -63,6 +66,7 @@ export default function ConsultationRecorder({
 
       mediaRecorder.start();
       setIsRecording(true);
+      // setShowRecordingAnim(true);
       toast.success("Recording started...");
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -72,16 +76,39 @@ export default function ConsultationRecorder({
     }
   };
 
+  useEffect(() => {
+    if (!audioBlob) return;
+    transcribeAudio(audioBlob);
+  }, [audioBlob]);
+
+  const transcribeAudio = async (audio: any) => {
+    if (onTranscriptionLoading) onTranscriptionLoading(true);
+    const formData = new FormData();
+    formData.append("audio_file", audio, "consultation.mp3");
+    formData.append("language", "en");
+    try {
+      const response = await getTranscriptionText(formData);
+      dispatch(
+        updateVisitNote({ field: "summary", value: response.transcribed_text })
+      );
+    } catch (error) {
+      console.error("Error transcribing audio:", error);
+      toast.error("Failed to transcribe audio.");
+    } finally {
+      if (onTranscriptionLoading) onTranscriptionLoading(false);
+    }
+  };
+
   const stopRecording = () => {
-    dispatch(updateVisitNote({ field: "summary", value: textDrNote }));
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      // setShowRecordingAnim(false);
     }
   };
 
   return (
-    <>
+    <div className="space-y-4">
       <Button
         onClick={isRecording ? stopRecording : startRecording}
         variant={isRecording ? "destructive" : "default"}
@@ -99,6 +126,18 @@ export default function ConsultationRecorder({
           </>
         )}
       </Button>
-    </>
+
+      {/* {audioUrl && (
+        <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+          <Play className="h-4 w-4 text-gray-600" />
+          <audio controls className="flex-1">
+            <source src={audioUrl} type="audio/webm" />
+            <source src={audioUrl} type="audio/ogg" />
+            <source src={audioUrl} type="audio/wav" />
+            Your browser does not support the audio element.
+          </audio>
+        </div>
+      )} */}
+    </div>
   );
 }

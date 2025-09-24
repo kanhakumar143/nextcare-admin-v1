@@ -3,13 +3,11 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-// import EPrescriptionModal from "@/components/modals/EPrescriptionModal";
-// import { fetchSingleAppointmentDtlsAsync } from "@/store/slices/bookAppointmentSlice";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Calendar,
   Clock,
@@ -18,7 +16,6 @@ import {
   Mail,
   AlertCircle,
   CheckCircle2,
-  Stethoscope,
 } from "lucide-react";
 import moment from "moment";
 import {
@@ -28,7 +25,6 @@ import {
 import { AppDispatch, RootState } from "@/store";
 import { toast } from "sonner";
 import { getStatusColor } from "@/components/helper/apointmentDetailsHelper";
-import { set } from "zod";
 import BackButton from "@/components/common/BackButton";
 import VitalSignsCard from "./appointmentDetails/VitalSignsCard";
 import QuestionaryAnswers from "./appointmentDetails/QuestionaryAnswers";
@@ -40,7 +36,7 @@ import { setEprescriptionDetails } from "@/store/slices/doctorSlice";
 export default function AppointmentHistoryDetails() {
   const router = useRouter();
   const { appointment_id } = useParams();
-  const [apptDtls, setApptDtls] = useState<any>(null);
+  const [appointmentDtls, setAppointmentDtls] = useState<any>(null);
   const dispatch: AppDispatch = useDispatch();
 
   const { singlePatientDetails } = useSelector(
@@ -57,10 +53,10 @@ export default function AppointmentHistoryDetails() {
     }
   }, [dispatch, singlePatientDetails]);
 
-  const getAppointmentDetails = async (apptdId: string | string[]) => {
+  const getAppointmentDetails = async (appointmentId: string | string[]) => {
     try {
-      const response = await getAssignedAppointmentDtlsById(apptdId);
-      setApptDtls(response);
+      const response = await getAssignedAppointmentDtlsById(appointmentId);
+      setAppointmentDtls(response);
       console.log("Appointment details fetched:", response);
     } catch (error) {
       toast.error("Failed to fetch appointment details");
@@ -68,7 +64,7 @@ export default function AppointmentHistoryDetails() {
     }
   };
 
-  if (!apptDtls) {
+  if (!appointmentDtls) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="w-96">
@@ -113,7 +109,7 @@ export default function AppointmentHistoryDetails() {
           <div className="flex items-center justify-between">
             <BackButton />
             <p className="text-sm text-gray-500">
-              Appointment ID: {apptDtls.appointment_display_id}
+              Appointment ID: {appointmentDtls.appointment_display_id}
             </p>
           </div>
         </div>
@@ -127,14 +123,14 @@ export default function AppointmentHistoryDetails() {
                     <Calendar className="h-5 w-5 text-primary" />
                     <span>Appointment Details</span>
                   </CardTitle>
-                  <Badge className={getStatusColor(apptDtls.status)}>
-                    {apptDtls.status === "fulfilled" && (
+                  <Badge className={getStatusColor(appointmentDtls.status)}>
+                    {appointmentDtls.status === "fulfilled" && (
                       <CheckCircle2 className="h-3 w-3 mr-1" />
                     )}
-                    {apptDtls.status === "fulfilled"
+                    {appointmentDtls.status === "fulfilled"
                       ? "Completed"
-                      : apptDtls.status.charAt(0).toUpperCase() +
-                        apptDtls.status.slice(1)}
+                      : appointmentDtls.status.charAt(0).toUpperCase() +
+                        appointmentDtls.status.slice(1)}
                   </Badge>
                 </div>
               </CardHeader>
@@ -145,7 +141,9 @@ export default function AppointmentHistoryDetails() {
                     <div>
                       <p className="text-sm font-medium">Date</p>
                       <p className="text-sm text-gray-600">
-                        {moment(apptDtls.slot.start).format("MMMM D, YYYY")}
+                        {moment(appointmentDtls.slot.start).format(
+                          "MMMM D, YYYY"
+                        )}
                       </p>
                     </div>
                   </div>
@@ -154,31 +152,33 @@ export default function AppointmentHistoryDetails() {
                     <div>
                       <p className="text-sm font-medium">Time</p>
                       <p className="text-sm text-gray-600">
-                        {moment(apptDtls.slot.start).format("hh:mm A")} -{" "}
-                        {moment(apptDtls.slot.end).format("hh:mm A")}
+                        {moment(appointmentDtls.slot.start).format("hh:mm A")} -{" "}
+                        {moment(appointmentDtls.slot.end).format("hh:mm A")}
                       </p>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            {apptDtls.visit_notes.length > 0 && (
-              <ClinicalNotesCard visitNotes={apptDtls.visit_notes} />
+            {appointmentDtls.visit_notes.length > 0 && (
+              <ClinicalNotesCard visitNotes={appointmentDtls.visit_notes} />
             )}
-            {apptDtls.observations.length > 0 && (
-              <VitalSignsCard observations={apptDtls.observations} />
+            {appointmentDtls.observations.length > 0 && (
+              <VitalSignsCard observations={appointmentDtls.observations} />
             )}
-            {apptDtls.prescriptions.length > 0 && (
+            {appointmentDtls.prescriptions.length > 0 && (
               <PrescriptionCard
-                prescriptions={apptDtls.prescriptions}
+                prescriptions={appointmentDtls.prescriptions}
                 handleOpenPrescription={handleOpenPrescription}
               />
             )}
-            {apptDtls?.lab_test_orders?.length > 0 && (
-              <LabTestCard labTests={apptDtls.lab_test_orders} />
+            {appointmentDtls?.lab_test_orders?.length > 0 && (
+              <LabTestCard labTests={appointmentDtls.lab_test_orders} />
             )}
-            {apptDtls.questionary_answers.length > 0 && (
-              <QuestionaryAnswers answers={apptDtls.questionary_answers} />
+            {appointmentDtls.questionary_answers.length > 0 && (
+              <QuestionaryAnswers
+                answers={appointmentDtls.questionary_answers}
+              />
             )}
           </div>
 
@@ -196,13 +196,15 @@ export default function AppointmentHistoryDetails() {
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-12 w-12">
                     <AvatarFallback className="bg-primary text-primary-foreground">
-                      {apptDtls.patient.user.name.charAt(0)}
+                      {appointmentDtls.patient.user.name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <p className="font-medium">{apptDtls.patient.user.name}</p>
+                    <p className="font-medium">
+                      {appointmentDtls.patient.user.name}
+                    </p>
                     <p className="text-sm text-gray-500">
-                      {apptDtls.patient.patient_display_id}
+                      {appointmentDtls.patient.patient_display_id}
                     </p>
                   </div>
                 </div>
@@ -213,25 +215,25 @@ export default function AppointmentHistoryDetails() {
                   <div className="flex items-center space-x-3">
                     <Mail className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">
-                      {apptDtls.patient.user.email}
+                      {appointmentDtls.patient.user.email}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Phone className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">
-                      {apptDtls.patient.user.phone}
+                      {appointmentDtls.patient.user.phone}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <User className="h-4 w-4 text-gray-400" />
                     <span className="text-sm capitalize">
-                      {apptDtls.patient.gender}
+                      {appointmentDtls.patient.gender}
                     </span>
                   </div>
                   <div className="flex items-center space-x-3">
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">
-                      {moment(apptDtls.patient.birth_date).format(
+                      {moment(appointmentDtls.patient.birth_date).format(
                         "MMMM D, YYYY"
                       )}
                     </span>
