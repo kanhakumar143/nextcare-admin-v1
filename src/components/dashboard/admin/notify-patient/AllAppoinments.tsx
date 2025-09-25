@@ -41,7 +41,7 @@ const statusColors: Record<string, string> = {
 
 export default function AllAppointments() {
   const [filterValue, setFilterValue] = useState("");
-  const [selectedPatients, setSelectedPatients] = useState<string[]>([]);
+  const [selectedAppointments, setSelectedAppointments] = useState<string[]>([]);
 
   const dispatch = useDispatch<AppDispatch>();
   const searchParams = useSearchParams();
@@ -60,25 +60,32 @@ export default function AllAppointments() {
     }
   }, [practitionerId, dispatch]);
 
-  const toggleSelect = (patientId: string) => {
-    setSelectedPatients((prev) =>
-      prev.includes(patientId)
-        ? prev.filter((id) => id !== patientId)
-        : [...prev, patientId]
+  const toggleSelect = (appointmentDisplayId: string) => {
+    setSelectedAppointments((prev) =>
+      prev.includes(appointmentDisplayId)
+        ? prev.filter((id) => id !== appointmentDisplayId)
+        : [...prev, appointmentDisplayId]
     );
   };
 
   const selectAll = () => {
-    const allPatientIds = upcoming.map((appt) => appt.patient_id);
-    setSelectedPatients(allPatientIds);
+    const allAppointmentIds = upcoming.map((appt) => appt.appointment_display_id);
+    setSelectedAppointments(allAppointmentIds);
   };
 
   const deselectAll = () => {
-    setSelectedPatients([]);
+    setSelectedAppointments([]);
   };
 
   const isAllSelected =
-    upcoming.length > 0 && selectedPatients.length === upcoming.length;
+    upcoming.length > 0 && selectedAppointments.length === upcoming.length;
+
+  // Get patient IDs for selected appointments to send notifications
+  const selectedPatientIds = useMemo(() => {
+    return upcoming
+      .filter((appt) => selectedAppointments.includes(appt.appointment_display_id))
+      .map((appt) => appt.patient_id);
+  }, [selectedAppointments, upcoming]);
 
   const columns = useMemo<ColumnDef<Appointment>[]>(() => {
     return [
@@ -89,8 +96,8 @@ export default function AllAppointments() {
           const appt = row.original;
           return (
             <Checkbox
-              checked={selectedPatients.includes(appt.patient_id)}
-              onCheckedChange={() => toggleSelect(appt.patient_id)}
+              checked={selectedAppointments.includes(appt.appointment_display_id)}
+              onCheckedChange={() => toggleSelect(appt.appointment_display_id)}
             />
           );
         },
@@ -121,7 +128,7 @@ export default function AllAppointments() {
         },
       },
     ];
-  }, [selectedPatients]);
+  }, [selectedAppointments]);
 
   const router = useRouter();
 
@@ -146,9 +153,9 @@ export default function AllAppointments() {
             >
               {isAllSelected ? "Deselect All" : "Select All"}
             </Button>
-            {/* {selectedPatients.length > 0 && (
+            {/* {selectedAppointments.length > 0 && (
               <span className="text-sm text-gray-600">
-                {selectedPatients.length} selected
+                {selectedAppointments.length} selected
               </span>
             )} */}
           </div>
@@ -157,9 +164,9 @@ export default function AllAppointments() {
         <SendNotification
           icon={<BellPlus className="w-6 h-6 cursor-pointer" />}
           triggerText="Send Notification"
-          patientIds={selectedPatients}
+          patientIds={selectedPatientIds}
           onSend={() =>
-            toast.success(`Sent to ${selectedPatients.length} patients.`)
+            toast.success(`Sent to ${selectedPatientIds.length} patients.`)
           }
         />
       </div>

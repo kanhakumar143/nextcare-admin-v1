@@ -43,18 +43,17 @@ const today = new Date().toISOString().split("T")[0];
 const practitionerFormSchema = z.object({
   // User Info
   tenant_id: z.string().min(1, "Tenant ID is required"),
-  name: z.string().min(3, "Name must be at least 3 characters"),
-  email: z.string().email("Invalid email"),
-  phone: z.string().optional(),
+  name: z.string().min(3,"Name must be at least 3 characters"),
+  email: z.email("Invalid email"),
+  phone: z.string().min(10, "Must be 10 character"),
   hashed_password: z.string().min(6).optional(),
 
   // Practitioner Info
   identifier_system: z.string().optional(),
   identifier_value: z.string().optional(),
-  gender: z.enum(["male", "female", "other", "unknown"]).optional(),
+  gender: z.enum(["male", "female", "other", "unknown"]),
   birth_date: z
     .string()
-    .optional()
     .refine((val) => !val || val <= today, {
       message: "Birth date cannot be in the future",
     }),
@@ -423,7 +422,7 @@ export default function PractitionerFormModal({
                         Phone <span className="text-red-500">*</span>
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter phone number" {...field} />
+                        <Input placeholder="Enter phone number" type="number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

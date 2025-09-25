@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label"; // ✅ use shadcn label
+import { Label } from "@/components/ui/label"; 
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { sendPatientNotifications } from "@/services/admin.api"; // ✅ make sure this path is correct
+import { sendPatientNotifications } from "@/services/admin.api"; 
 import { Mail, MessageCircle, MessageCircleCode, Share } from "lucide-react";
 
 interface SendNotificationProps {
@@ -26,7 +26,7 @@ interface SendNotificationProps {
     template?: string;
   }) => void;
   icon?: ReactNode;
-  patientIds?: string[]; // ✅ all patient IDs to send to
+  patientIds?: string[]; 
 }
 
 // WhatsApp message templates
@@ -131,12 +131,12 @@ const SendNotification: React.FC<SendNotificationProps> = ({
           title:
             type === "whatsapp" && selectedTemplate !== "others"
               ? whatsappTemplates.find((t) => t.id === selectedTemplate)
-                  ?.title || ""
+                ?.title || ""
               : title,
           body:
             type === "whatsapp" && selectedTemplate !== "others"
               ? whatsappTemplates.find((t) => t.id === selectedTemplate)
-                  ?.message || ""
+                ?.message || ""
               : message,
           type: type,
           template:
@@ -188,7 +188,7 @@ const SendNotification: React.FC<SendNotificationProps> = ({
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-lg bg-white border-2 border-gray-200 shadow-2xl">
+      <DialogContent className="sm:max-w-lg max-w-[95vw] max-h-[90vh] overflow-y-auto bg-white border-2 border-gray-200 shadow-2xl">
         <div className="border-b border-gray-200 pb-4 mb-6">
           <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
             {/* <div className="w-8 h-8 bg-black rounded-full flex items-center justify-center">
@@ -201,7 +201,7 @@ const SendNotification: React.FC<SendNotificationProps> = ({
           </p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Notification Type Selection */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -209,9 +209,9 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                 Select Notification Channels
               </Label>
             </div>
-            <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-              <div className="grid grid-cols-1 gap-3">
-                <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-white transition-colors border border-transparent hover:border-gray-200">
+            <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
+              <div className="grid grid-cols-1 gap-2 sm:gap-3">
+                <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-md hover:bg-white transition-colors border border-transparent hover:border-gray-200">
                   <Checkbox
                     id="email"
                     checked={notificationTypes.includes("email")}
@@ -221,18 +221,16 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                     className="data-[state=checked]:bg-black data-[state=checked]:border-black"
                   />
                   <div className="flex items-center gap-2">
-                    {/* <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center"> */}
-                    <Mail className="h-8 w-8 p-2 bg-gray-200 rounded-full" />
-                    {/* </div> */}
+                    <Mail className="h-6 w-6 sm:h-8 sm:w-8 p-1 sm:p-2 bg-gray-200 rounded-full" />
                     <Label
                       htmlFor="email"
-                      className="cursor-pointer font-medium text-gray-900"
+                      className="cursor-pointer font-medium text-gray-900 text-sm sm:text-base"
                     >
                       Email
                     </Label>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-white transition-colors border border-transparent hover:border-gray-200">
+                <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-md hover:bg-white transition-colors border border-transparent hover:border-gray-200">
                   <Checkbox
                     id="sms"
                     checked={notificationTypes.includes("sms")}
@@ -242,16 +240,16 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                     className="data-[state=checked]:bg-black data-[state=checked]:border-black"
                   />
                   <div className="flex items-center gap-2">
-                    <MessageCircle className="h-8 w-8 p-2 bg-gray-200 rounded-full" />
+                    <MessageCircle className="h-6 w-6 sm:h-8 sm:w-8 p-1 sm:p-2 bg-gray-200 rounded-full" />
                     <Label
                       htmlFor="sms"
-                      className="cursor-pointer font-medium text-gray-900"
+                      className="cursor-pointer font-medium text-gray-900 text-sm sm:text-base"
                     >
                       SMS
                     </Label>
                   </div>
                 </div>
-                <div className="flex items-center space-x-3 p-3 rounded-md hover:bg-white transition-colors border border-transparent hover:border-gray-200">
+                <div className="flex items-center space-x-2 sm:space-x-3 p-2 sm:p-3 rounded-md hover:bg-white transition-colors border border-transparent hover:border-gray-200">
                   <Checkbox
                     id="whatsapp"
                     checked={notificationTypes.includes("whatsapp")}
@@ -261,10 +259,10 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                     className="data-[state=checked]:bg-black data-[state=checked]:border-black"
                   />
                   <div className="flex items-center gap-2">
-                    <MessageCircleCode className="h-8 w-8 p-2 bg-gray-200 rounded-full" />
+                    <MessageCircleCode className="h-6 w-6 sm:h-8 sm:w-8 p-1 sm:p-2 bg-gray-200 rounded-full" />
                     <Label
                       htmlFor="whatsapp"
-                      className="cursor-pointer font-medium text-gray-900"
+                      className="cursor-pointer font-medium text-gray-900 text-sm sm:text-base"
                     >
                       WhatsApp
                     </Label>
@@ -285,7 +283,7 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                   Choose WhatsApp Template
                 </Label>
               </div>
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200">
                 <Select
                   value={selectedTemplate}
                   onValueChange={handleTemplateSelect}
@@ -348,7 +346,7 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                     Customize Your Message
                   </Label>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 space-y-4">
+                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 border border-gray-200 space-y-3 sm:space-y-4">
                   <div className="space-y-2">
                     <Label
                       htmlFor="title"
@@ -377,8 +375,8 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                       placeholder="Enter notification message"
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      rows={4}
-                      className="bg-white border-gray-300 focus:border-black focus:ring-black resize-none"
+                      rows={3}
+                      className="bg-white border-gray-300 focus:border-black focus:ring-black resize-none min-h-[80px] max-h-[120px]"
                     />
                     <div className="text-xs text-gray-500">
                       {message.length}/500 characters
@@ -402,9 +400,9 @@ const SendNotification: React.FC<SendNotificationProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="border-t border-gray-200 pt-6 mt-6">
-          <div className="flex justify-between items-center">
-            <div className="text-sm text-gray-500">
+        <div className="border-t border-gray-200 pt-4 sm:pt-6 mt-4 sm:mt-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 sm:gap-0">
+            <div className="text-xs sm:text-sm text-gray-500 order-2 sm:order-1">
               {notificationTypes.length > 0 && (
                 <span>
                   Sending via:{" "}
@@ -414,28 +412,29 @@ const SendNotification: React.FC<SendNotificationProps> = ({
                 </span>
               )}
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 sm:gap-3 order-1 sm:order-2">
               <Button
                 variant="outline"
                 onClick={handleCancel}
-                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 flex-1 sm:flex-none text-sm sm:text-base"
               >
                 Cancel
               </Button>
               <Button
                 onClick={handleSend}
                 disabled={loading || notificationTypes.length === 0}
-                className="bg-black text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 min-w-[100px]"
+                className="bg-black text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500 min-w-[100px] flex-1 sm:flex-none text-sm sm:text-base"
               >
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Sending...
+                    <span className="hidden sm:inline">Sending...</span>
+                    <span className="sm:hidden">...</span>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2">
                     <span>Send</span>
-                    <Share />
+                    <Share className="w-4 h-4" />
                   </div>
                 )}
               </Button>
