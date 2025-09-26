@@ -63,6 +63,9 @@ export interface VitalReading {
 export interface doctorSliceInitialStates {
   confirmConsultationModalVisible: boolean;
   EprescriptionDetails: EPrescription | null;
+  appointmentIdTemp: string | null;
+  aiSuggestedMedications: any[];
+  aiSuggestedLabTests: any[];
   ConfirmReviewPrescriptionModalVisible: boolean;
   editVitalsModalVisible: boolean;
   patientQueueList: any[];

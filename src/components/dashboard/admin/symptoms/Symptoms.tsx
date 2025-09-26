@@ -24,11 +24,17 @@ import { Symptom } from "@/types/symptoms.type";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import { fetchOnlyServices } from "@/store/slices/servicesSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function Symptoms() {
   const { orgId } = useAuthInfo();
   const dispatch = useAppDispatch();
   const { items, loading } = useAppSelector((state) => state.symptom);
+  const { serviceSpecialityData } = useSelector(
+    (state: RootState) => state.services
+  );
 
   const [services, setServices] = useState<any[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
@@ -36,18 +42,10 @@ export default function Symptoms() {
   const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getServices();
-        setServices(res);
-        if (res.length > 0) {
-          setSelectedServiceId(res[0].id);
-        }
-      } catch (error) {
-        toast.error("Failed to load services.");
-      }
-    })();
-  }, []);
+    if (!serviceSpecialityData || serviceSpecialityData.length === 0) {
+      dispatch(fetchOnlyServices());
+    }
+  }, [serviceSpecialityData, dispatch]);
 
   useEffect(() => {
     if (orgId) {
@@ -135,9 +133,9 @@ export default function Symptoms() {
               />
             </SelectTrigger>
             <SelectContent>
-              {services.map((srv) => (
+              {serviceSpecialityData.map((srv) => (
                 <SelectItem key={srv.id} value={srv.id}>
-                  {srv.name || srv.service_label}
+                  {srv.name}
                 </SelectItem>
               ))}
             </SelectContent>

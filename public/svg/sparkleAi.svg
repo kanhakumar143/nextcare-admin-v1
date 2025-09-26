@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 24 24"
+     width="24" height="24">
+  <defs>
+    <linearGradient id="sparkle-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0070f3" /> <!-- Blue (Next.js primary) -->
+      <stop offset="100%" stop-color="#10b981" /> <!-- Green (Tailwind emerald-500) -->
+    </linearGradient>
+  </defs>
+  <path fill="url(#sparkle-gradient)" d="M12 2C11 6 8 9 4 10c4 1 7 4 8 8 1-4 4-7 8-8-4-1-7-4-8-8zm6 3c-.5 2-2 3.5-4 4 2 .5 3.5 2 4 4 .5-2 2-3.5 4-4-2-.5-3.5-2-4-4z"/>
+</svg>

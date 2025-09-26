@@ -36,6 +36,8 @@ import {
   BookOpen,
   ArrowLeft,
   Video,
+  User2,
+  UserCircle,
 } from "lucide-react";
 import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
 import EditVitalsModal from "./modals/EditVitalsModal";
@@ -60,6 +62,7 @@ import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 import DentalProcedureEntry from "./DentalProcedureEntry";
 import { DataTable } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
+import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
 import ConsultationRecorder from "./ConsultationRecorder";
 import PreConsultationAnswers from "./PreConsultationAnswersRedesigned";
@@ -281,12 +284,12 @@ export default function PatientConsultation() {
               </Button>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  <div className="flex gap-4">
-                    <Label className="text-xs font-medium text-gray-500">
-                      Appointment ID
+                  <UserCircle className="h-8 w-8" />
+                  <div className="">
+                    <Label className="text-md font-bold text-gray-900">
+                      {singlePatientDetails?.patient?.user?.name || "Patient"}
                     </Label>
-                    <p className="text-sm font-bold text-gray-900">
+                    <p className="text-sm font-medium text-gray-500">
                       {apptDtls?.appointment_display_id}
                     </p>
                   </div>
@@ -303,14 +306,6 @@ export default function PatientConsultation() {
             <div className="flex gap-2">
               <Button
                 variant="outline"
-                onClick={() => window.open(meetingURL, "_blank")}
-                className="flex items-center gap-1 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
-              >
-                <Video className="h-3 w-3" />
-                Start Meet
-              </Button>
-              <Button
-                variant="outline"
                 onClick={handlePatientHealthRecord}
                 className="flex items-center gap-1"
               >
@@ -318,7 +313,7 @@ export default function PatientConsultation() {
                 Health Records
               </Button>
               <ConsultationRecorder
-                appointmentId={apptDtls?.appointment_display_id}
+                appointmentId={apptDtls?.id || ""}
                 onTranscriptionLoading={setTranscriptionLoading}
               />
             </div>
@@ -327,7 +322,7 @@ export default function PatientConsultation() {
       </div>
 
       <div className="mx-4 my-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-2 shadow-2xs rounded-lg px-5 py-2">
           <div className="flex items-center gap-4 flex-1">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-4 w-4 " />
@@ -445,7 +440,11 @@ export default function PatientConsultation() {
                       })
                     )
                   }
-                  className="h-10"
+                  className={`h-10 ${
+                    visitNote.chief_complaint
+                      ? "border-2 border-primary ring-2 ring-primary/30 font-semibold"
+                      : ""
+                  }`}
                 />
               </div>
 
@@ -465,7 +464,11 @@ export default function PatientConsultation() {
                       })
                     )
                   }
-                  className="h-10"
+                  className={`h-10 focus-visible:border-2 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/30 ${
+                    visitNote.provisional_diagnosis
+                      ? "border-2 border-primary ring-2 ring-primary/30 font-semibold"
+                      : ""
+                  }`}
                 />
               </div>
 
@@ -487,35 +490,7 @@ export default function PatientConsultation() {
                         })
                       )
                     }
-                    disabled={transcriptionLoading}
                   />
-                  {transcriptionLoading && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-60 pointer-events-none">
-                      <svg
-                        className="animate-spin h-6 w-6 text-blue-600"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8v8z"
-                        ></path>
-                      </svg>
-                      <span className="ml-2 text-blue-600 text-xs font-semibold">
-                        Transcribing...
-                      </span>
-                    </div>
-                  )}
                 </div>
               </div>
 

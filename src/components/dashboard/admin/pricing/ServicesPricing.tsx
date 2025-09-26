@@ -27,7 +27,6 @@ import {
 import { PricingResponse } from "@/types/pricing.types";
 import { useDebounce } from "@/hooks/useDebounce";
 
-
 interface TaxRate {
   id: string;
   rate: string | number;
@@ -62,7 +61,6 @@ interface SubServiceWithPricing {
   name: string;
   pricings: PricingEntry[];
 }
-
 
 export default function ServicesPricing() {
   const dispatch = useDispatch<AppDispatch>();
@@ -165,7 +163,6 @@ export default function ServicesPricing() {
     );
   }, [selectedService, taxRates, isSearchMode]);
 
-
   const searchResultsWithPricing = useMemo(() => {
     if (!isSearchMode) return [];
 
@@ -213,7 +210,6 @@ export default function ServicesPricing() {
       .flat();
   }, [services, taxRates, isSearchMode, debouncedSearchQuery]);
 
-
   const handleEditClick = (entry: PricingEntry) => {
     setEditEntry(entry);
     setIsEditModalOpen(true);
@@ -250,19 +246,18 @@ export default function ServicesPricing() {
     });
   };
 
-
   return (
     <div className="min-h-screen bg-gradient-subtle">
       {/* Header */}
-      <div className="bg-gradient-card border-b shadow-sm">
+      <div className="bg-gradient-card">
         <div className="container mx-auto px-6 py-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="animate-fade-in">
-              <h1 className="text-4xl font-bold text-foreground mb-2">
+              <h1 className="text-3xl font-bold text-foreground mb-2">
                 Healthcare Pricing
               </h1>
-              <p className="text-muted-foreground text-lg">
-                Manage your services and subservices with intelligent pricing
+              <p className="text-muted-foreground text-md">
+                Manage your services and sub-services with intelligent pricing
               </p>
             </div>
             <div className="flex items-center gap-3 animate-fade-in">

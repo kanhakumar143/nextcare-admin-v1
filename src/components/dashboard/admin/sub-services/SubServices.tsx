@@ -24,10 +24,16 @@ import { SubService, CreateSubServiceDto } from "@/types/subServices.type";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import EditSubServiceModal from "./modals/EditSubServicesModal";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { fetchOnlyServices } from "@/store/slices/servicesSlice";
 
 export default function SubServices() {
   const dispatch = useAppDispatch();
   const { items, loading } = useAppSelector((state) => state.subService);
+  const { serviceSpecialityData } = useSelector(
+    (state: RootState) => state.services
+  );
 
   const [services, setServices] = useState<any[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
@@ -36,18 +42,12 @@ export default function SubServices() {
 
   // Load available services
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getServices();
-        setServices(res);
-        if (res.length > 0) {
-          setSelectedServiceId(res[0].id);
-        }
-      } catch {
-        toast.error("Failed to load services.");
-      }
-    })();
-  }, []);
+    if (!serviceSpecialityData || serviceSpecialityData.length === 0) {
+      dispatch(fetchOnlyServices());
+    } else {
+      setSelectedServiceId(serviceSpecialityData[0]?.id || "");
+    }
+  }, [serviceSpecialityData, dispatch]);
 
   // Fetch sub-services when a service is selected
   useEffect(() => {
@@ -69,6 +69,17 @@ export default function SubServices() {
     {
       accessorKey: "description",
       header: "Description",
+      cell: ({ getValue }) => (
+        <div
+          style={{
+            maxWidth: 420,
+            whiteSpace: "pre-line",
+            wordBreak: "break-word",
+          }}
+        >
+          {String(getValue() ?? "")}
+        </div>
+      ),
     },
     {
       header: "Status",
@@ -133,9 +144,9 @@ export default function SubServices() {
               />
             </SelectTrigger>
             <SelectContent>
-              {services.map((srv) => (
+              {serviceSpecialityData.map((srv) => (
                 <SelectItem key={srv.id} value={srv.id}>
-                  {srv.name || srv.service_label}
+                  {srv.name}
                 </SelectItem>
               ))}
             </SelectContent>

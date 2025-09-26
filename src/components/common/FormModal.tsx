@@ -33,11 +33,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchServices } from "@/store/slices/servicesSlice";
+import { fetchOnlyServices } from "@/store/slices/servicesSlice";
 import { AppDispatch, RootState } from "@/store";
 import { ORG_TENANT_ID } from "@/config/authKeys";
+import { TenantService } from "@/types/services.types";
 
-const currentYear = new Date().getFullYear();
+// const currentYear = new Date().getFullYear();
 const today = new Date().toISOString().split("T")[0];
 
 const practitionerFormSchema = z.object({
@@ -110,7 +111,9 @@ export default function PractitionerFormModal({
   const [uploadingLicense, setUploadingLicense] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
 
-  const { items } = useSelector((state: RootState) => state.services);
+  const { serviceSpecialityData } = useSelector(
+    (state: RootState) => state.services
+  );
 
   const form = useForm<PractitionerFormData>({
     resolver: zodResolver(practitionerFormSchema),
@@ -131,7 +134,9 @@ export default function PractitionerFormModal({
   // Handle service selection change
   const handleServiceChange = (serviceName: string) => {
     setSelectedService(serviceName);
-    const serviceData = items?.find((item: any) => item.name === serviceName);
+    const serviceData = serviceSpecialityData?.find(
+      (item: any) => item.name === serviceName
+    );
     setSelectedServiceData(serviceData);
 
     // Reset specialty selection when service changes
@@ -294,7 +299,7 @@ export default function PractitionerFormModal({
   };
 
   useEffect(() => {
-    dispatch(fetchServices());
+    dispatch(fetchOnlyServices());
   }, []);
 
   useEffect(() => {
@@ -316,7 +321,7 @@ export default function PractitionerFormModal({
       // If there are default values for service selection, set the local state
       if (defaultValues.selected_service_name) {
         setSelectedService(defaultValues.selected_service_name);
-        const serviceData = items?.find(
+        const serviceData = serviceSpecialityData?.find(
           (item: any) => item.name === defaultValues.selected_service_name
         );
         setSelectedServiceData(serviceData);
@@ -324,7 +329,7 @@ export default function PractitionerFormModal({
 
       console.log("Form Values After Reset:", form.getValues());
     }
-  }, [defaultValues, form, role, items]);
+  }, [defaultValues, form, role, serviceSpecialityData]);
 
   const handleClose = (open: boolean) => {
     onOpenChange(open);
@@ -513,11 +518,13 @@ export default function PractitionerFormModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {items?.map((service: any) => (
-                            <SelectItem key={service.id} value={service.name}>
-                              {service.name}
-                            </SelectItem>
-                          ))}
+                          {serviceSpecialityData?.map(
+                            (service: TenantService) => (
+                              <SelectItem key={service.id} value={service.name}>
+                                {service.name}
+                              </SelectItem>
+                            )
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -678,383 +685,6 @@ export default function PractitionerFormModal({
                 </div>
               </div>
             </div>
-
-            {/* Role Information Section */}
-            {/* <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Role & Specialty</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="specialty"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Specialty</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Internal Medicine" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location_reference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location Reference</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Location/1" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="location_display"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location Display</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="NextCare Health Center, Bengaluru"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="healthcare_service_reference"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Healthcare Service Reference</FormLabel>
-                      <FormControl>
-                        <Input placeholder="HealthcareService/1" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="healthcare_service_display"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Healthcare Service Display</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Outpatient Services" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div> */}
-
-            {/* Period Section */}
-            {/* <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Employment Period</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="period_start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Start Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="period_end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>End Date</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div> */}
-
-            {/* Availability Section */}
-            {/* <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Availability</h3>
-
-              <FormField
-                control={form.control}
-                name="availability_days"
-                render={() => (
-                  <FormItem>
-                    <FormLabel>Available Days</FormLabel>
-                    <div className="grid grid-cols-4 gap-2">
-                      {daysOfWeek.map((day) => (
-                        <FormField
-                          key={day.value}
-                          control={form.control}
-                          name="availability_days"
-                          render={({ field }) => {
-                            return (
-                              <FormItem
-                                key={day.value}
-                                className="flex flex-row items-start space-x-3 space-y-0"
-                              >
-                                <FormControl>
-                                  <Checkbox
-                                    checked={field.value?.includes(day.value)}
-                                    onCheckedChange={(checked) => {
-                                      return checked
-                                        ? field.onChange([
-                                            ...field.value,
-                                            day.value,
-                                          ])
-                                        : field.onChange(
-                                            field.value?.filter(
-                                              (value) => value !== day.value
-                                            )
-                                          );
-                                    }}
-                                  />
-                                </FormControl>
-                                <FormLabel className="text-sm font-normal">
-                                  {day.label}
-                                </FormLabel>
-                              </FormItem>
-                            );
-                          }}
-                        />
-                      ))}
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="space-y-2 ">
-                <Label>Available Time Slots</Label>
-                {timeFields.map((field, index) => (
-                  <div key={field.id} className="grid grid-cols-2 items-center">
-                    <div className="flex items-center gap-2">
-                      <FormField
-                        control={form.control}
-                        name={`available_times.${index}.start`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <span className="text-sm text-gray-500">to</span>
-                      <FormField
-                        control={form.control}
-                        name={`available_times.${index}.end`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input type="time" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeTime(index)}
-                        disabled={timeFields.length === 1}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
-                    <div className=" ">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          appendTime({ start: "09:00", end: "17:00" })
-                        }
-                      >
-                        <Plus className="w-4 h-4 " />
-                        Add Time Slot
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div> */}
-
-            {/* Practitioner Information Section */}
-            {/* <div className="space-y-4">
-              <h3 className="text-lg font-semibold">
-                Practitioner Information
-              </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="identifier_system"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Identifier System URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://medicalcouncil.org/license"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="identifier_value"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Identifier Value</FormLabel>
-                      <FormControl>
-                        <Input placeholder="MCI123456" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="prefix"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prefix (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Dr." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="given_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Given Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter given name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="family_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Family Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter family name" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="telecom_phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Phone</FormLabel>
-                      <FormControl>
-                        <Input placeholder="+919876543210" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="telecom_email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Work Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="work@example.com"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div> */}
-
-            {/* Not Available Section (Optional) */}
-            {/* <div className="space-y-4">
-              <h3 className="text-lg font-semibold">Not Available</h3>
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={form.control}
-                  name="not_available_start"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Not Available From</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="not_available_end"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Not Available Until</FormLabel>
-                      <FormControl>
-                        <Input type="date" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                <FormField
-                  control={form.control}
-                  name="not_available_description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="On leave, Conference, etc."
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div> */}
 
             <DialogFooter className="space-x-3">
               <Button

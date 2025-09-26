@@ -403,7 +403,7 @@ export default function DynamicQuestionnaires() {
               Please answer the following questions to help us provide better
               care
             </p>
-            {preAppQuestionnaires.response?.data.length > 0 && (
+            {preAppQuestionnaires?.response?.data?.length > 0 && (
               <p className="text-sm text-gray-500">
                 {preAppQuestionnaires.response?.data.length} question
                 {preAppQuestionnaires.response?.data.length !== 1 ? "s" : ""} •
@@ -414,7 +414,7 @@ export default function DynamicQuestionnaires() {
 
           <Separator className="my-8" />
 
-          {preAppQuestionnaires.response?.data.length === 0 ? (
+          {preAppQuestionnaires?.response?.data?.length === 0 ? (
             <div className="text-center py-12">
               <div className="space-y-3">
                 <p className="text-gray-500 text-lg">
@@ -428,50 +428,52 @@ export default function DynamicQuestionnaires() {
           ) : (
             <div className="space-y-8">
               {qrDtls?.appointment.source !== "nextcare"
-                ? preAppQuestionnaires.response?.data.map((question, index) => (
-                    <div
-                      key={question.id}
-                      className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <div className="space-y-3 mb-6">
-                        <div className="flex items-start gap-3">
-                          <span className="text-md font-semibold text-black bg-white mt-0.5">
-                            Q{index + 1}
-                          </span>
-                          <div className="flex-1 space-y-2">
-                            {question?.title && (
-                              <h3 className="font-semibold text-gray-900 text-lg">
-                                {question?.title}
-                              </h3>
-                            )}
-                            <Label className="text-gray-700 font-medium text-base leading-relaxed block">
-                              {question?.question}
-                            </Label>
-                            {question?.note && (
-                              <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
-                                <p className="text-sm text-gray-700 italic">
-                                  <span className="font-medium">Note:</span>{" "}
-                                  {question?.note?.instruction}
-                                </p>
-                              </div>
-                            )}
+                ? preAppQuestionnaires?.response?.data?.map(
+                    (question, index) => (
+                      <div
+                        key={question.id}
+                        className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                      >
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-start gap-3">
+                            <span className="text-md font-semibold text-black bg-white mt-0.5">
+                              Q{index + 1}
+                            </span>
+                            <div className="flex-1 space-y-2">
+                              {question?.title && (
+                                <h3 className="font-semibold text-gray-900 text-lg">
+                                  {question?.title}
+                                </h3>
+                              )}
+                              <Label className="text-gray-700 font-medium text-base leading-relaxed block">
+                                {question?.question}
+                              </Label>
+                              {question?.note && (
+                                <div className="bg-gray-50 border-l-4 border-gray-400 p-3 rounded">
+                                  <p className="text-sm text-gray-700 italic">
+                                    <span className="font-medium">Note:</span>{" "}
+                                    {question?.note?.instruction}
+                                  </p>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="ml-12 space-y-4">
-                        {renderQuestionInput(question)}
-                      </div>
+                        <div className="ml-12 space-y-4">
+                          {renderQuestionInput(question)}
+                        </div>
 
-                      <div className="ml-12 mt-4 flex items-center justify-between">
-                        {answers[question.id] && (
-                          <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
-                            ✓ Answered
-                          </div>
-                        )}
+                        <div className="ml-12 mt-4 flex items-center justify-between">
+                          {answers[question.id] && (
+                            <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                              ✓ Answered
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  )
                 : preAppQuestionnaires.response?.data.map(
                     (questionData, index) => (
                       <div

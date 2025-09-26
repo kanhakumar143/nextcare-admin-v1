@@ -36,11 +36,11 @@ const PaymentDetailsPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null); // Track applied coupon ID
-  const [featureId, setFeatureId] = useState<string | null>(null); // Track feature ID for consumption
-  const [appliedRewardPoints, setAppliedRewardPoints] = useState<number>(0); // Track applied reward points
-  const [activeTab, setActiveTab] = useState<string>("subscription"); // Track active tab
-  const [useRewardPoints, setUseRewardPoints] = useState<boolean>(false); // Track checkbox state
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [featureId, setFeatureId] = useState<string | null>(null);
+  const [appliedRewardPoints, setAppliedRewardPoints] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<string>("subscription");
+  const [useRewardPoints, setUseRewardPoints] = useState<boolean>(false);
 
   const { patientDetails, paymentDetails, subscriptionDetails, health_points } =
     useSelector((state: RootState) => state.receptionistData);
