@@ -17,7 +17,7 @@ const initialState: SubServiceState = {
   editing: null,
 };
 
-// ✅ Fetch sub-services for a given service
+// Fetch sub-services for a given service
 export const fetchSubServicesByServiceId = createAsyncThunk<
   SubService[],
   string,
@@ -36,7 +36,7 @@ export const fetchSubServicesByServiceId = createAsyncThunk<
   }
 });
 
-// ✅ Add a new sub-service
+// Add a new sub-service
 export const addSubService = createAsyncThunk<
   SubService,
   CreateSubServiceDto,   // 👈 only requires data without id
@@ -53,7 +53,7 @@ export const addSubService = createAsyncThunk<
   }
 });
 
-// ✅ Update sub-service
+// Update sub-service
 export const updateSubService = createAsyncThunk<
   SubService,
   { id: string; data: { name: string; description: string; active: boolean } },

@@ -94,6 +94,19 @@ export default function PreQuestionarySet() {
     setSubmitLoading(true);
     setSubmitError(null);
 
+    // Check for duplicate questions when adding new question
+    if (!selectedQuestion) {
+      const existingQuestion = data.find(
+        (q) => q.question.toLowerCase().trim() === formData.question.toLowerCase().trim()
+      );
+
+      if (existingQuestion) {
+        setSubmitError("Question already exists");
+        setSubmitLoading(false);
+        return;
+      }
+    }
+
     const payload: QuestionRow = {
       ...formData,
       id: selectedQuestion?.id ?? "",
@@ -103,6 +116,18 @@ export default function PreQuestionarySet() {
 
     try {
       if (selectedQuestion) {
+        // When editing, check if the new question text conflicts with other questions
+        const existingQuestion = data.find(
+          (q) => q.id !== selectedQuestion.id &&
+            q.question.toLowerCase().trim() === formData.question.toLowerCase().trim()
+        );
+
+        if (existingQuestion) {
+          setSubmitError("Question already exists");
+          setSubmitLoading(false);
+          return;
+        }
+
         await updatePreQuestionary(selectedQuestion.id, payload);
         toast.success("Question updated successfully");
       } else {
