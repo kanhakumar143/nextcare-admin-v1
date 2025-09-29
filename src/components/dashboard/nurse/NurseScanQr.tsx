@@ -12,7 +12,8 @@ import moment from "moment";
 import { setNurseStepCompleted, setQrDetails } from "@/store/slices/nurseSlice";
 import { fetchDecodeQrDetails } from "@/services/receptionist.api";
 import { Badge } from "@/components/ui/badge";
-import { Check } from "lucide-react";
+import { Check, User, Calendar } from "lucide-react";
+import { Label } from "recharts";
 
 const NurseScanQr: React.FC = () => {
   const router = useRouter();
@@ -57,16 +58,16 @@ const NurseScanQr: React.FC = () => {
               </p>
             </div>
 
-            <Card className="w-full max-w-md bg-white border-gray-200 shadow-md">
-              <CardContent className="p-6 text-center">
-                <QrScannerBox
-                  onScanSuccess={(token: string) => {
-                    handleScan(token);
-                  }}
-                  buttonLabel="Scan QR Code"
-                />
-              </CardContent>
-            </Card>
+            {/* <Card className="w-full max-w-md"> */}
+            {/* <CardContent className="p-6 text-center"> */}
+            <QrScannerBox
+              onScanSuccess={(token: string) => {
+                handleScan(token);
+              }}
+              buttonLabel="Scan QR Code"
+            />
+            {/* </CardContent> */}
+            {/* </Card> */}
           </div>
         )}
 
@@ -83,89 +84,89 @@ const NurseScanQr: React.FC = () => {
         )}
 
         {qrDtls && (
-          <div className="space-y-4">
-            {/* Header */}
-            <div className="text-center space-y-1 mb-6">
-              <h1 className="text-2xl font-bold text-gray-900">
-                Patient Information
-              </h1>
-              <p className="text-gray-600 text-sm">
-                Review details and complete tasks
-              </p>
-            </div>
+          <div className="w-full max-w-md mx-auto px-4 mt-7">
+            <Label className="text-sm font-medium text-gray-600">
+              Patient & Appointment Details
+            </Label>
+            <Card className="w-full rounded-2xl shadow-lg py-6 ">
+              <CardContent className="space-y-6">
+                {/* Patient Details */}
+                <div className="text-left">
+                  <h2 className="text-md font-bold text-gray-900 mb-4 flex items-center justify-start gap-2">
+                    <User className="w-5 h-5 text-orange-600" />
+                    Patient Details
+                  </h2>
+                </div>
 
-            {/* Patient Details Card */}
-            <Card className="bg-white border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200 pt-0">
-              <div className="bg-gray-200 text-gray-800 p-3 rounded-t-lg">
-                <h2 className="text-lg font-semibold text-center">
-                  Patient Details
-                </h2>
-              </div>
-              <CardContent className="p-4 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Full Name
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900 capitalize">
+                <div className="space-y-0">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-600">
+                      Full Name:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900 capitalize">
                       {qrDtls.patient.name}
-                    </p>
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Phone
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-600">
+                      Phone:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {qrDtls.patient.phone}
-                    </p>
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Gender
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900 capitalize">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-sm font-medium text-gray-600">
+                      Gender:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900 capitalize">
                       {qrDtls.patient?.patient_profile?.gender ||
                         "Not specified"}
-                    </p>
+                    </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Appointment Details Card */}
-            <Card className="bg-white border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-200 pt-0">
-              <div className="bg-gray-200 text-gray-800 p-3 rounded-t-lg">
-                <h2 className="text-lg font-semibold text-center">
-                  Appointment Details
-                </h2>
-              </div>
-              <CardContent className="p-4 space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Service
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                {/* Appointment Details */}
+                <div className="text-left">
+                  <h2 className="text-md font-bold text-gray-900 mb-4 flex items-center justify-start gap-2">
+                    <Calendar className="w-5 h-5 text-orange-600" />
+                    Appointment Details
+                  </h2>
+                </div>
+
+                <div className="space-y-0">
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-600">
+                      Service:
+                    </span>
+                    <span className="text-sm font-semibold text-gray-900">
                       {qrDtls?.appointment?.service_category?.[0]?.text ||
                         "N/A"}
-                    </p>
+                    </span>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Status
-                    </p>
+                  <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                    <span className="text-sm font-medium text-gray-600">
+                      Status:
+                    </span>
                     <Badge
-                      variant="outline"
-                      className="bg-gray-100 text-gray-800 border-gray-300 capitalize text-xs"
+                      className={`${
+                        qrDtls?.appointment?.status === "booked"
+                          ? "bg-sky-100 text-sky-800"
+                          : qrDtls?.appointment?.status === "checked_in"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-blue-100 text-blue-800"
+                      } font-medium`}
                     >
-                      {qrDtls?.appointment?.status || "N/A"}
+                      {qrDtls?.appointment?.status === "checked_in"
+                        ? "Checked In"
+                        : qrDtls?.appointment?.status || "N/A"}
                     </Badge>
                   </div>
-                  <div className="space-y-1 md:col-span-2">
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                      Schedule
-                    </p>
-                    <p className="text-sm font-semibold text-gray-900">
+                  <div className="flex justify-between items-center py-2">
+                    {/* <span className="text-sm font-medium text-gray-600">
+                      Schedule:
+                    </span> */}
+                    <span className="text-sm font-semibold text-gray-900">
                       {qrDtls?.appointment?.slot_info.start &&
                       qrDtls?.appointment?.slot_info.end
                         ? `${moment(qrDtls.appointment.slot_info.start).format(
@@ -176,86 +177,81 @@ const NurseScanQr: React.FC = () => {
                             qrDtls.appointment.slot_info.end
                           ).format("hh:mm A")}`
                         : "N/A"}
-                    </p>
+                    </span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Action Buttons */}
-            <Card className="bg-white border-gray-200 shadow-md pt-0">
-              <div className="bg-gray-200 text-gray-800 p-3 rounded-t-lg">
-                <h2 className="text-lg font-semibold text-center">
-                  Nursing Tasks
-                </h2>
-              </div>
-              <CardContent className="p-4">
-                {qrDtls?.appointment?.status === "checked_in" ? (
-                  <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                    <Button
-                      onClick={() => {
-                        router.push("/dashboard/nurse/questionnaire");
-                      }}
-                      className={`w-full sm:w-44 h-10 text-white font-medium transition-all duration-200 ${
-                        nurseStepCompleted.step1
-                          ? "bg-gray-500 hover:bg-gray-600"
-                          : "bg-gray-900 hover:bg-black"
-                      }`}
-                      disabled={nurseStepCompleted.step1}
-                    >
-                      {nurseStepCompleted.step1 && (
-                        <Check className="mr-2 h-4 w-4" />
+                {/* Nursing Tasks */}
+                <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
+                  {qrDtls?.appointment?.status === "checked_in" ? (
+                    <>
+                      <Button
+                        onClick={() => {
+                          router.push("/dashboard/nurse/questionnaire");
+                        }}
+                        className={`w-full bg-white border-primary border-1 hover:bg-primary hover:text-white text-primary font-semibold py-3 rounded-lg transition-colors ${
+                          nurseStepCompleted.step1
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={nurseStepCompleted.step1}
+                      >
+                        {nurseStepCompleted.step1 && (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
+                        Questionnaires
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          router.push("/dashboard/nurse/capture-details");
+                        }}
+                        className={`w-full bg-white border-primary border-1 hover:bg-primary hover:text-white text-primary font-semibold py-3 rounded-lg transition-colors ${
+                          nurseStepCompleted.step2
+                            ? "opacity-50 cursor-not-allowed"
+                            : ""
+                        }`}
+                        disabled={nurseStepCompleted.step2}
+                      >
+                        {nurseStepCompleted.step2 && (
+                          <Check className="mr-2 h-4 w-4" />
+                        )}
+                        Capture Vitals
+                      </Button>
+                      {nurseStepCompleted.step1 && nurseStepCompleted.step2 && (
+                        <Button
+                          onClick={() => {
+                            dispatch(setQrDetails(null));
+                            dispatch(
+                              setNurseStepCompleted({
+                                step1: false,
+                                step2: false,
+                              })
+                            );
+                          }}
+                          className="w-full bg-black hover:bg-gray-900 text-white font-semibold py-3 rounded-lg transition-colors"
+                        >
+                          Next Patient
+                        </Button>
                       )}
-                      Questionnaires
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        router.push("/dashboard/nurse/capture-details");
-                      }}
-                      className={`w-full sm:w-44 h-10 text-white font-medium transition-all duration-200 ${
-                        nurseStepCompleted.step2
-                          ? "bg-gray-500 hover:bg-gray-600"
-                          : "bg-gray-900 hover:bg-black"
-                      }`}
-                      disabled={nurseStepCompleted.step2}
-                    >
-                      {nurseStepCompleted.step2 && (
-                        <Check className="mr-2 h-4 w-4" />
-                      )}
-                      Capture Vitals
-                    </Button>
-                    {nurseStepCompleted.step1 && nurseStepCompleted.step2 && (
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-center py-2">
+                        <p className="text-sm text-gray-600">
+                          This appointment is not yet checked in.
+                        </p>
+                      </div>
                       <Button
                         onClick={() => {
                           dispatch(setQrDetails(null));
-                          dispatch(
-                            setNurseStepCompleted({
-                              step1: false,
-                              step2: false,
-                            })
-                          );
                         }}
-                        className="w-full sm:w-44 h-10 bg-black hover:bg-gray-900 text-white font-medium transition-all duration-200"
+                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 rounded-lg transition-colors"
                       >
                         Next Patient
                       </Button>
-                    )}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center space-y-4">
-                    <p className="text-center text-gray-600">
-                      This appointment is not yet checked in .
-                    </p>
-                    <Button
-                      onClick={() => {
-                        dispatch(setQrDetails(null));
-                      }}
-                      className="w-full sm:w-44 h-10 bg-black hover:bg-gray-900 text-white font-medium transition-all duration-200"
-                    >
-                      Next Patient
-                    </Button>
-                  </div>
-                )}
+                    </>
+                  )}
+                </div>
               </CardContent>
             </Card>
           </div>

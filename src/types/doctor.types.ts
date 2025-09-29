@@ -110,6 +110,8 @@ export interface AppointmentDetails {
 
 export interface LabTest {
   id?: string;
+  isEditing?: boolean;
+  addedFromAI?: boolean;
   notes: string;
   test_display: string;
   intent:
@@ -345,6 +347,8 @@ export interface Medication {
   id?: string;
   medication_request_id?: string;
   name: string;
+  addedFromAI?: boolean;
+  isEditing?: boolean;
   form: string;
   route: string;
   frequency: string;

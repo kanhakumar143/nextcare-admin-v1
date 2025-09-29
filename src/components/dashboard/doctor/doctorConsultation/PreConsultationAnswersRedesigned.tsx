@@ -29,38 +29,55 @@ export default function PreConsultationAnswersRedesigned({
   const [showAiSummary, setShowAiSummary] = useState<boolean>(true);
 
   return (
-    <Card className="">
+    <Card
+      className={`shadow-none h-full ${
+        showAiSummary &&
+        "border-purple-300 border-2 bg-gradient-to-br from-purple-50 to-indigo-50"
+      }`}
+    >
       <CardHeader className="">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 rounded-lg">
-              <FileText className="h-5 w-5 text-emerald-600" />
+            <div
+              className={
+                showAiSummary
+                  ? "p-2 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border-1 border-purple-200"
+                  : "p-2 bg-primary/20 rounded-lg"
+              }
+            >
+              {showAiSummary ? (
+                <Sparkles className="h-5 w-5 text-purple-500" />
+              ) : (
+                <FileText className="h-5 w-5 text-primary" />
+              )}
             </div>
             <div>
               <CardTitle className="text-xl font-bold text-gray-900">
                 Pre-Consultation Questionnaire
               </CardTitle>
-              <p className="text-sm text-gray-600">
+              {/* <p className="text-sm text-gray-600">
                 Patient responses and AI-generated insights
-              </p>
+              </p> */}
             </div>
           </div>
-          <div className="flex items-center">
-            <button
-              aria-label={showAiSummary ? "Disable AI Mode" : "Enable AI Mode"}
-              onClick={() => setShowAiSummary((prev) => !prev)}
-              type="button"
-              className={"rounded-md hover:cursor-pointer border p-2"}
+          <div className="flex items-center justify-center space-x-2 w-1/2 ">
+            <Label
+              htmlFor="ai-summary-switch"
+              className="text-sm font-medium text-gray-700"
             >
-              {/* <SparkleAiIcon width={40} height={40} />
-               */}
-              <Sparkles className="text-primary" />
-            </button>
+              AI Summary
+            </Label>
+            <Switch
+              id="ai-summary-switch"
+              checked={showAiSummary}
+              onCheckedChange={setShowAiSummary}
+              className="data-[state=checked]:bg-purple-600"
+            />
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[59vh] pr-4">
+        <ScrollArea className="h-[49vh]">
           <div className="space-y-4">
             {apptDtls?.source === "nextcare" &&
               apptDtls?.symptom_data_nc?.diagnosis && (

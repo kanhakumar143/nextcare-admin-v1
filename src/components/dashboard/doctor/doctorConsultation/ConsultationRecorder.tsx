@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Mic, MicOff, Play } from "lucide-react";
+import { Mic, MicOff, Play, Pause } from "lucide-react";
 import AITranscriptionLoader from "./AITranscriptionLoader";
 import { toast } from "sonner";
 import {
@@ -18,18 +18,24 @@ import {
   suggestMedicalRecommendations,
 } from "@/services/doctor.api";
 import { RootState } from "@/store";
+import RecordingWave from "@/components/common/RecordingWaveAnimation";
 
 interface ConsultationRecorderProps {
   appointmentId?: string;
-  onTranscriptionLoading?: (loading: boolean) => void;
+  onTranscriptionLoading: (loading: boolean) => void;
+  onPauseRecording: (paused: boolean) => void;
 }
 
 export default function ConsultationRecorder({
   appointmentId,
   onTranscriptionLoading,
+  onPauseRecording,
 }: ConsultationRecorderProps) {
   const dispatch = useDispatch();
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [animationForRecord, setAnimationForRecord] = useState<boolean>(false);
+  const [showRecordingUI, setShowRecordingUI] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -41,6 +47,9 @@ export default function ConsultationRecorder({
 
   const startRecording = async () => {
     try {
+      onTranscriptionLoading(true);
+      setAiLoading(true);
+      setAnimationForRecord(true);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
       let mimeType = "audio/mp3";
@@ -77,7 +86,7 @@ export default function ConsultationRecorder({
 
       mediaRecorder.start();
       setIsRecording(true);
-      // setShowRecordingAnim(true);
+      setShowRecordingUI(true);
       toast.success("Recording started...");
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -87,7 +96,27 @@ export default function ConsultationRecorder({
     }
   };
 
+  const pauseRecording = () => {
+    if (mediaRecorderRef.current && isRecording && !isPaused) {
+      onPauseRecording(true);
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+      toast.info("Recording paused");
+    }
+  };
+
+  const resumeRecording = () => {
+    if (mediaRecorderRef.current && isRecording && isPaused) {
+      onPauseRecording(false);
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
+      toast.success("Recording resumed");
+    }
+  };
+
   useEffect(() => {
+    dispatch(setAiSuggestedLabTests([]));
+    dispatch(setAiSuggestedMedications([]));
     if (!audioBlob) return;
 
     const response = {
@@ -152,13 +181,13 @@ export default function ConsultationRecorder({
           ai_note:
             "To evaluate white blood cell count (for infection), red blood cell count (for anemia), and platelet count. May reveal signs of malaria or other infections.",
         },
-        // {
-        //   test_name: "Malaria Rapid Diagnostic Test (RDT)",
-        //   intent: "Detect malaria parasites in the blood",
-        //   priority: "High",
-        //   ai_note:
-        //     "A rapid and convenient test for detecting malaria antigens, which is essential to confirm the diagnosis.",
-        // },
+        {
+          test_name: "Malaria Rapid Diagnostic Test (RDT)",
+          intent: "Detect malaria parasites in the blood",
+          priority: "High",
+          ai_note:
+            "A rapid and convenient test for detecting malaria antigens, which is essential to confirm the diagnosis.",
+        },
         // {
         //   test_name: "Peripheral Blood Smear for Malaria Parasites",
         //   intent: "Confirm the presence and species of malaria parasites",
@@ -191,7 +220,7 @@ export default function ConsultationRecorder({
     };
 
     transcribeAudio(audioBlob);
-    // setAiLoading(true);
+    setAiLoading(true);
     // setAiStep("transcribing");
     // dispatch(setAiSuggestedLabTests(response.investigations || []));
     // dispatch(setAiSuggestedMedications(response.medicines || []));
@@ -240,7 +269,6 @@ export default function ConsultationRecorder({
       );
     } catch {
       toast.error("Failed to analyze conversation for chief complaint.");
-    } finally {
       setAiLoading(false);
     }
   };
@@ -257,37 +285,150 @@ export default function ConsultationRecorder({
       console.log("Medical Recommendations Response:", response);
     } catch {
       toast.error("Failed to fetch medical recommendations.");
+    } finally {
+      setAiLoading(false);
     }
   };
 
   const stopRecording = () => {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
+      setAnimationForRecord(false);
       setIsRecording(false);
+      setIsPaused(false);
+      setShowRecordingUI(false);
+      setAiLoading(true);
+
       // setShowRecordingAnim(false);
     }
   };
 
+  // Futuristic Spiral Wave Animation Component
+  // const SpiralWaveAnimation = () => {
+  //   return (
+  //     <div className="relative flex items-center justify-center w-full h-24">
+  //       {/* Core glowing orb */}
+  //       <div
+  //         className={`w-6 h-6 rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 shadow-[0_0_20px_6px_rgba(56,189,248,0.6)]
+  //       ${isPaused ? "opacity-40 scale-90" : "animate-pulse"} `}
+  //       />
+
+  //       {/* Dancing spiral waves */}
+  //       {[...Array(5)].map((_, i) => (
+  //         <div
+  //           key={i}
+  //           className={`absolute rounded-full border-2 border-transparent bg-gradient-to-r
+  //         from-cyan-400/60 via-purple-500/40 to-pink-500/30
+  //         blur-sm
+  //         ${
+  //           isPaused
+  //             ? "opacity-20"
+  //             : "animate-[spin_6s_linear_infinite,pulse_2s_ease-in-out_infinite]"
+  //         }`}
+  //           style={{
+  //             width: `${70 + i * 25}px`,
+  //             height: `${70 + i * 25}px`,
+  //             borderRadius: "50%",
+  //             animationDelay: `${i * 0.5}s`,
+  //             animationDuration: `${4 + i}s`,
+  //           }}
+  //         />
+  //       ))}
+
+  //       {/* Flowing wave arcs (half rings for spiral illusion) */}
+  //       {[...Array(3)].map((_, i) => (
+  //         <div
+  //           key={`arc-${i}`}
+  //           className={`absolute border-t-2 border-gradient-to-r from-fuchsia-400 via-cyan-400 to-purple-500 rounded-full
+  //         ${isPaused ? "opacity-10" : "animate-[spin_5s_linear_infinite]"}`}
+  //           style={{
+  //             width: `${90 + i * 40}px`,
+  //             height: `${90 + i * 40}px`,
+  //             borderRadius: "50%",
+  //             animationDuration: `${5 + i * 1.5}s`,
+  //             animationDirection: i % 2 === 0 ? "normal" : "reverse",
+  //           }}
+  //         />
+  //       ))}
+  //     </div>
+  //   );
+  // };
+
   return (
     <div className="space-y-4">
-      {aiLoading && <AITranscriptionLoader step={aiStep} />}
-      <Button
-        onClick={isRecording ? stopRecording : startRecording}
-        variant={isRecording ? "destructive" : "default"}
-        className={isRecording ? "animate-pulse" : ""}
-      >
-        {isRecording ? (
-          <>
-            <MicOff className="h-4 w-4" />
-            Stop Recording
-          </>
-        ) : (
-          <>
-            <Mic className="h-4 w-4" />
-            Start Consultation
-          </>
-        )}
-      </Button>
+      {aiLoading && (
+        <AITranscriptionLoader
+          step={aiStep}
+          animationFor={animationForRecord}
+          recordingStatus={isRecording}
+          pauseRecord={isPaused}
+        />
+      )}
+
+      {!showRecordingUI ? (
+        <div className="">
+          <Button onClick={startRecording} variant="default" className="w-full">
+            <Mic className="h-4 w-4 mr-2" />
+            Start Recording
+          </Button>
+        </div>
+      ) : (
+        <div className="mx-4">
+          <div className="">
+            <div className="flex items-center justify-between">
+              {/* <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <div className="absolute inset-0 w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                  </div>
+                  <span className="text-sm font-bold text-gray-800">
+                    {isPaused
+                      ? "Recording Paused"
+                      : "AI Consultation Recording Active"}
+                  </span>
+                </div>
+
+                <div className="flex-1 max-w-md mx-auto">
+                  <RecordingWave isRecording={!isPaused} />
+                </div>
+              </div> */}
+
+              <div className="flex gap-2">
+                <Button
+                  onClick={isPaused ? resumeRecording : pauseRecording}
+                  variant="outline"
+                  size="sm"
+                  className="hover:bg-blue-50 border-blue-200"
+                >
+                  {isPaused ? (
+                    <>
+                      <Play className="h-4 w-4" />
+                      Continue
+                    </>
+                  ) : (
+                    <>
+                      <Pause className="h-4 w-4" />
+                      Pause
+                    </>
+                  )}
+                </Button>
+
+                <Button
+                  onClick={stopRecording}
+                  variant="destructive"
+                  size="sm"
+                  className="hover:bg-red-50"
+                >
+                  <MicOff className="h-4 w-4" />
+                  Stop Recording
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ...existing code... */}
     </div>
   );

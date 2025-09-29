@@ -283,13 +283,16 @@ const CaptureVitals = () => {
 
   return (
     <div className="flex items-center justify-center w-full px-4">
-      <CardContent className="w-full max-w-xl mt-6 space-y-6 p-6 rounded-xl border border-gray-300 ">
-        <h2 className="text-2xl font-semibold text-center text-primary">
+      <CardContent className="w-full max-w-xl mt-6 space-y-6 md:p-6 p-4 rounded-xl border border-gray-300 ">
+        <h2 className="md:text-2xl text-xl font-bold text-center text-primary">
           General Vitals Form
         </h2>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="md:space-y-5 space-y-1"
+          >
             {vitalDefs.map((vital) => (
               <FormField
                 key={vital.id}
@@ -350,15 +353,7 @@ const CaptureVitals = () => {
               />
             ))}
 
-            <div className="flex flex-col gap-3 justify-between pt-2">
-              <Button
-                onClick={() => router.back()}
-                type="button"
-                variant="outline"
-                className="w-full md:w-auto"
-              >
-                Back
-              </Button>
+            <div className="flex flex-col md:gap-3 gap-1 justify-between pt-3">
               <Button
                 type="submit"
                 className="w-full md:w-auto"
@@ -372,6 +367,14 @@ const CaptureVitals = () => {
                 ) : (
                   "Save Vitals"
                 )}
+              </Button>
+              <Button
+                onClick={() => router.back()}
+                type="button"
+                variant="outline"
+                className="w-full md:w-auto"
+              >
+                Back
               </Button>
             </div>
           </form>

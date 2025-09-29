@@ -19,7 +19,9 @@ export default function MainLayout({
   return (
     <>
       {shouldShowSidebar ? (
-        <SidebarProvider>
+        <SidebarProvider
+          style={{ "--sidebar-width-icon": "4rem" } as React.CSSProperties}
+        >
           {/* Move Navbar inside SidebarProvider so it can access the sidebar context */}
           <Navbar />
           <div className="flex flex-col min-h-screen w-full relative bg-gradient-to-br bg-white">

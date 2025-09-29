@@ -1,4 +1,5 @@
 import DoctorPortal from "@/components/dashboard/doctor/DoctorPortal";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function DoctorPortalPage() {
-  return <DoctorPortal />;
+  return (
+    <SidebarProvider>
+      <DoctorPortal />
+    </SidebarProvider>
+  );
 }

@@ -24,7 +24,7 @@ export default function ReceptionPortal() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:px-0">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:px-0">
         <DashboardCards
           icon={<QrCode />}
           header="Scan QR Code"

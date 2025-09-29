@@ -160,7 +160,7 @@ export default function DynamicQuestionnaires() {
           <RadioGroup
             value={answers[questionId] || ""}
             onValueChange={(val) => handleChange(questionId, val)}
-            className="flex flex-row gap-6"
+            className="flex flex-row gap-4"
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem
@@ -191,7 +191,7 @@ export default function DynamicQuestionnaires() {
           <RadioGroup
             value={answers[questionId] || ""}
             onValueChange={(val) => handleChange(questionId, val)}
-            className="space-y-3"
+            className="md:space-y-3 space-y-0"
           >
             {question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
@@ -217,7 +217,7 @@ export default function DynamicQuestionnaires() {
             {question.options.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
                 <Checkbox
-                  className="border-gray-400 data-[state=checked]:bg-black data-[state=checked]:border-black"
+                  className="border-gray-400 data-[state=checked]:bg-primary data-[state=checked]:border-white"
                   id={`${questionId}-${option.value}`}
                   checked={(answers[questionId] || "")
                     .split(", ")
@@ -392,14 +392,14 @@ export default function DynamicQuestionnaires() {
   }
 
   return (
-    <div className="flex justify-center px-4 py-6">
+    <div className="flex justify-center md:px-4 py-6">
       <div className="max-w-4xl w-full">
         <CardContent className="space-y-8 py-8">
-          <div className="text-center space-y-3">
-            <h1 className="text-3xl font-bold text-gray-800">
+          <div className="text-center">
+            <h1 className="md:text-3xl text-xl font-bold text-gray-800">
               Patient Pre-Consultation Questionnaire
             </h1>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 md:text-lg text-sm">
               Please answer the following questions to help us provide better
               care
             </p>
@@ -426,26 +426,26 @@ export default function DynamicQuestionnaires() {
               </div>
             </div>
           ) : (
-            <div className="space-y-8">
+            <div className="md:space-y-8 space-y-4">
               {qrDtls?.appointment.source !== "nextcare"
                 ? preAppQuestionnaires?.response?.data?.map(
                     (question, index) => (
                       <div
                         key={question.id}
-                        className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow"
+                        className="bg-white border border-gray-200 rounded-xl md:p-6 p-3 shadow-sm hover:shadow-md transition-shadow"
                       >
                         <div className="space-y-3 mb-6">
                           <div className="flex items-start gap-3">
-                            <span className="text-md font-semibold text-black bg-white mt-0.5">
+                            <span className="md:text-md text-sm font-semibold text-gray-500 bg-white">
                               Q{index + 1}
                             </span>
-                            <div className="flex-1 space-y-2">
+                            <div className="flex-1 space-y-2 ">
                               {question?.title && (
-                                <h3 className="font-semibold text-gray-900 text-lg">
+                                <h3 className="font-semibold text-gray-900 md:text-md text-sm">
                                   {question?.title}
                                 </h3>
                               )}
-                              <Label className="text-gray-700 font-medium text-base leading-relaxed block">
+                              <Label className="text-gray-700 font-medium md:text-md text-sm leading-relaxed block">
                                 {question?.question}
                               </Label>
                               {question?.note && (
@@ -460,13 +460,13 @@ export default function DynamicQuestionnaires() {
                           </div>
                         </div>
 
-                        <div className="ml-12 space-y-4">
+                        <div className="md:ml-12 ml-7 md:space-y-4 space-y-0">
                           {renderQuestionInput(question)}
                         </div>
 
                         <div className="ml-12 mt-4 flex items-center justify-between">
                           {answers[question.id] && (
-                            <div className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                            <div className="text-xs text-primary bg-primary/10 px-2 py-1 rounded">
                               ✓ Answered
                             </div>
                           )}
@@ -622,11 +622,11 @@ export default function DynamicQuestionnaires() {
                 </div>
               )}
 
-              <div className="flex flex-col items-center space-y-4">
+              <div className="flex flex-col items-center md:space-y-4 space-y-2">
                 <Button
                   onClick={handleSubmitClick}
-                  className="w-full max-w-md py-3 text-md font-medium"
-                  size="lg"
+                  className="w-full max-w-md py-3 md:text-md text-sm font-medium"
+                  // size="lg"
                 >
                   Submit Questionnaire
                   <ArrowRight />
@@ -634,12 +634,12 @@ export default function DynamicQuestionnaires() {
                 <Button
                   onClick={() => router.back()}
                   variant={"outline"}
-                  className="w-full max-w-md py-3 text-md font-medium"
-                  size="lg"
+                  className="w-full max-w-md py-3 md:text-md text-sm font-medium"
+                  // size=""
                 >
                   Back
                 </Button>
-                <div className="text-center text-sm text-gray-500">
+                <div className="text-center text-xs text-gray-500">
                   <p>
                     Ready to submit? Your responses have been saved
                     automatically.

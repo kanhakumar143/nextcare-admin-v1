@@ -13,10 +13,10 @@ import {
   SidebarMenuSub,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PanelLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useSidebar } from "@/components/ui/sidebar";
 import clsx from "clsx";
 import {
   Collapsible,
@@ -45,15 +45,31 @@ export function AppSidebar({
   label = "Admin Panel",
 }: SidebarNavigationProps) {
   const pathname = usePathname();
+  const { state, toggleSidebar } = useSidebar();
 
   const isActive = (path: string) => pathname === path;
+  const collapsed = state === "collapsed";
 
   return (
-    <Sidebar className="pt-[4.5rem] border-r border-border">
-      <SidebarHeader></SidebarHeader>
+    <Sidebar
+      className={clsx(
+        "pt-[4.5rem] border-r border-border transition-all duration-200"
+      )}
+      collapsible="icon"
+    >
+      <SidebarHeader className="flex items-center justify-between px-4 py-2"></SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{label}</SidebarGroupLabel>
+          <div className="flex justify-between items-center">
+            {!collapsed && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
+            <button
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={toggleSidebar}
+              className="p-2 rounded hover:bg-gray-200 focus:outline-none"
+            >
+              <PanelLeft className="w-4 h-4" />
+            </button>
+          </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {routes.map(({ href, name, icon: Icon, children }) => {
@@ -61,10 +77,17 @@ export function AppSidebar({
                   return (
                     <Collapsible key={name} defaultOpen={false}>
                       <SidebarMenuItem>
-                        <CollapsibleTrigger className="w-full flex items-center gap-2 px-2 py-1 text-black rounded cursor-pointer group data-[state=open]/collapsible:bg-muted">
-                          <Icon className="w-4 h-4 mr-2" />
-                          {name}
-                          <ChevronDown className="ml-auto size-5" />
+                        <CollapsibleTrigger
+                          className={clsx(
+                            "w-full flex items-center gap-2 px-2 py-1 text-black rounded cursor-pointer group data-[state=open]/collapsible:bg-muted",
+                            collapsed && "justify-center"
+                          )}
+                        >
+                          <Icon className="w-5 h-5" />
+                          {!collapsed && <span>{name}</span>}
+                          {!collapsed && (
+                            <ChevronDown className="ml-auto size-5" />
+                          )}
                         </CollapsibleTrigger>
                       </SidebarMenuItem>
 
@@ -77,7 +100,9 @@ export function AppSidebar({
                                 <Link
                                   href={child.href}
                                   className={clsx(
-                                    "flex items-center text-sm pl-8 py-1.5 rounded-md transition",
+                                    collapsed
+                                      ? "flex items-center justify-center py-2"
+                                      : "flex items-center text-sm pl-8 py-1.5 rounded-md transition",
                                     isActive(child.href)
                                       ? "bg-gray-300 font-semibold"
                                       : "hover:bg-gray-200"
@@ -86,7 +111,7 @@ export function AppSidebar({
                                   {ChildIcon && (
                                     <ChildIcon className="w-4 h-4 mr-2" />
                                   )}
-                                  <span>{child.name}</span>
+                                  {!collapsed && <span>{child.name}</span>}
                                 </Link>
                               </SidebarMenuSubItem>
                             );
@@ -104,17 +129,19 @@ export function AppSidebar({
                         <Link
                           href={href}
                           className={clsx(
-                            "flex items-center gap-2 px-2 py-1 rounded",
+                            collapsed
+                              ? "flex items-center justify-center py-2"
+                              : "flex items-center gap-2 px-2 py-1 rounded",
                             isActive(href)
                               ? "bg-gray-300 text-black font-semibold"
                               : "hover:bg-gray-200"
                           )}
                         >
-                          <Icon size={16} />
-                          <span>{name}</span>
+                          <Icon size={20} />
+                          {!collapsed && <span>{name}</span>}
                         </Link>
                       ) : (
-                        <span>{name}</span>
+                        !collapsed && <span>{name}</span>
                       )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>

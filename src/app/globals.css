@@ -142,6 +142,10 @@
   @apply bg-green-100 text-green-800;
 }
 
+.ai-border {
+  @apply border-2 border-dashed border-purple-400;
+}
+
 /* Tailwind custom animations for Doctor consultation loading screen */
 /* Add to globals.css */
 

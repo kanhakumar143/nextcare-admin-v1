@@ -63,10 +63,9 @@ export default function ConfirmConsultationModal() {
         id: medicines[0]?.medication_request_id,
         intent: "order",
         status: "active",
-        note: `Prescribed for ${
-          singlePatientDetails?.service_category[0]?.text ||
+        note: `Prescribed for ${singlePatientDetails?.service_category[0]?.text ||
           "general consultation"
-        }`,
+          }`,
       },
       medication: medicines,
       visit_note: {

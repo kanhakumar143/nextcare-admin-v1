@@ -35,15 +35,15 @@ const DashboardCards: React.FC<CreateItemProps> = ({
       className="hover:shadow-md cursor-pointer p-0 flex flex-col gap-0"
       onClick={handleClick}
     >
-      <div className="flex justify-between items-center bg-gray-200 w-full rounded-t-lg md:px-6 px-3 md:py-4 py-2">
+      <div className="flex justify-between items-center bg-primary w-full rounded-t-lg md:px-6 px-3 md:py-4 py-2">
         <div className=" flex items-center gap-3">
-          <div className="bg-white md:p-3 p-2 md:m-1 rounded-full w-fit">
+          <div className="bg-white md:p-3 p-2 md:m-1 rounded-full w-fit text-gray-600">
             {icon}
           </div>
-          <p className="md:text-2xl text-lg font-semibold">{header}</p>
+          <p className="md:text-2xl text-lg font-bold text-white">{header}</p>
         </div>
         <div>
-          <ArrowRight />
+          <ArrowRight className="text-white" />
         </div>
       </div>
       <CardContent className="md:px-6 py-5 flex flex-col justify-center">

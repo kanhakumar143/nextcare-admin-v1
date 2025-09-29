@@ -167,18 +167,18 @@ const EprescriptionPage = () => {
                       "N/A"}
                   </p>
                 </div>
-                {EprescriptionDetails?.practitioner.user.tenant.contact[0].telecom.map(
+                {/* {EprescriptionDetails?.practitioner.user.tenant.contact[0].telecom.map(
                   (dtls, i: number) => (
                     <p key={i}>{dtls.value || "N/A"}</p>
                   )
-                )}
+                )} */}
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      <div className="mb-6">
+      {/* <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">
           <FileText className="h-5 w-5 text-primary" />
           <span>Clinical Details</span>
@@ -235,15 +235,15 @@ const EprescriptionPage = () => {
                 <span className="text-gray-900">
                   {(EprescriptionDetails?.visit_note as any)?.followup_date
                     ? moment(
-                        (EprescriptionDetails?.visit_note as any)?.followup_date
-                      ).format("DD/MM/YYYY")
+                      (EprescriptionDetails?.visit_note as any)?.followup_date
+                    ).format("DD/MM/YYYY")
                     : "Not scheduled"}
                 </span>
               </div>
             </div>
           )}
         </div>
-      </div>
+      </div> */}
 
       <div className="mb-6">
         <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center space-x-2">

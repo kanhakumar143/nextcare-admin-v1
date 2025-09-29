@@ -202,7 +202,7 @@ const doctorSlice = createSlice({
     },
     updateLabTest: (
       state,
-      action: PayloadAction<{ index: number; key: string; value: string }>
+      action: PayloadAction<{ index: number; key: string; value: string | boolean }>
     ) => {
       const { index, key, value } = action.payload;
       if (state.labTests[index]) {

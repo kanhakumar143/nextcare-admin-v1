@@ -39,9 +39,9 @@ import {
   User2,
   UserCircle,
 } from "lucide-react";
-import ConfirmConsultationModal from "./modals/ConfirmConsultationModal";
-import EditVitalsModal from "./modals/EditVitalsModal";
-import ReferPatientModal from "./modals/ReferPatientModal";
+import ConfirmConsultationModal from "../modals/ConfirmConsultationModal";
+import EditVitalsModal from "../modals/EditVitalsModal";
+import ReferPatientModal from "../modals/ReferPatientModal";
 import { useDispatch, useSelector } from "react-redux";
 import {
   setConfirmConsultationModal,
@@ -59,15 +59,18 @@ import {
 } from "@/services/doctor.api";
 import { toast } from "sonner";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
-import DentalProcedureEntry from "./DentalProcedureEntry";
+import DentalProcedureEntry from "../DentalProcedureEntry";
 import { DataTable } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
 import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
 import ConsultationRecorder from "./ConsultationRecorder";
 import PreConsultationAnswers from "./PreConsultationAnswersRedesigned";
-import EhrModal from "./modals/ehrModal";
+import EhrModal from "../modals/ehrModal";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
+import RecordingWave from "@/components/common/RecordingWaveAnimation";
+import { ScrollArea } from "@/components/ui/scroll-area";
+// import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function PatientConsultation() {
   const { practitionerId } = useAuthInfo();
@@ -84,6 +87,7 @@ export default function PatientConsultation() {
     null
   );
   const [transcriptionLoading, setTranscriptionLoading] = useState(false);
+  const [pauseRecording, setPauseRecording] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const [meetingURL, setMeetingURL] = useState<string>(
     "https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjU1NmY3NjYtOWI0Yi00NzZkLWJlN2YtYWY2NDU0YjA0YzAy%40thread.v2/0?context=%7b%22Tid%22%3a%22774486a0-0b12-4dc4-8826-7509c0aba4b5%22%2c%22Oid%22%3a%220aa623a3-9104-44e4-8ea2-4056cf08a2f2%22%7d"
@@ -282,9 +286,13 @@ export default function PatientConsultation() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
+              {/* <SidebarTrigger
+                className="size-8 hover:bg-gray-100/80"
+                title="Toggle Sidebar"
+              /> */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  <UserCircle className="h-8 w-8" />
+                  {/* <UserCircle className="h-8 w-8" /> */}
                   <div className="">
                     <Label className="text-md font-bold text-gray-900">
                       {singlePatientDetails?.patient?.user?.name || "Patient"}
@@ -315,6 +323,7 @@ export default function PatientConsultation() {
               <ConsultationRecorder
                 appointmentId={apptDtls?.id || ""}
                 onTranscriptionLoading={setTranscriptionLoading}
+                onPauseRecording={setPauseRecording}
               />
             </div>
           </div>
@@ -322,7 +331,7 @@ export default function PatientConsultation() {
       </div>
 
       <div className="mx-4 my-4">
-        <div className="flex items-center justify-between border-2 shadow-2xs rounded-lg px-5 py-2">
+        <div className="flex items-center justify-between border-1 rounded-lg px-5 py-2">
           <div className="flex items-center gap-4 flex-1">
             <div className="flex items-center gap-2">
               <Stethoscope className="h-4 w-4 " />
@@ -372,13 +381,22 @@ export default function PatientConsultation() {
             variant="ghost"
             size="sm"
             onClick={handleEditVitals}
-            className="h-8 px-3 hover:bg-blue-50 flex items-center gap-1"
+            className="h-8 px-3 hover:bg-primary/10 flex items-center gap-1"
           >
-            <Edit className="h-3 w-3 text-blue-600" />
-            <span className="text-xs text-blue-600">Edit</span>
+            <Edit className="h-3 w-3 text-primary" />
+            <span className="text-xs text-primary">Edit</span>
           </Button>
         </div>
       </div>
+
+      {/* {transcriptionLoading && (
+        <div className="bg-muted mx-3 rounded-lg my-4 animate-pulse border-gray-400 border-2">
+          <RecordingWave
+            isRecording={transcriptionLoading}
+            pauseRecord={pauseRecording}
+          />
+        </div>
+      )} */}
 
       <div className="mx-4 grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
         <div className="lg:col-span-2 space-y-4">
@@ -407,11 +425,11 @@ export default function PatientConsultation() {
         </div>
 
         <div className="lg:col-span-3">
-          <Card className="border">
+          <Card className="border-1 shadow-none">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <FileText className="h-5 w-5 text-green-600" />
+                <div className="p-2 bg-primary/20 rounded-lg">
+                  <FileText className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <CardTitle className="text-xl font-bold text-gray-900">
@@ -423,194 +441,188 @@ export default function PatientConsultation() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 pt-0">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Chief Complaint
-                </Label>
-                <Input
-                  placeholder="Patient's main concern"
-                  value={visitNote.chief_complaint}
-                  onChange={(e) =>
-                    dispatch(
-                      updateVisitNote({
-                        field: "chief_complaint",
-                        value: e.target.value,
-                      })
-                    )
-                  }
-                  className={`h-10 ${
-                    visitNote.chief_complaint
-                      ? "border-2 border-primary ring-2 ring-primary/30 font-semibold"
-                      : ""
-                  }`}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Stethoscope className="h-4 w-4" />
-                  Provisional Diagnosis
-                </Label>
-                <Input
-                  placeholder="Preliminary diagnosis"
-                  value={visitNote.provisional_diagnosis}
-                  onChange={(e) =>
-                    dispatch(
-                      updateVisitNote({
-                        field: "provisional_diagnosis",
-                        value: e.target.value,
-                      })
-                    )
-                  }
-                  className={`h-10 focus-visible:border-2 focus-visible:border-primary focus-visible:ring-3 focus-visible:ring-primary/30 ${
-                    visitNote.provisional_diagnosis
-                      ? "border-2 border-primary ring-2 ring-primary/30 font-semibold"
-                      : ""
-                  }`}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Doctor Notes
-                </Label>
-                <div className="relative">
-                  <Textarea
-                    placeholder="Detailed consultation summary..."
-                    className="min-h-[110px]"
-                    value={visitNote.summary}
-                    onChange={(e) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "summary",
-                          value: e.target.value,
-                        })
-                      )
-                    }
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Remarks</Label>
-                <Input
-                  placeholder="Additional observations"
-                  value={visitNote.remarks || visitNote.criticality_remark}
-                  onChange={(e) =>
-                    dispatch(
-                      updateVisitNote({
-                        field: "criticality_remark",
-                        value: e.target.value,
-                      })
-                    )
-                  }
-                  className="h-10"
-                />
-              </div>
-
-              <div className="pt-4 border-t space-y-3">
-                <div className="flex items-center space-x-3 p-3 bg-red-50 border border-red-200 rounded">
-                  <Checkbox
-                    className="h-4 w-4"
-                    checked={visitNote.critical}
-                    onCheckedChange={(checked) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "critical",
-                          value: checked ? true : false,
-                        })
-                      )
-                    }
-                  />
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-red-600" />
-                    <Label className="text-sm font-medium text-red-800">
-                      Critical Patient
+            <CardContent className="space-y-4 pt-0 ">
+              <ScrollArea className="h-[48vh] pb-1">
+                <div className="flex flex-col gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Chief Complaint
                     </Label>
+                    <Input
+                      placeholder="Patient's main concern"
+                      value={visitNote.chief_complaint}
+                      onChange={(e) =>
+                        dispatch(
+                          updateVisitNote({
+                            field: "chief_complaint",
+                            value: e.target.value,
+                          })
+                        )
+                      }
+                      className={`h-10 ${
+                        visitNote.chief_complaint
+                          ? "border-2 border-purple-400 ring-2 ring-purple-100 font-semibold"
+                          : ""
+                      }`}
+                    />
                   </div>
-                </div>
-
-                <div className="flex items-center space-x-3 p-3">
-                  <Checkbox
-                    className="h-4 w-4"
-                    checked={visitNote.visit_care_plan.plan_type === "followup"}
-                    onCheckedChange={(checked) =>
-                      dispatch(
-                        updateVisitNote({
-                          field: "visit_care_plan.plan_type",
-                          value: checked ? "followup" : "normal",
-                        })
-                      )
-                    }
-                  />
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    <Label className="text-sm font-medium">
-                      Requires Follow-up
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <Stethoscope className="h-4 w-4" />
+                      Provisional Diagnosis
                     </Label>
+                    <Input
+                      placeholder="Preliminary diagnosis"
+                      value={visitNote.provisional_diagnosis}
+                      onChange={(e) =>
+                        dispatch(
+                          updateVisitNote({
+                            field: "provisional_diagnosis",
+                            value: e.target.value,
+                          })
+                        )
+                      }
+                      className={`h-10  ${
+                        visitNote.provisional_diagnosis
+                          ? "border-2 border-purple-400 ring-2 ring-purple-100 font-semibold"
+                          : ""
+                      }`}
+                    />
                   </div>
-                </div>
-
-                {/* Follow-up Fields */}
-                {visitNote.visit_care_plan.plan_type === "followup" && (
-                  <div className="space-y-3 p-3 bg-blue-50 border border-blue-200 rounded">
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        Follow-up Date
-                      </Label>
-                      <Input
-                        type="date"
-                        value={visitNote.visit_care_plan.followup_date || ""}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Doctor Notes
+                    </Label>
+                    <div className="relative">
+                      <Textarea
+                        placeholder="Detailed consultation summary..."
+                        className={`min-h-[110px] ${
+                          visitNote.summary
+                            ? "border-2 border-purple-400 ring-2 ring-purple-100 font-semibold"
+                            : ""
+                        }`}
+                        value={visitNote.summary}
                         onChange={(e) =>
                           dispatch(
                             updateVisitNote({
-                              field: "visit_care_plan.followup_date",
+                              field: "summary",
                               value: e.target.value,
                             })
                           )
                         }
-                        className="h-10"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium flex items-center gap-2">
-                        <Clock className="h-4 w-4" />
-                        Consultation Mode
-                      </Label>
-                      <Select
-                        value={
-                          visitNote.visit_care_plan.consultation_mode || ""
-                        }
-                        onValueChange={(value) =>
+                  </div>
+                  <div className="pt-4 border-t space-y-3">
+                    <div className="flex items-center space-x-3 p-3 bg-red-50 border border-red-200 rounded">
+                      <Checkbox
+                        className="h-4 w-4"
+                        checked={visitNote.critical}
+                        onCheckedChange={(checked) =>
                           dispatch(
                             updateVisitNote({
-                              field: "visit_care_plan.consultation_mode",
-                              value,
+                              field: "critical",
+                              value: checked ? true : false,
                             })
                           )
                         }
-                      >
-                        <SelectTrigger className="h-10">
-                          <SelectValue placeholder="Select mode" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectGroup>
-                            <SelectLabel>Mode</SelectLabel>
-                            <SelectItem value="online" disabled>
-                              Online
-                            </SelectItem>
-                            <SelectItem value="in-clinic">In-Clinic</SelectItem>
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
+                      />
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                        <Label className="text-sm font-medium text-red-800">
+                          Critical Patient
+                        </Label>
+                      </div>
                     </div>
+
+                    <div className="flex items-center space-x-3 p-3">
+                      <Checkbox
+                        className="h-4 w-4"
+                        checked={
+                          visitNote.visit_care_plan.plan_type === "followup"
+                        }
+                        onCheckedChange={(checked) =>
+                          dispatch(
+                            updateVisitNote({
+                              field: "visit_care_plan.plan_type",
+                              value: checked ? "followup" : "normal",
+                            })
+                          )
+                        }
+                      />
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4" />
+                        <Label className="text-sm font-medium">
+                          Requires Follow-up
+                        </Label>
+                      </div>
+                    </div>
+
+                    {/* Follow-up Fields */}
+                    {visitNote.visit_care_plan.plan_type === "followup" && (
+                      <div className="space-y-3 p-3 bg-blue-50 border border-blue-200 rounded">
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            Follow-up Date
+                          </Label>
+                          <Input
+                            type="date"
+                            value={
+                              visitNote.visit_care_plan.followup_date || ""
+                            }
+                            onChange={(e) =>
+                              dispatch(
+                                updateVisitNote({
+                                  field: "visit_care_plan.followup_date",
+                                  value: e.target.value,
+                                })
+                              )
+                            }
+                            className="h-10"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Consultation Mode
+                          </Label>
+                          <Select
+                            value={
+                              visitNote.visit_care_plan.consultation_mode || ""
+                            }
+                            onValueChange={(value) =>
+                              dispatch(
+                                updateVisitNote({
+                                  field: "visit_care_plan.consultation_mode",
+                                  value,
+                                })
+                              )
+                            }
+                          >
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                <SelectLabel>Mode</SelectLabel>
+                                <SelectItem value="online" disabled>
+                                  Online
+                                </SelectItem>
+                                <SelectItem value="in-clinic">
+                                  In-Clinic
+                                </SelectItem>
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                </div>
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
@@ -627,6 +639,25 @@ export default function PatientConsultation() {
           />
         </div>
       )}
+
+      <div>
+        <div className="space-y-2 px-4">
+          <Label className="text-sm font-medium">Remarks (If Any)</Label>
+          <Textarea
+            placeholder="Additional observations"
+            value={visitNote.remarks || visitNote.criticality_remark}
+            onChange={(e) =>
+              dispatch(
+                updateVisitNote({
+                  field: "criticality_remark",
+                  value: e.target.value,
+                })
+              )
+            }
+            className="h-10"
+          />
+        </div>
+      </div>
 
       <div className="mx-4 mb-4">
         <div className="flex justify-between items-center py-5">

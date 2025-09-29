@@ -20,6 +20,7 @@ import {
   setTempAppointmentId,
 } from "@/store/slices/doctorSlice";
 import { PatientInfo } from "@/types/doctor.types";
+import { useSidebar } from "@/components/ui/sidebar";
 
 const DoctorPortal = () => {
   const router = useRouter();
@@ -28,12 +29,14 @@ const DoctorPortal = () => {
   const { patientQueueList, labTestsReviewData } = useSelector(
     (state: RootState) => state.doctor
   );
+  const { setOpen } = useSidebar();
   const handlePatientInfo = (patient: PatientInfo) => {
     console.log("Patient Info: ", patient);
     dispatch(setSinglePatientDetails(patient));
     dispatch(setTempAppointmentId(patient.id));
     dispatch(setConsultationMode("new"));
     router.push(`/dashboard/doctor/consultation/${patient.id}`);
+    setOpen(false); // Close the sidebar
   };
 
   const handleLabTests = (patient: PatientInfo) => {
@@ -133,11 +136,12 @@ const DoctorPortal = () => {
   useEffect(() => {
     // if (!patientQueueList || patientQueueList.length === 0) {
     dispatch(fetchAssignedAppointments(practitionerId));
+    setOpen(true);
     // }
   }, []);
 
   return (
-    <div className=" bg-background p-6">
+    <div className=" bg-background p-6 w-full">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="border-b border-border pb-4 flex gap-3 items-center">

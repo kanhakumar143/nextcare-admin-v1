@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import ConfirmCheckedInModal from "./modals/ConfirmCheckInModal";
+import { User, Calendar } from "lucide-react";
 
 const ScannedPatientDetails = () => {
   const { patientDetails } = useSelector(
@@ -68,49 +69,60 @@ const ScannedPatientDetails = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto">
-      <Card className="w-full max-w-md mx-auto rounded-xl shadow py-4 bg-white">
-        <CardContent className="space-y-4">
+    <div className="w-full max-w-sm mx-auto px-4">
+      <Card className="w-full rounded-2xl shadow-lg py-6">
+        <CardContent className="space-y-3">
           {/* Patient Details */}
           <div className="text-left">
-            <h2 className="text-md font-semibold text-gray-800 border-b-2 pb-2 border-primary">
-              Patient <span className="">Details</span>
+            <h2 className="text-md font-bold text-gray-900 mb-4 flex items-center justify-start gap-2">
+              <User className="w-5 h-5 text-orange-600" />
+              Patient Details
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-            <div className="space-y-1">
-              <div className="font-medium">Full name:</div>
-              <div className="font-medium">Phone:</div>
+          <div className="space-y-0">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-600">
+                Full Name:
+              </span>
+              <span className="text-sm font-semibold text-gray-900">
+                {patientDetails.patient.name}
+              </span>
             </div>
-            <div className="space-y-1">
-              <div className="font-bold">{patientDetails.patient.name}</div>
-              <div className="font-bold">{patientDetails.patient.phone}</div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-600">Phone:</span>
+              <span className="text-sm font-semibold text-gray-900">
+                {patientDetails.patient.phone}
+              </span>
             </div>
           </div>
 
           {/* Booking Details */}
-          <div className="text-left mt-6">
-            <h2 className="text-md font-semibold text-gray-800 border-b-2 pb-2 border-primary">
-              Booking <span className="">Details</span>
+          <div className="text-left">
+            <h2 className="text-md font-bold text-gray-900 mb-2 flex items-center justify-start gap-2">
+              <Calendar className="w-5 h-5 text-orange-600" />
+              Booking Details
             </h2>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm text-gray-700">
-            <div className="space-y-1">
-              <div className="font-medium">Service:</div>
-              <div className="font-medium">Date of Booking:</div>
-              <div className="font-medium">Slot Time:</div>
-              <div className="font-medium">Booking Status:</div>
-            </div>
-            <div className="space-y-1">
-              <div className="font-bold">
+          <div className="space-y-0">
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-600">
+                Service:
+              </span>
+              <span className="text-sm font-semibold text-gray-900">
                 {patientDetails.appointment.service_category[0].text}
-              </div>
-              <div className="font-bold">
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-600">Date:</span>
+              <span className="text-sm font-semibold text-gray-900">
                 {formatDate(patientDetails.appointment.slot_info.start)}
-              </div>
-              <div className="font-bold">
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-gray-100">
+              <span className="text-sm font-medium text-gray-600">Time:</span>
+              <span className="text-sm font-semibold text-gray-900">
                 {moment
                   .utc(patientDetails.appointment.slot_info.start)
                   .format("hh:mm a")}{" "}
@@ -118,31 +130,32 @@ const ScannedPatientDetails = () => {
                 {moment
                   .utc(patientDetails.appointment.slot_info.end)
                   .format("hh:mm a")}
-              </div>
-              <div>
-                <Badge
-                  className={`${
-                    patientDetails.appointment.status === "booked"
-                      ? "bg-sky-700"
-                      : patientDetails.appointment.status === "checked_in"
-                      ? "bg-green-600"
-                      : "bg-primary"
-                  }`}
-                >
-                  {patientDetails.appointment.status === "checked_in"
-                    ? "Checked In"
-                    : patientDetails.appointment.status}
-                </Badge>
-              </div>
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-sm font-medium text-gray-600">Status:</span>
+              <Badge
+                className={`${
+                  patientDetails.appointment.status === "booked"
+                    ? "bg-sky-800 text-white"
+                    : patientDetails.appointment.status === "checked_in"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-blue-100 text-blue-800"
+                } font-medium`}
+              >
+                {patientDetails.appointment.status === "checked_in"
+                  ? "Checked In"
+                  : patientDetails.appointment.status}
+              </Badge>
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 mt-5 border-t-2 pt-2 border-primary">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-200">
             {patientDetails.patient.patient_profile.verifications[0]
               .verification_status !== "verified" ? (
               <>
                 <Button
-                  className="w-full border-primary border-2"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors"
                   onClick={() => {
                     router.push("/dashboard/receptionist/verify-patient");
                   }}
@@ -150,8 +163,8 @@ const ScannedPatientDetails = () => {
                   Verify Patient
                 </Button>
                 <Button
-                  variant={"outline"}
-                  className="w-full border-primary border-2"
+                  variant="outline"
+                  className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 font-semibold py-3 rounded-lg transition-colors"
                   onClick={() => {
                     router.back();
                   }}
@@ -164,18 +177,20 @@ const ScannedPatientDetails = () => {
                 {patientDetails.appointment.status !== "checked_in" ? (
                   <Button
                     onClick={handleCheckIn}
-                    className="w-full bg-primary hover:bg-green-400 text-white font-semibold"
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-colors"
                   >
                     {loading ? "Checking In..." : "Confirm Check-In"}
                   </Button>
                 ) : (
-                  <Label className="text-center w-full text-green-600 font-semibold">
-                    Patient already checked in
-                  </Label>
+                  <div className="text-center py-2">
+                    <Label className="text-green-600 font-semibold text-sm">
+                      Patient already checked in
+                    </Label>
+                  </div>
                 )}
                 <Button
-                  variant={"outline"}
-                  className="w-full"
+                  variant="outline"
+                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold py-3 rounded-lg transition-colors"
                   onClick={() => {
                     dispatch(clearAllReceptionistData());
                     router.back();
@@ -183,9 +198,11 @@ const ScannedPatientDetails = () => {
                 >
                   Cancel
                 </Button>
-                <p className="text-sm text-gray-500">
-                  {patientDetails.time_alert}
-                </p>
+                {patientDetails.time_alert && (
+                  <p className="text-xs text-amber-600 text-center mt-2">
+                    {patientDetails.time_alert}
+                  </p>
+                )}
               </>
             )}
           </div>
