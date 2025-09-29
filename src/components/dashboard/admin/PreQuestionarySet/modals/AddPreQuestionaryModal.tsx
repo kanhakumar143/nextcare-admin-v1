@@ -218,8 +218,11 @@ export const AddPreQuestionaryModal: React.FC<AddPreQuestionaryModalProps> = ({
             </Label>
             <Textarea
               id="question"
+              className="w-full max-w-full resize-none min-h-[80px] max-h-[120px] overflow-y-auto overflow-x-hidden break-words whitespace-pre-wrap"
+              placeholder="Enter your question here..."
               {...register("question", { required: "Question is required" })}
               aria-invalid={errors.question ? "true" : "false"}
+              style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}
             />
             {errors.question && (
               <p role="alert" className="text-red-600 text-sm mt-1">
