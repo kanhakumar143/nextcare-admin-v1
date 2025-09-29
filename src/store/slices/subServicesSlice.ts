@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { SubService, CreateSubServiceDto } from "@/types/subServices.type";
-import { createSubService } from "@/services/subServices.api"; 
+import { createSubService } from "@/services/subServices.api";
 import { api, axios } from "@/lib/axios";
 
 interface SubServiceState {
@@ -39,7 +39,7 @@ export const fetchSubServicesByServiceId = createAsyncThunk<
 // Add a new sub-service
 export const addSubService = createAsyncThunk<
   SubService,
-  CreateSubServiceDto,   // 👈 only requires data without id
+  CreateSubServiceDto, // 👈 only requires data without id
   { rejectValue: string }
 >("subServices/add", async (payload, { rejectWithValue }) => {
   try {
@@ -58,25 +58,19 @@ export const updateSubService = createAsyncThunk<
   SubService,
   { id: string; data: { name: string; description: string; active: boolean } },
   { rejectValue: string }
->(
-  "subServices/update",
-  async ({ id, data }, { rejectWithValue }) => {
-    try {
-      // Send id in the body instead of URL
-      const payload = { id, ...data };
-      const response = await api.put("sub-service/", payload); // POST/PUT endpoint without id in URL
-      return response.data as SubService;
-    } catch (error: any) {
-      if (axios.isAxiosError(error)) {
-        return rejectWithValue(error.message || "Failed to update sub-service");
-      }
-      return rejectWithValue("Unexpected error occurred.");
+>("subServices/update", async ({ id, data }, { rejectWithValue }) => {
+  try {
+    // Send id in the body instead of URL
+    const payload = { id, ...data };
+    const response = await api.put("sub-service/", payload); // POST/PUT endpoint without id in URL
+    return response.data as SubService;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      return rejectWithValue(error.message || "Failed to update sub-service");
     }
+    return rejectWithValue("Unexpected error occurred.");
   }
-);
-
-
-
+});
 
 const subServiceSlice = createSlice({
   name: "subServices",
@@ -105,9 +99,12 @@ const subServiceSlice = createSlice({
         state.loading = false;
         // Merge new sub-services with existing ones, avoiding duplicates
         const newSubServices = action.payload;
-        const existingIds = new Set(state.items.map(item => item.id));
-        const uniqueNewSubServices = newSubServices.filter(subService => !existingIds.has(subService.id));
-        state.items = [...state.items, ...uniqueNewSubServices];
+        const existingIds = new Set(state.items.map((item) => item.id));
+        const uniqueNewSubServices = newSubServices.filter(
+          (subService) => !existingIds.has(subService.id)
+        );
+        // state.items = [...state.items, ...uniqueNewSubServices];
+        state.items = action.payload; // replace with latest fetch
       })
       .addCase(fetchSubServicesByServiceId.rejected, (state, action) => {
         state.loading = false;

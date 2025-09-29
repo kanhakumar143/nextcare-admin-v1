@@ -17,6 +17,7 @@ import {
   fetchAssignedAppointments,
   setSinglePatientDetails,
   setConsultationMode,
+  setTempAppointmentId,
 } from "@/store/slices/doctorSlice";
 import { PatientInfo } from "@/types/doctor.types";
 
@@ -28,7 +29,9 @@ const DoctorPortal = () => {
     (state: RootState) => state.doctor
   );
   const handlePatientInfo = (patient: PatientInfo) => {
+    console.log("Patient Info: ", patient);
     dispatch(setSinglePatientDetails(patient));
+    dispatch(setTempAppointmentId(patient.id));
     dispatch(setConsultationMode("new"));
     router.push(`/dashboard/doctor/consultation/${patient.id}`);
   };
@@ -128,9 +131,9 @@ const DoctorPortal = () => {
   ];
 
   useEffect(() => {
-    if (!patientQueueList || patientQueueList.length === 0) {
-      dispatch(fetchAssignedAppointments(practitionerId));
-    }
+    // if (!patientQueueList || patientQueueList.length === 0) {
+    dispatch(fetchAssignedAppointments(practitionerId));
+    // }
   }, []);
 
   return (

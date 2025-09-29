@@ -43,6 +43,9 @@ export const fetchPractitionerDetails = createAsyncThunk(
 const initialState: doctorSliceInitialStates = {
   confirmConsultationModalVisible: false,
   EprescriptionDetails: null,
+  aiSuggestedMedications: [],
+  aiSuggestedLabTests: [],
+  appointmentIdTemp: null,
   ConfirmReviewPrescriptionModalVisible: false,
   editVitalsModalVisible: false,
   patientQueueList: [],
@@ -118,6 +121,28 @@ const doctorSlice = createSlice({
     },
     setSinglePatientDetails: (state, action: PayloadAction<any | null>) => {
       state.singlePatientDetails = action.payload;
+    },
+    setTempAppointmentId: (state, action: PayloadAction<string | null>) => {
+      state.appointmentIdTemp = action.payload;
+    },
+    setAiSuggestedLabTests: (state, action: PayloadAction<any[]>) => {
+      state.aiSuggestedLabTests = action.payload;
+    },
+    setAiSuggestedMedications: (state, action: PayloadAction<any[]>) => {
+      state.aiSuggestedMedications = action.payload;
+    },
+    setAiSuggestedchiefComplaint: (
+      state,
+      action: PayloadAction<{
+        chief_complaint: string;
+        provisional_diagnosis: string;
+        // doctor_notes: string;
+      }>
+    ) => {
+      state.visitNote.chief_complaint = action.payload.chief_complaint;
+      state.visitNote.provisional_diagnosis =
+        action.payload.provisional_diagnosis;
+      // state.visitNote.summary = action.payload.doctor_notes;
     },
     setConsultationData: (
       state,
@@ -361,7 +386,11 @@ export const {
   updateMedicine,
   deleteLabTest,
   deleteMedicine,
+  setAiSuggestedLabTests,
+  setAiSuggestedMedications,
   setEprescriptionDetails,
+  setAiSuggestedchiefComplaint,
+  setTempAppointmentId,
   clearLabTests,
   clearMedicines,
   clearConsultationOrders,

@@ -5,14 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import moment from "moment";
-import {
-  Plus,
-  Pencil,
-  Shield,
-  ShieldOff,
-  ShieldCheck,
-  ShieldBan,
-} from "lucide-react";
+import { Plus, Pencil, ShieldCheck, ShieldBan } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,39 +17,34 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DataTable } from "@/components/common/DataTable";
-import { addService, getServices, updateService } from "@/services/admin.api";
+import { addService, updateService } from "@/services/admin.api";
 import { toast } from "sonner";
 import { ORG_TENANT_ID } from "@/config/authKeys";
+import { useAppDispatch } from "@/store/hooks";
+import { fetchOnlyServices } from "@/store/slices/servicesSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { TenantService } from "@/types/services.types";
 
 const postSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
 });
 
-// const tenant_id = "4896d272-e201-4dce-9048-f93b1e3ca49f";
 type PostSchema = z.infer<typeof postSchema>;
-
-type Service = {
-  id: string;
-  name: string;
-  availableTime: string;
-  availableDays: string;
-  timings: string;
-  status: string;
-  active: boolean;
-  schedule: {
-    planning_start: string;
-    planning_end: string;
-  };
-};
 
 export default function Services() {
   const [open, setOpen] = useState(false);
-  const [services, setServices] = useState<Service[]>([]);
+  const dispatch = useAppDispatch();
   const [filterValue, setFilterValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editServiceId, setEditServiceId] = useState<string | null>(null);
   const [apiCallFor, setApiCallFor] = useState<string | null>(null);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedService, setSelectedService] = useState<TenantService | null>(
+    null
+  );
+  const { serviceSpecialityData } = useSelector(
+    (state: RootState) => state.services
+  );
 
   const {
     register,
@@ -68,18 +56,11 @@ export default function Services() {
     resolver: zodResolver(postSchema),
   });
 
-  const fetchServices = async () => {
-    try {
-      const data = await getServices();
-      setServices(data);
-    } catch (error) {
-      console.error("Failed to fetch services:", error);
-    }
-  };
-
   useEffect(() => {
-    fetchServices();
-  }, []);
+    if (!serviceSpecialityData || serviceSpecialityData.length === 0) {
+      dispatch(fetchOnlyServices());
+    }
+  }, [serviceSpecialityData, dispatch]);
 
   const onSubmit = async (data: PostSchema) => {
     setIsSubmitting(true);
@@ -96,7 +77,7 @@ export default function Services() {
         toast.success("Service updated successfully");
       }
 
-      await fetchServices();
+      dispatch(fetchOnlyServices());
       reset();
       setApiCallFor(null);
       setEditServiceId(null);
@@ -109,7 +90,7 @@ export default function Services() {
     }
   };
 
-  const handleEdit = (service: Service) => {
+  const handleEdit = (service: TenantService) => {
     setApiCallFor("edit");
     setValue("name", service.name);
     setEditServiceId(service.id);
@@ -117,7 +98,10 @@ export default function Services() {
     setOpen(true);
   };
 
-  const handleToggleStatus = async (service: Service, checked: boolean) => {
+  const handleToggleStatus = async (
+    service: TenantService,
+    checked: boolean
+  ) => {
     try {
       await updateService({
         service_id: service.id,
@@ -129,14 +113,15 @@ export default function Services() {
           ? "Service activated successfully"
           : "Service deactivated successfully"
       );
-      await fetchServices();
+      // await fetchServices();
+      dispatch(fetchOnlyServices());
     } catch (error) {
       console.error("Status update failed:", error);
       toast.error("Status update failed");
     }
   };
 
-  const columns: ColumnDef<Service>[] = [
+  const columns: ColumnDef<TenantService>[] = [
     {
       accessorKey: "name",
       header: "Service Name",
@@ -151,20 +136,19 @@ export default function Services() {
       ),
     },
     {
-      header: "Available Days",
-      accessorFn: (row: any) =>
-        moment(row.schedule?.planning_start).format("YYYY-MM-DD"),
+      header: "Created On",
+      accessorFn: (row: any) => moment(row.created_at).format("YYYY-MM-DD"),
     },
-    {
-      header: "Available Time",
-      accessorFn: (row: any) => {
-        const start = row.schedule?.planning_start;
-        const end = row.schedule?.planning_end;
-        return `${moment(start).format("hh:mm A")} - ${moment(end).format(
-          "hh:mm A"
-        )}`;
-      },
-    },
+    // {
+    //   header: "Available Time",
+    //   accessorFn: (row: any) => {
+    //     const start = row.schedule?.planning_start;
+    //     const end = row.schedule?.planning_end;
+    //     return `${moment(start).format("hh:mm A")} - ${moment(end).format(
+    //       "hh:mm A"
+    //     )}`;
+    //   },
+    // },
     {
       header: "Status",
       accessorFn: (row: any) => row.active,
@@ -265,7 +249,7 @@ export default function Services() {
 
       <DataTable
         columns={columns}
-        data={services}
+        data={serviceSpecialityData || []}
         filterColumn="name"
         externalFilterValue={filterValue}
       />

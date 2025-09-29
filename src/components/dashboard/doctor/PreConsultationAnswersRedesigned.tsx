@@ -12,7 +12,11 @@ import {
   AlertCircle,
   CheckCircle2,
   Clock,
+  Sparkle,
+  Sparkles,
+  // Sparkles,
 } from "lucide-react";
+import SparkleAiIcon from "@/components/icons/SparkleAiIcon";
 import { Badge } from "@/components/ui/badge";
 
 interface PreConsultationAnswersProps {
@@ -26,7 +30,7 @@ export default function PreConsultationAnswersRedesigned({
 
   return (
     <Card className="">
-      <CardHeader className="pb-4">
+      <CardHeader className="">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 rounded-lg">
@@ -41,23 +45,22 @@ export default function PreConsultationAnswersRedesigned({
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-3">
-            <Label
-              htmlFor="ai-summary-switch"
-              className="text-sm font-medium text-gray-700"
+          <div className="flex items-center">
+            <button
+              aria-label={showAiSummary ? "Disable AI Mode" : "Enable AI Mode"}
+              onClick={() => setShowAiSummary((prev) => !prev)}
+              type="button"
+              className={"rounded-md hover:cursor-pointer border p-2"}
             >
-              AI Summary
-            </Label>
-            <Switch
-              id="ai-summary-switch"
-              checked={showAiSummary}
-              onCheckedChange={setShowAiSummary}
-            />
+              {/* <SparkleAiIcon width={40} height={40} />
+               */}
+              <Sparkles className="text-primary" />
+            </button>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[52vh] pr-4">
+        <ScrollArea className="h-[59vh] pr-4">
           <div className="space-y-4">
             {apptDtls?.source === "nextcare" &&
               apptDtls?.symptom_data_nc?.diagnosis && (
@@ -217,18 +220,15 @@ export default function PreConsultationAnswersRedesigned({
                 <div className="space-y-6">
                   {apptDtls.pre_appointment_qa_ai_summaries.map(
                     (summary, index) => (
-                      <div
-                        key={summary.id}
-                        className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl"
-                      >
-                        <div className="flex items-center justify-between mb-4">
+                      <div key={summary.id} className="p-0">
+                        {/* <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Brain className="h-5 w-5 text-blue-600" />
                             <span className="font-semibold text-blue-800 text-base">
                               AI Summary
                             </span>
                           </div>
-                        </div>
+                        </div> */}
 
                         <div
                           dangerouslySetInnerHTML={{

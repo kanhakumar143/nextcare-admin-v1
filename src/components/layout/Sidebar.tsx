@@ -61,7 +61,7 @@ export function AppSidebar({
                   return (
                     <Collapsible key={name} defaultOpen={false}>
                       <SidebarMenuItem>
-                        <CollapsibleTrigger className="w-full flex items-center gap-2 px-2 py-1 rounded cursor-pointer group data-[state=open]/collapsible:bg-muted">
+                        <CollapsibleTrigger className="w-full flex items-center gap-2 px-2 py-1 text-black rounded cursor-pointer group data-[state=open]/collapsible:bg-muted">
                           <Icon className="w-4 h-4 mr-2" />
                           {name}
                           <ChevronDown className="ml-auto size-5" />
@@ -106,7 +106,7 @@ export function AppSidebar({
                           className={clsx(
                             "flex items-center gap-2 px-2 py-1 rounded",
                             isActive(href)
-                              ? "bg-gray-300 text-primary font-semibold"
+                              ? "bg-gray-300 text-black font-semibold"
                               : "hover:bg-gray-200"
                           )}
                         >

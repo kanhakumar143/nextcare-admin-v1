@@ -25,9 +25,7 @@ const PatientCheckInPage: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-start p-6 gap-6">
-      <h1 className="text-2xl font-bold text-primary text-center">
-        Patient Check-In
-      </h1>
+      <h1 className="text-2xl font-bold text-center">Patient Check-In</h1>
 
       <div className="w-full max-w-md">
         <ScannedPatientDetails />

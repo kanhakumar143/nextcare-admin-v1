@@ -23,10 +23,16 @@ import EditSpecialtyModal from "@/components/dashboard/admin/specialty/modal/Edi
 import { Specialty } from "@/types/specialty.type";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { fetchOnlyServices } from "@/store/slices/servicesSlice";
 
 export default function Specialties() {
   const dispatch = useAppDispatch();
   const { items, loading } = useAppSelector((state) => state.specialty);
+  const { serviceSpecialityData } = useSelector(
+    (state: RootState) => state.services
+  );
 
   const [services, setServices] = useState<any[]>([]);
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
@@ -34,18 +40,12 @@ export default function Specialties() {
   const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await getServices();
-        setServices(res);
-        if (res.length > 0) {
-          setSelectedServiceId(res[0].id);
-        }
-      } catch (error) {
-        toast.error("Failed to load services.");
-      }
-    })();
-  }, []);
+    if (!serviceSpecialityData || serviceSpecialityData.length === 0) {
+      dispatch(fetchOnlyServices());
+    } else {
+      setSelectedServiceId(serviceSpecialityData[0]?.id || "");
+    }
+  }, [serviceSpecialityData, dispatch]);
 
   useEffect(() => {
     if (selectedServiceId) {
@@ -87,11 +87,6 @@ export default function Specialties() {
           <Button
             variant="ghost"
             size="icon"
-            // className={
-            //   row.original.is_active
-            //     ? "text-green-500 hover:text-green-700"
-            //     : "text-red-500 hover:text-red-700"
-            // }
             onClick={() => handleOpenEditModal(row.original)}
           >
             <Pencil className="w-4 h-4" />
@@ -102,35 +97,34 @@ export default function Specialties() {
   ];
 
   const handleAddSpecialty = async (
-  formData: Omit<Specialty, "code" | "system" | "description">
-) => {
-  // Check if specialty already exists for the selected service
-  const exists = items.some(
-    (item) =>
-      item.specialty_label.toLowerCase() ===
-      formData.specialty_label.toLowerCase()
-  );
+    formData: Omit<Specialty, "code" | "system" | "description">
+  ) => {
+    // Check if specialty already exists for the selected service
+    const exists = items.some(
+      (item) =>
+        item.specialty_label.toLowerCase() ===
+        formData.specialty_label.toLowerCase()
+    );
 
-  if (exists) {
-    toast.error("This specialty already exists under the selected service.");
-    return;
-  }
-
-  try {
-    const resultAction = await dispatch(addSpecialty(formData));
-
-    if (addSpecialty.fulfilled.match(resultAction)) {
-      toast.success("Specialty added successfully!");
-      setOpenModal(false);
-      dispatch(fetchSpecialtiesByServiceId(selectedServiceId));
-    } else {
-      toast.error(resultAction.payload as string);
+    if (exists) {
+      toast.error("This specialty already exists under the selected service.");
+      return;
     }
-  } catch {
-    toast.error("Something went wrong while adding the specialty.");
-  }
-};
 
+    try {
+      const resultAction = await dispatch(addSpecialty(formData));
+
+      if (addSpecialty.fulfilled.match(resultAction)) {
+        toast.success("Specialty added successfully!");
+        setOpenModal(false);
+        dispatch(fetchSpecialtiesByServiceId(selectedServiceId));
+      } else {
+        toast.error(resultAction.payload as string);
+      }
+    } catch {
+      toast.error("Something went wrong while adding the specialty.");
+    }
+  };
 
   return (
     <div className="p-4 space-y-4">
@@ -146,9 +140,9 @@ export default function Specialties() {
               />
             </SelectTrigger>
             <SelectContent>
-              {services.map((srv) => (
+              {serviceSpecialityData.map((srv) => (
                 <SelectItem key={srv.id} value={srv.id}>
-                  {srv.name || srv.service_label}
+                  {srv.name}
                 </SelectItem>
               ))}
             </SelectContent>

@@ -1,4 +1,4 @@
-import PaymentDetailsPage from "@/components/dashboard/receptionist/PaymentDetailsPage";
+import PaymentDetailsPage from "@/components/dashboard/receptionist/paymentDetails/PaymentDetailsPage";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

@@ -369,15 +369,17 @@ export default function DoctorManagement() {
     {
       header: "Service Specialty",
       accessorKey: "service_specialty.display",
-      cell: ({ row }) => row.original.service_specialty?.display ?? "N/A",
+      cell: ({ row }) =>
+        row.original.service_specialty?.specialty_label ?? "N/A",
     },
-    // {
-    //   header: "Qualification",
-    //   cell: ({ row }) =>
-    //     row.original.qualification?.[0]?.degree
-    //       ? `${row.original.qualification[0].degree}, ${row.original.qualification[0].institution}`
-    //       : "N/A",
-    // },
+    {
+      header: "Email Address",
+      accessorFn: (row) => row.user?.email,
+      cell: ({ getValue }) => {
+        const email = getValue() as string | undefined;
+        return <p className="lowercase">{email || "N/A"}</p>;
+      },
+    },
     {
       header: "Active Status",
       accessorFn: (row) => row.is_active,
@@ -560,8 +562,7 @@ export default function DoctorManagement() {
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
-       
- <div>
+        <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <Stethoscope className="w-8 h-8 text-primary" />
             Doctor Management
@@ -669,26 +670,26 @@ export default function DoctorManagement() {
           </DialogContent>
         </Dialog>
       </div>
-<Card>
+      <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Doctor Management</CardTitle>
-             <Input
-          placeholder="Filter by Doctor Name..."
-          value={filterValue}
-          onChange={(e) => setFilterValue(e.target.value)}
-          className="max-w-48"
-        />
-         </div>
-                </CardHeader>
-                <CardContent>
-      <DataTable<ExtendedDoctorData>
-        columns={columns}
-        data={doctors}
-        filterColumn="name"
-        externalFilterValue={filterValue}
-      />
-  </CardContent>
+            <Input
+              placeholder="Filter by Doctor Name..."
+              value={filterValue}
+              onChange={(e) => setFilterValue(e.target.value)}
+              className="max-w-48"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <DataTable<ExtendedDoctorData>
+            columns={columns}
+            data={doctors}
+            filterColumn="name"
+            externalFilterValue={filterValue}
+          />
+        </CardContent>
       </Card>
       <Dialog
         open={open}

@@ -1,6 +1,7 @@
 import { ORG_TENANT_ID } from "@/config/authKeys";
 import { api, axios } from "@/lib/axios";
 import {
+  AppointmentBookingPayload,
   CreateNewAppointmentPayload,
   medicationReminderCreatePayload,
   MedicationReminderUpdatePayload,
@@ -309,6 +310,47 @@ export const updateRedeemedRewardPoints = async (
       `reward-redemption/?redemption_id=${redemption_id}`,
       payload
     );
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const checkPatientExistence = async (email_phone: string) => {
+  try {
+    const response = await api.get(`user/exists?email_phone=${email_phone}`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const fetchUserDetails = async (user_id: string) => {
+  try {
+    const response = await api.get(`user/?user_id=${user_id}`);
+    return response.data;
+  } catch (error: any) {
+    if (axios.isAxiosError(error)) {
+      const message = error?.message || "Failed to update appointment referral";
+      throw new Error(message);
+    }
+    throw new Error("Unexpected error occurred.");
+  }
+};
+
+export const bookAppointmentWalkInByClinic = async (
+  payload: AppointmentBookingPayload
+) => {
+  try {
+    const response = await api.post(`appointment/by-admin`, payload);
     return response.data;
   } catch (error: any) {
     if (axios.isAxiosError(error)) {

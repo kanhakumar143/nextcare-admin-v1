@@ -286,6 +286,11 @@ export const receptionistRoutes: Route[] = [
     name: "Attendance",
     icon: LayoutDashboard,
   },
+  {
+    href: "/dashboard/receptionist/book-appointment",
+    name: "Book Appointment",
+    icon: Calendar1,
+  },
 ];
 
 // Pharmacist Navigation Routes

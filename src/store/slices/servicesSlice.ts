@@ -1,6 +1,7 @@
 // store/slices/servicesSlice.ts
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getServices } from "@/services/admin.api"; // your API file
+import { getOnlyServices, getServices } from "@/services/admin.api"; // your API file
+import { ServicesState } from "@/types/services.types";
 
 export const fetchServices = createAsyncThunk(
   "services/fetchServices",
@@ -10,17 +11,19 @@ export const fetchServices = createAsyncThunk(
   }
 );
 
-interface ServicesState {
-  items: any[];
-  loading: boolean;
-  error: string | null;
-  pricing?: any; // Add this line
-}
+export const fetchOnlyServices = createAsyncThunk(
+  "services/fetchOnlyServices",
+  async () => {
+    const data = await getOnlyServices();
+    return data;
+  }
+);
 
 const initialState: ServicesState = {
   items: [],
   loading: false,
   error: null,
+  serviceSpecialityData: [],
 };
 
 const servicesSlice = createSlice({
@@ -39,6 +42,19 @@ const servicesSlice = createSlice({
       .addCase(fetchServices.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch services";
+      })
+      // Handle fetchOnlyServices
+      .addCase(fetchOnlyServices.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchOnlyServices.fulfilled, (state, action) => {
+        state.loading = false;
+        state.serviceSpecialityData = action.payload;
+      })
+      .addCase(fetchOnlyServices.rejected, (state, action) => {
+        state.loading = false;
+        state.error =
+          action.error.message || "Failed to fetch service speciality data";
       });
   },
 });

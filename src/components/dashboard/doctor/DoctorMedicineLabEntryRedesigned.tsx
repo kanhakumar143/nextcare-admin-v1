@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ListPlus,
   Plus,
@@ -35,6 +36,8 @@ import {
   FlaskConical,
   AlertTriangle,
   Info,
+  Sparkles,
+  Bot,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -180,7 +183,6 @@ const timingOptions = [
   { key: "evening", label: "Evening" },
   { key: "night", label: "Night" },
 ];
-
 // Color variants for different sections
 const colorVariants = {
   emerald: {
@@ -196,6 +198,80 @@ const colorVariants = {
     hover: "hover:bg-emerald-50",
   },
 };
+
+// AI Suggestions Component
+function AISuggestions({
+  title,
+  suggestions,
+  onAddSuggestion,
+  type,
+}: {
+  title: string;
+  suggestions: any[];
+  onAddSuggestion: (suggestion: any) => void;
+  type: "medicine" | "labtest";
+}) {
+  console.log("AI Suggestions Rendered: ", suggestions);
+  return (
+    <Card className="shadow-sm border border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 h-full flex flex-col">
+      <CardHeader className="pb-3 flex-shrink-0">
+        <div className="flex items-center gap-2">
+          <div className="p-1.5 bg-purple-100 rounded-lg">
+            <Bot className="h-4 w-4 text-purple-600" />
+          </div>
+          <CardTitle className="text-sm font-semibold text-purple-800">
+            {title}
+          </CardTitle>
+          <Sparkles className="h-4 w-4 text-purple-500" />
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col p-0">
+        <ScrollArea className="flex-1 px-3">
+          <div className="space-y-2 pb-4 max-h-[25vh]">
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-gray-900 text-sm truncate">
+                    {type === "medicine"
+                      ? suggestion.name
+                      : suggestion.test_name || suggestion.test_display}
+                  </p>
+                  {type === "medicine" && (
+                    <p className="text-xs text-gray-600">
+                      {suggestion.strength} • {suggestion.form} •{" "}
+                      {suggestion.frequency}
+                    </p>
+                  )}
+                  {type === "labtest" && (
+                    <p className="text-xs text-gray-600">
+                      {suggestion.priority} • {suggestion.intent}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  onClick={() => onAddSuggestion(suggestion)}
+                  size="sm"
+                  variant="ghost"
+                  className="ml-2 h-8 w-8 p-0 hover:bg-purple-100 hover:text-purple-700"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </ScrollArea>
+        <div className="px-6 border-t border-purple-100 flex-shrink-0">
+          <p className="text-xs text-purple-600 text-center">
+            AI-powered suggestions based on symptoms
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
 // Timing Multi-Select Component
 function TimingMultiSelect({
@@ -495,8 +571,14 @@ function DoctorOrdersRedesigned({
   const dispatch = useDispatch();
 
   // Get data from Redux store
-  const { labTests, medicines, isEditingConsultation, singlePatientDetails } =
-    useSelector((state: RootState) => state.doctor);
+  const {
+    labTests,
+    medicines,
+    isEditingConsultation,
+    singlePatientDetails,
+    aiSuggestedMedications,
+    aiSuggestedLabTests,
+  } = useSelector((state: RootState) => state.doctor);
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
@@ -534,6 +616,46 @@ function DoctorOrdersRedesigned({
       }),
     };
     dispatch(addMedicine(newMedicine));
+  };
+
+  // Add suggested items functions
+  const addSuggestedLabTest = (suggestion: any) => {
+    const newLabTest: LabTest = {
+      notes: suggestion.ai_note || "",
+      test_display: suggestion.test_name || suggestion.test_display || "",
+      intent: suggestion.intent || "order",
+      priority: suggestion.priority?.toLowerCase() || "routine",
+    };
+    dispatch(addLabTest(newLabTest));
+    toast.success("Lab test added from AI suggestion");
+  };
+
+  const addSuggestedMedicine = (suggestion: any) => {
+    const newMedicine: Medication = {
+      name: suggestion.name || "",
+      strength: suggestion.strength || "",
+      form: suggestion.form || "",
+      route: suggestion.route || "",
+      frequency: "",
+      timing: {
+        morning: false,
+        afternoon: false,
+        evening: false,
+        night: false,
+      },
+      duration: suggestion.duration || "",
+      dosage_instruction: suggestion.ai_note || "",
+      ...(isEditingConsultation && {
+        medication_request_id: appointmentDetails?.prescriptions[0]?.id,
+      }),
+    };
+    dispatch(addMedicine(newMedicine));
+    toast.success("Medicine added from AI suggestion");
+
+    // Check for drug warnings
+    if (suggestion.name) {
+      checkDrugWarning(suggestion.name);
+    }
   };
 
   // Update functions
@@ -603,92 +725,131 @@ function DoctorOrdersRedesigned({
             : deleteMedicineItem;
 
           return (
-            <Card
+            <div
               key={section.title}
-              className="shadow-sm border-0 bg-white/80 backdrop-blur-sm"
+              className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:items-start"
             >
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 ${colors.bg} rounded-lg`}>
-                      <IconComponent className={`h-5 w-5 ${colors.text}`} />
+              {/* Main Table */}
+              <div
+                className={
+                  aiSuggestedLabTests?.length > 0 ||
+                  aiSuggestedMedications?.length > 0
+                    ? "lg:col-span-3"
+                    : "lg:col-span-8"
+                }
+              >
+                <Card className="shadow-sm border-0 bg-white/80 backdrop-blur-sm h-full">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 ${colors.bg} rounded-lg`}>
+                          <IconComponent className={`h-5 w-5 ${colors.text}`} />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl font-bold text-gray-900">
+                            {section.title}
+                          </CardTitle>
+                          <p className="text-sm text-gray-600">
+                            {isLabTests
+                              ? "Order laboratory tests and investigations"
+                              : "Prescribe medications with dosage instructions"}
+                          </p>
+                        </div>
+                      </div>
+                      <Button onClick={addFunction} variant="outline">
+                        <Plus size={16} />
+                        <span className="hidden sm:inline">
+                          Add {isLabTests ? "Test" : "Medicine"}
+                        </span>
+                      </Button>
                     </div>
-                    <div>
-                      <CardTitle className="text-xl font-bold text-gray-900">
-                        {section.title}
-                      </CardTitle>
-                      <p className="text-sm text-gray-600">
-                        {isLabTests
-                          ? "Order laboratory tests and investigations"
-                          : "Prescribe medications with dosage instructions"}
-                      </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="rounded-lg border border-gray-200 overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-gray-50/50">
+                            <TableHead className="text-center w-12">
+                              #
+                            </TableHead>
+                            {section.fields.map((f) => (
+                              <TableHead key={f.key} className="font-semibold">
+                                {f.placeholder}
+                              </TableHead>
+                            ))}
+                            <TableHead className="w-32">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {currentData.length === 0 ? (
+                            <TableRow>
+                              <TableCell
+                                colSpan={section.fields.length + 2}
+                                className="text-center py-12"
+                              >
+                                <div className="flex flex-col items-center justify-center space-y-3">
+                                  <IconComponent className="h-12 w-12 text-gray-400" />
+                                  <div>
+                                    <p className="text-lg font-medium text-gray-600">
+                                      No{" "}
+                                      {isLabTests ? "lab tests" : "medicines"}{" "}
+                                      added yet
+                                    </p>
+                                    <p className="text-sm text-gray-500">
+                                      Click "Add{" "}
+                                      {isLabTests ? "Test" : "Medicine"}" to get
+                                      started
+                                    </p>
+                                  </div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            currentData.map(
+                              (item: LabTest | Medication, index: number) => (
+                                <EditableTableRow
+                                  key={index}
+                                  item={item}
+                                  fields={section.fields}
+                                  onUpdate={updateFunction}
+                                  onDelete={deleteFunction}
+                                  onAdd={onAddMoreFields}
+                                  showAddButton={!isLabTests}
+                                  index={index}
+                                />
+                              )
+                            )
+                          )}
+                        </TableBody>
+                      </Table>
                     </div>
-                  </div>
-                  <Button onClick={addFunction} variant="outline">
-                    <Plus size={16} />
-                    <span className="hidden sm:inline">
-                      Add {isLabTests ? "Test" : "Medicine"}
-                    </span>
-                  </Button>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* AI Suggestions Panel */}
+              {((isLabTests && aiSuggestedLabTests?.length > 0) ||
+                (!isLabTests && aiSuggestedMedications?.length > 0)) && (
+                <div className="lg:col-span-1">
+                  <AISuggestions
+                    title={
+                      isLabTests
+                        ? "AI - Suggested Lab Tests"
+                        : "AI - Suggested Medicines"
+                    }
+                    suggestions={
+                      isLabTests
+                        ? aiSuggestedLabTests || []
+                        : aiSuggestedMedications || []
+                    }
+                    onAddSuggestion={
+                      isLabTests ? addSuggestedLabTest : addSuggestedMedicine
+                    }
+                    type={isLabTests ? "labtest" : "medicine"}
+                  />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="rounded-lg border border-gray-200 overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50/50">
-                        <TableHead className="text-center w-12">#</TableHead>
-                        {section.fields.map((f) => (
-                          <TableHead key={f.key} className="font-semibold">
-                            {f.placeholder}
-                          </TableHead>
-                        ))}
-                        <TableHead className="w-32">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {currentData.length === 0 ? (
-                        <TableRow>
-                          <TableCell
-                            colSpan={section.fields.length + 2}
-                            className="text-center py-12"
-                          >
-                            <div className="flex flex-col items-center justify-center space-y-3">
-                              <IconComponent className="h-12 w-12 text-gray-400" />
-                              <div>
-                                <p className="text-lg font-medium text-gray-600">
-                                  No {isLabTests ? "lab tests" : "medicines"}{" "}
-                                  added yet
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  Click "Add {isLabTests ? "Test" : "Medicine"}"
-                                  to get started
-                                </p>
-                              </div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        currentData.map(
-                          (item: LabTest | Medication, index: number) => (
-                            <EditableTableRow
-                              key={index}
-                              item={item}
-                              fields={section.fields}
-                              onUpdate={updateFunction}
-                              onDelete={deleteFunction}
-                              onAdd={onAddMoreFields}
-                              showAddButton={!isLabTests}
-                              index={index}
-                            />
-                          )
-                        )
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           );
         })}
       </div>

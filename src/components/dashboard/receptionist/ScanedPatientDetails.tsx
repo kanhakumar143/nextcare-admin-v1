@@ -73,7 +73,7 @@ const ScannedPatientDetails = () => {
         <CardContent className="space-y-4">
           {/* Patient Details */}
           <div className="text-left">
-            <h2 className="text-md font-semibold text-gray-800">
+            <h2 className="text-md font-semibold text-gray-800 border-b-2 pb-2 border-primary">
               Patient <span className="">Details</span>
             </h2>
           </div>
@@ -84,18 +84,14 @@ const ScannedPatientDetails = () => {
               <div className="font-medium">Phone:</div>
             </div>
             <div className="space-y-1">
-              <div className="text-primary font-bold">
-                {patientDetails.patient.name}
-              </div>
-              <div className="text-primary font-bold">
-                {patientDetails.patient.phone}
-              </div>
+              <div className="font-bold">{patientDetails.patient.name}</div>
+              <div className="font-bold">{patientDetails.patient.phone}</div>
             </div>
           </div>
 
           {/* Booking Details */}
           <div className="text-left mt-6">
-            <h2 className="text-md font-semibold text-gray-800">
+            <h2 className="text-md font-semibold text-gray-800 border-b-2 pb-2 border-primary">
               Booking <span className="">Details</span>
             </h2>
           </div>
@@ -108,13 +104,13 @@ const ScannedPatientDetails = () => {
               <div className="font-medium">Booking Status:</div>
             </div>
             <div className="space-y-1">
-              <div className="text-primary font-bold">
+              <div className="font-bold">
                 {patientDetails.appointment.service_category[0].text}
               </div>
-              <div className="text-primary font-bold">
+              <div className="font-bold">
                 {formatDate(patientDetails.appointment.slot_info.start)}
               </div>
-              <div className="text-primary font-bold">
+              <div className="font-bold">
                 {moment
                   .utc(patientDetails.appointment.slot_info.start)
                   .format("hh:mm a")}{" "}
@@ -141,7 +137,7 @@ const ScannedPatientDetails = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 mt-5">
+          <div className="flex flex-col gap-2 mt-5 border-t-2 pt-2 border-primary">
             {patientDetails.patient.patient_profile.verifications[0]
               .verification_status !== "verified" ? (
               <>
@@ -168,7 +164,7 @@ const ScannedPatientDetails = () => {
                 {patientDetails.appointment.status !== "checked_in" ? (
                   <Button
                     onClick={handleCheckIn}
-                    className="w-full bg-green-500 hover:bg-green-400 text-white font-semibold"
+                    className="w-full bg-primary hover:bg-green-400 text-white font-semibold"
                   >
                     {loading ? "Checking In..." : "Confirm Check-In"}
                   </Button>
