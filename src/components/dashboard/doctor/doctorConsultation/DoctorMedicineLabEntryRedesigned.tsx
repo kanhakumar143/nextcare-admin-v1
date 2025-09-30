@@ -124,7 +124,7 @@ const normalizeMedicineSuggestion = (suggestion: any) => {
       weekly: "weekly",
       monthly: "monthly",
     };
-    normalized.frequency = freqMap[freqLower] || normalized.frequency;
+    normalized.frequency = freqMap[freqLower] || "once-daily";
   }
 
   // Normalize route
@@ -142,7 +142,7 @@ const normalizeMedicineSuggestion = (suggestion: any) => {
       inhalation: "inhalation",
       transdermal: "transdermal",
     };
-    normalized.route = routeMap[routeLower] || normalized.route;
+    normalized.route = routeMap[routeLower] || "oral";
   }
 
   // Normalize form
@@ -159,7 +159,7 @@ const normalizeMedicineSuggestion = (suggestion: any) => {
       spray: "spray",
       syrup: "syrup",
     };
-    normalized.form = formMap[formLower] || normalized.form;
+    normalized.form = formMap[formLower] || "tablet";
   }
 
   return normalized;
@@ -182,7 +182,7 @@ const normalizeLabTestSuggestion = (suggestion: any) => {
       "instance-order": "instance-order",
       option: "option",
     };
-    normalized.intent = intentMap[intentLower] || normalized.intent;
+    normalized.intent = intentMap[intentLower] || "plan";
   }
 
   // Normalize priority
@@ -193,10 +193,10 @@ const normalizeLabTestSuggestion = (suggestion: any) => {
       urgent: "urgent",
       asap: "asap",
       stat: "stat",
-      high: "high",
-      medium: "medium",
+      // high: "high",
+      // medium: "medium",
     };
-    normalized.priority = priorityMap[priorityLower] || normalized.priority;
+    normalized.priority = priorityMap[priorityLower] || "routine";
   }
 
   return normalized;
@@ -927,6 +927,7 @@ function DoctorOrdersRedesigned({
   };
 
   const addSuggestedMedicine = (suggestion: any) => {
+    console.log("Adding suggested medicine:", suggestion);
     const normalizedSuggestion = normalizeMedicineSuggestion(suggestion);
     const newMedicine: Medication = {
       name: suggestion.name || "",

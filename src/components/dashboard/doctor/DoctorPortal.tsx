@@ -29,14 +29,14 @@ const DoctorPortal = () => {
   const { patientQueueList, labTestsReviewData } = useSelector(
     (state: RootState) => state.doctor
   );
-  const { setOpen } = useSidebar();
+  const { setOpen, toggleSidebar } = useSidebar();
   const handlePatientInfo = (patient: PatientInfo) => {
     console.log("Patient Info: ", patient);
     dispatch(setSinglePatientDetails(patient));
     dispatch(setTempAppointmentId(patient.id));
     dispatch(setConsultationMode("new"));
+    toggleSidebar(); // Close the sidebar
     router.push(`/dashboard/doctor/consultation/${patient.id}`);
-    setOpen(false); // Close the sidebar
   };
 
   const handleLabTests = (patient: PatientInfo) => {
@@ -136,7 +136,7 @@ const DoctorPortal = () => {
   useEffect(() => {
     // if (!patientQueueList || patientQueueList.length === 0) {
     dispatch(fetchAssignedAppointments(practitionerId));
-    setOpen(true);
+    // setOpen(true);
     // }
   }, []);
 
