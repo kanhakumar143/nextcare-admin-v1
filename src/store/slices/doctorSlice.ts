@@ -43,8 +43,6 @@ export const fetchPractitionerDetails = createAsyncThunk(
 const initialState: doctorSliceInitialStates = {
   confirmConsultationModalVisible: false,
   EprescriptionDetails: null,
-  aiSuggestedMedications: [],
-  aiSuggestedLabTests: [],
   appointmentIdTemp: null,
   ConfirmReviewPrescriptionModalVisible: false,
   editVitalsModalVisible: false,
@@ -125,12 +123,6 @@ const doctorSlice = createSlice({
     setTempAppointmentId: (state, action: PayloadAction<string | null>) => {
       state.appointmentIdTemp = action.payload;
     },
-    setAiSuggestedLabTests: (state, action: PayloadAction<any[]>) => {
-      state.aiSuggestedLabTests = action.payload;
-    },
-    setAiSuggestedMedications: (state, action: PayloadAction<any[]>) => {
-      state.aiSuggestedMedications = action.payload;
-    },
     setAiSuggestedchiefComplaint: (
       state,
       action: PayloadAction<{
@@ -202,7 +194,11 @@ const doctorSlice = createSlice({
     },
     updateLabTest: (
       state,
-      action: PayloadAction<{ index: number; key: string; value: string | boolean }>
+      action: PayloadAction<{
+        index: number;
+        key: string;
+        value: string | boolean;
+      }>
     ) => {
       const { index, key, value } = action.payload;
       if (state.labTests[index]) {
@@ -386,8 +382,6 @@ export const {
   updateMedicine,
   deleteLabTest,
   deleteMedicine,
-  setAiSuggestedLabTests,
-  setAiSuggestedMedications,
   setEprescriptionDetails,
   setAiSuggestedchiefComplaint,
   setTempAppointmentId,

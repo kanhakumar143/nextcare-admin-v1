@@ -5,14 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableHeader,
-  TableBody,
-  TableHead,
-  TableRow,
-  TableCell,
-} from "@/components/ui/table";
+// import {
+//   Table,
+//   TableHeader,
+//   TableBody,
+//   TableHead,
+//   TableRow,
+//   TableCell,
+// } from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -41,11 +41,7 @@ import {
   FlaskConical,
   AlertTriangle,
   Info,
-  Sparkles,
-  Bot,
-  Edit3,
   Save,
-  X,
   Edit,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -63,6 +59,7 @@ import MedicationInstructionsModal from "../modals/MedicationInstructionsModal";
 import EditItemModal from "./modals/EditItemModal";
 import { toast } from "sonner";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
+import AISuggestions from "./AISuggestions";
 
 // Drug warnings configuration
 const drugWarnings = {
@@ -307,79 +304,6 @@ const colorVariants = {
   },
 };
 
-// AI Suggestions Component
-function AISuggestions({
-  title,
-  suggestions,
-  onAddSuggestion,
-  type,
-}: {
-  title: string;
-  suggestions: any[];
-  onAddSuggestion: (suggestion: any) => void;
-  type: "medicine" | "labtest";
-}) {
-  console.log("AI Suggestions Rendered: ", suggestions);
-  return (
-    <Card className="shadow-sm border-1 border-purple-200 bg-gradient-to-br from-purple-50 to-indigo-50 h-full flex flex-col">
-      <CardHeader className="flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-purple-100 rounded-lg">
-            <Sparkles className="h-4 w-4 text-purple-500" />
-          </div>
-          <CardTitle className="text-sm font-semibold text-purple-800">
-            {title}
-          </CardTitle>
-        </div>
-      </CardHeader>
-      <CardContent className="flex-1 flex flex-col p-0">
-        <ScrollArea className="flex-1 px-3">
-          <div className="space-y-2 pb-4 max-h-[25vh] max-w-full">
-            {suggestions.map((suggestion, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 bg-white rounded-lg border border-purple-100 hover:border-purple-200 transition-colors"
-              >
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm truncate">
-                    {type === "medicine"
-                      ? suggestion.name
-                      : suggestion.test_name || suggestion.test_display}
-                  </p>
-                  {type === "medicine" && (
-                    <p className="text-xs text-gray-600">
-                      {suggestion.strength} • {suggestion.form} •{" "}
-                      {suggestion.frequency}
-                    </p>
-                  )}
-                  {type === "labtest" && (
-                    <p className="text-xs text-gray-600">
-                      {suggestion.priority} • {suggestion.intent}
-                    </p>
-                  )}
-                </div>
-                <Button
-                  onClick={() => onAddSuggestion(suggestion)}
-                  size="sm"
-                  variant="ghost"
-                  className="ml-2 h-8 w-8 p-0 hover:bg-purple-100 hover:text-purple-700"
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
-        <div className="px-6 border-t border-purple-100 flex-shrink-0">
-          <p className="text-xs text-purple-600 text-center">
-            AI-powered suggestions based on symptoms
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
 // Timing Multi-Select Component
 function TimingMultiSelect({
   value,
@@ -476,7 +400,6 @@ function EditableCardItem({
   isLabTest?: boolean;
 }) {
   const isEditing = item.isEditing !== false; // Default to true for backward compatibility
-  const addedFromAI = item.addedFromAI || false;
 
   // Function to render field value in read-only mode
   const renderReadOnlyValue = (field: any, value: any) => {
@@ -835,14 +758,12 @@ function DoctorOrdersRedesigned({
   const dispatch = useDispatch();
 
   // Get data from Redux store
-  const {
-    labTests,
-    medicines,
-    isEditingConsultation,
-    singlePatientDetails,
-    aiSuggestedMedications,
-    aiSuggestedLabTests,
-  } = useSelector((state: RootState) => state.doctor);
+  const { labTests, medicines, isEditingConsultation, singlePatientDetails } =
+    useSelector((state: RootState) => state.doctor);
+
+  const { aiSuggestedMedications, aiSuggestedLabTests } = useSelector(
+    (state: RootState) => state.doctorConsultation
+  );
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);

@@ -19,7 +19,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Edit,
-  Info,
   Ruler,
   Weight,
   Thermometer,
@@ -35,9 +34,6 @@ import {
   User,
   BookOpen,
   ArrowLeft,
-  Video,
-  User2,
-  UserCircle,
 } from "lucide-react";
 import ConfirmConsultationModal from "../modals/ConfirmConsultationModal";
 import EditVitalsModal from "../modals/EditVitalsModal";
@@ -53,24 +49,18 @@ import {
 } from "@/store/slices/doctorSlice";
 import { RootState } from "@/store";
 import { useParams, useRouter } from "next/navigation";
-import {
-  getAssignedAppointmentDtlsById,
-  getMeetingURL,
-} from "@/services/doctor.api";
+import { getAssignedAppointmentDtlsById } from "@/services/doctor.api";
 import { toast } from "sonner";
 import { AppointmentDtlsForDoctor } from "@/types/doctorNew.types";
 import DentalProcedureEntry from "../DentalProcedureEntry";
 import { DataTable } from "@/components/common/DataTable";
 import { Badge } from "@/components/ui/badge";
-import LoadingSpinner from "@/components/common/LoadingSpinner";
 import { ImageReportModal } from "@/components/dashboard/doctor/modals/ImageReportModal";
 import ConsultationRecorder from "./ConsultationRecorder";
 import PreConsultationAnswers from "./PreConsultationAnswersRedesigned";
 import EhrModal from "../modals/ehrModal";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
-import RecordingWave from "@/components/common/RecordingWaveAnimation";
 import { ScrollArea } from "@/components/ui/scroll-area";
-// import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export default function PatientConsultation() {
   const { practitionerId } = useAuthInfo();
@@ -86,17 +76,59 @@ export default function PatientConsultation() {
   const [apptDtls, setApptDtls] = useState<AppointmentDtlsForDoctor | null>(
     null
   );
-  const [transcriptionLoading, setTranscriptionLoading] = useState(false);
-  const [pauseRecording, setPauseRecording] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
-  const [meetingURL, setMeetingURL] = useState<string>(
-    "https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjU1NmY3NjYtOWI0Yi00NzZkLWJlN2YtYWY2NDU0YjA0YzAy%40thread.v2/0?context=%7b%22Tid%22%3a%22774486a0-0b12-4dc4-8826-7509c0aba4b5%22%2c%22Oid%22%3a%220aa623a3-9104-44e4-8ea2-4056cf08a2f2%22%7d"
-  );
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [referralSheetOpen, setReferralSheetOpen] = useState(false);
   const router = useRouter();
 
   const [ehrModalOpen, setEhrModalOpen] = useState(false);
+  const [transcriptionLoading, setTranscriptionLoading] = useState(false);
+  const [pauseRecording, setPauseRecording] = useState(false);
+  const [recordingTimer, setRecordingTimer] = useState(0);
+  const [isRecording, setIsRecording] = useState(false);
+  const [timerVisible, setTimerVisible] = useState(false);
+
+  // Timer logic for recording
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRecording && !pauseRecording) {
+      interval = setInterval(() => {
+        setRecordingTimer((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isRecording, pauseRecording]);
+
+  // Handle recording start/stop
+  const handleRecordingStart = () => {
+    setIsRecording(true);
+    setTimerVisible(true);
+    setRecordingTimer(0);
+  };
+
+  const handleRecordingStop = () => {
+    setIsRecording(false);
+    // setRecordingTimer(0);
+    // Hide timer after 5 seconds
+    setTimeout(() => {
+      setTimerVisible(false);
+    }, 2000);
+  };
+
+  const handleRecordingPause = (paused: boolean) => {
+    setPauseRecording(paused);
+  };
+
+  // Format timer as MM:SS
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}`;
+  };
 
   const getVitalIcon = (code: string) => {
     const iconProps = { className: "h-4 w-4 text-gray-600" };
@@ -141,19 +173,6 @@ export default function PatientConsultation() {
       populateExistingConsultationData();
     }
   }, [consultationMode, apptDtls]);
-
-  const getMeetingLink = async () => {
-    //not working
-    try {
-      const response = await getMeetingURL(apptDtls?.id || "");
-      setMeetingURL(response.meeting_url);
-    } catch (error) {
-      setMeetingURL(
-        "https://teams.microsoft.com/l/meetup-join/19%3ameeting_YjU1NmY3NjYtOWI0Yi00NzZkLWJlN2YtYWY2NDU0YjA0YzAy%40thread.v2/0?context=%7b%22Tid%22%3a%22774486a0-0b12-4dc4-8826-7509c0aba4b5%22%2c%22Oid%22%3a%220aa623a3-9104-44e4-8ea2-4056cf08a2f2%22%7d"
-      );
-      console.log("Error fetching meeting URL:", error);
-    }
-  };
 
   const populateExistingConsultationData = () => {
     if (!apptDtls) return;
@@ -286,13 +305,8 @@ export default function PatientConsultation() {
               >
                 <ArrowLeft className="h-4 w-4" />
               </Button>
-              {/* <SidebarTrigger
-                className="size-8 hover:bg-gray-100/80"
-                title="Toggle Sidebar"
-              /> */}
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
-                  {/* <UserCircle className="h-8 w-8" /> */}
                   <div className="">
                     <Label className="text-md font-bold text-gray-900">
                       {singlePatientDetails?.patient?.user?.name || "Patient"}
@@ -311,7 +325,18 @@ export default function PatientConsultation() {
               </div>
             </div>
 
-            <div className="flex gap-2">
+            {/* Recording Timer */}
+            {timerVisible && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200 rounded-lg">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-red-800">
+                  {pauseRecording ? "Recording Paused" : "Recording"} -{" "}
+                  {formatTimer(recordingTimer)}
+                </span>
+              </div>
+            )}
+
+            <div className="flex gap-0">
               <Button
                 variant="outline"
                 onClick={handlePatientHealthRecord}
@@ -323,7 +348,9 @@ export default function PatientConsultation() {
               <ConsultationRecorder
                 appointmentId={apptDtls?.id || ""}
                 onTranscriptionLoading={setTranscriptionLoading}
-                onPauseRecording={setPauseRecording}
+                onPauseRecording={handleRecordingPause}
+                onRecordingStart={handleRecordingStart}
+                onRecordingStop={handleRecordingStop}
               />
             </div>
           </div>
@@ -388,15 +415,6 @@ export default function PatientConsultation() {
           </Button>
         </div>
       </div>
-
-      {/* {transcriptionLoading && (
-        <div className="bg-muted mx-3 rounded-lg my-4 animate-pulse border-gray-400 border-2">
-          <RecordingWave
-            isRecording={transcriptionLoading}
-            pauseRecord={pauseRecording}
-          />
-        </div>
-      )} */}
 
       <div className="mx-4 grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
         <div className="lg:col-span-2 space-y-4">

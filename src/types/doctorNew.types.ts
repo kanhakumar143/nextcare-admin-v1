@@ -290,6 +290,12 @@ export interface PractitionerData {
     };
   };
   practitioner_data: {
+    user: {
+      id: string;
+      name: string;
+      is_active: boolean;
+      email: string;
+    };
     practitioner_display_id: string;
     identifiers: Array<{
       system: string;

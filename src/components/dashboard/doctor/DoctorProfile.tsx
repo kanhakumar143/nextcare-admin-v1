@@ -66,7 +66,7 @@ export default function DoctorProfile() {
   const { user_data, practitioner_data } = practitionerData;
 
   const getFullName = () => {
-    const { prefix, given, family } = practitioner_data.name;
+    const { prefix, given, family } = practitioner_data?.name || {};
     return `${prefix?.[0] || ""} ${given?.join(" ") || ""} ${
       family || ""
     }`.trim();
@@ -132,8 +132,10 @@ export default function DoctorProfile() {
           {/* Info */}
           <div className="flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-semibold">{getFullName()}</h1>
-              {practitioner_data.qualification.map((qual, i) => (
+              <h1 className="text-2xl font-semibold">
+                {getFullName() || practitioner_data.user.name}
+              </h1>
+              {practitioner_data.qualification?.map((qual, i) => (
                 <Badge key={i} variant="outline" className="text-xs">
                   {qual.degree}
                 </Badge>
@@ -164,8 +166,8 @@ export default function DoctorProfile() {
                 <Label>Additional Contact Details</Label>
                 <div className="">
                   {practitioner_data.telecom
-                    .filter((contact) => contact.rank !== 1)
-                    .map((contact, i) => (
+                    ?.filter((contact) => contact.rank !== 1)
+                    ?.map((contact, i) => (
                       <div
                         key={i}
                         className="flex items-center gap-2 text-gray-700 bg-gray-50 px-3 py-2 rounded"
@@ -221,7 +223,7 @@ export default function DoctorProfile() {
             <div>
               <Label>Registration Identifiers</Label>
               <div className="mt-2 space-y-1">
-                {practitioner_data.identifiers.map((id, i) => (
+                {practitioner_data.identifiers?.map((id, i) => (
                   <div key={i}>
                     <span className="font-medium">
                       {id.system.split("/").pop()}:
@@ -245,7 +247,7 @@ export default function DoctorProfile() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {practitioner_data.qualification.map((qual, i) => (
+              {practitioner_data.qualification?.map((qual, i) => (
                 <div key={i} className="bg-gray-50 rounded-md p-4">
                   <p className="font-semibold">{qual.degree}</p>
                   <p className="text-gray-600 text-sm">{qual.institution}</p>
@@ -273,7 +275,7 @@ export default function DoctorProfile() {
               <p className="font-medium">{user_data.tenant.name}</p>
             </div>
             <div className="mt-1 flex flex-wrap gap-1">
-              {user_data.tenant.alias.map((alias, i) => (
+              {user_data.tenant.alias?.map((alias, i) => (
                 <Badge key={i} variant="secondary" className="text-xs">
                   {alias}
                 </Badge>
@@ -283,7 +285,7 @@ export default function DoctorProfile() {
           <div>
             <Label>Support Contact</Label>
             <div className="mt-3 space-y-1">
-              {user_data.tenant.contact[0]?.telecom.map((c, i) => (
+              {user_data.tenant.contact?.[0]?.telecom?.map((c, i) => (
                 <div key={i} className="flex items-center gap-1 text-gray-700">
                   {c.system === "phone" ? (
                     <Phone className="w-4 h-4" />

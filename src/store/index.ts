@@ -9,6 +9,7 @@ import servicesReducer from "./slices/servicesSlice";
 import symptomReducer from "./slices/symptomsSlice";
 import preQuestionaryReducer from "./slices/preQuestionarySlice";
 import doctorReducer from "./slices/doctorSlice";
+import doctorConsultationReducer from "./slices/doctorConsultationSlice";
 import nurseReducer from "./slices/nurseSlice";
 import labOrderReducer from "./slices/labTechnicianSlice";
 import allAppointmentsReducer from "./slices/allAppointmentSlice";
@@ -32,6 +33,7 @@ const store = configureStore({
     services: servicesReducer,
     symptom: symptomReducer,
     doctor: doctorReducer,
+    doctorConsultation: doctorConsultationReducer,
     nurse: nurseReducer,
     preQuestionary: preQuestionaryReducer,
     labOrder: labOrderReducer,

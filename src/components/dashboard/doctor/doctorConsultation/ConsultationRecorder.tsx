@@ -7,8 +7,8 @@ import AITranscriptionLoader from "./AITranscriptionLoader";
 import { toast } from "sonner";
 import {
   setAiSuggestedchiefComplaint,
-  setAiSuggestedLabTests,
-  setAiSuggestedMedications,
+  // setAiSuggestedLabTests,
+  // setAiSuggestedMedications,
   updateVisitNote,
 } from "@/store/slices/doctorSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -19,17 +19,25 @@ import {
 } from "@/services/doctor.api";
 import { RootState } from "@/store";
 import RecordingWave from "@/components/common/RecordingWaveAnimation";
+import {
+  setAiSuggestedLabTests,
+  setAiSuggestedMedications,
+} from "@/store/slices/doctorConsultationSlice";
 
 interface ConsultationRecorderProps {
   appointmentId?: string;
-  onTranscriptionLoading: (loading: boolean) => void;
-  onPauseRecording: (paused: boolean) => void;
+  onTranscriptionLoading?: (loading: boolean) => void;
+  onPauseRecording?: (paused: boolean) => void;
+  onRecordingStart?: () => void;
+  onRecordingStop?: () => void;
 }
 
 export default function ConsultationRecorder({
-  appointmentId,
-  onTranscriptionLoading,
-  onPauseRecording,
+  // appointmentId,
+  // onTranscriptionLoading,
+  // onPauseRecording,
+  onRecordingStart,
+  onRecordingStop,
 }: ConsultationRecorderProps) {
   const dispatch = useDispatch();
   const [isRecording, setIsRecording] = useState(false);
@@ -47,7 +55,7 @@ export default function ConsultationRecorder({
 
   const startRecording = async () => {
     try {
-      onTranscriptionLoading(true);
+      // onTranscriptionLoading(true);
       setAiLoading(true);
       setAnimationForRecord(true);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -87,6 +95,7 @@ export default function ConsultationRecorder({
       mediaRecorder.start();
       setIsRecording(true);
       setShowRecordingUI(true);
+      onRecordingStart?.();
       toast.success("Recording started...");
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -98,7 +107,7 @@ export default function ConsultationRecorder({
 
   const pauseRecording = () => {
     if (mediaRecorderRef.current && isRecording && !isPaused) {
-      onPauseRecording(true);
+      // onPauseRecording(true);
       mediaRecorderRef.current.pause();
       setIsPaused(true);
       toast.info("Recording paused");
@@ -107,7 +116,7 @@ export default function ConsultationRecorder({
 
   const resumeRecording = () => {
     if (mediaRecorderRef.current && isRecording && isPaused) {
-      onPauseRecording(false);
+      // onPauseRecording(false);
       mediaRecorderRef.current.resume();
       setIsPaused(false);
       toast.success("Recording resumed");
@@ -219,11 +228,11 @@ export default function ConsultationRecorder({
       },
     };
 
-    transcribeAudio(audioBlob);
+    // transcribeAudio(audioBlob);
     setAiLoading(true);
-    // setAiStep("transcribing");
-    // dispatch(setAiSuggestedLabTests(response.investigations || []));
-    // dispatch(setAiSuggestedMedications(response.medicines || []));
+    setAiStep("transcribing");
+    dispatch(setAiSuggestedLabTests(response.investigations || []));
+    dispatch(setAiSuggestedMedications(response.medicines || []));
     // setAiStep("analyzing");
   }, [audioBlob]);
 
@@ -298,61 +307,10 @@ export default function ConsultationRecorder({
       setIsPaused(false);
       setShowRecordingUI(false);
       setAiLoading(true);
-
+      onRecordingStop?.();
       // setShowRecordingAnim(false);
     }
   };
-
-  // Futuristic Spiral Wave Animation Component
-  // const SpiralWaveAnimation = () => {
-  //   return (
-  //     <div className="relative flex items-center justify-center w-full h-24">
-  //       {/* Core glowing orb */}
-  //       <div
-  //         className={`w-6 h-6 rounded-full bg-gradient-to-r from-cyan-400 to-fuchsia-500 shadow-[0_0_20px_6px_rgba(56,189,248,0.6)]
-  //       ${isPaused ? "opacity-40 scale-90" : "animate-pulse"} `}
-  //       />
-
-  //       {/* Dancing spiral waves */}
-  //       {[...Array(5)].map((_, i) => (
-  //         <div
-  //           key={i}
-  //           className={`absolute rounded-full border-2 border-transparent bg-gradient-to-r
-  //         from-cyan-400/60 via-purple-500/40 to-pink-500/30
-  //         blur-sm
-  //         ${
-  //           isPaused
-  //             ? "opacity-20"
-  //             : "animate-[spin_6s_linear_infinite,pulse_2s_ease-in-out_infinite]"
-  //         }`}
-  //           style={{
-  //             width: `${70 + i * 25}px`,
-  //             height: `${70 + i * 25}px`,
-  //             borderRadius: "50%",
-  //             animationDelay: `${i * 0.5}s`,
-  //             animationDuration: `${4 + i}s`,
-  //           }}
-  //         />
-  //       ))}
-
-  //       {/* Flowing wave arcs (half rings for spiral illusion) */}
-  //       {[...Array(3)].map((_, i) => (
-  //         <div
-  //           key={`arc-${i}`}
-  //           className={`absolute border-t-2 border-gradient-to-r from-fuchsia-400 via-cyan-400 to-purple-500 rounded-full
-  //         ${isPaused ? "opacity-10" : "animate-[spin_5s_linear_infinite]"}`}
-  //           style={{
-  //             width: `${90 + i * 40}px`,
-  //             height: `${90 + i * 40}px`,
-  //             borderRadius: "50%",
-  //             animationDuration: `${5 + i * 1.5}s`,
-  //             animationDirection: i % 2 === 0 ? "normal" : "reverse",
-  //           }}
-  //         />
-  //       ))}
-  //     </div>
-  //   );
-  // };
 
   return (
     <div className="space-y-4">
@@ -366,7 +324,7 @@ export default function ConsultationRecorder({
       )}
 
       {!showRecordingUI ? (
-        <div className="">
+        <div className="ml-3">
           <Button onClick={startRecording} variant="default" className="w-full">
             <Mic className="h-4 w-4 mr-2" />
             Start Recording
@@ -394,11 +352,11 @@ export default function ConsultationRecorder({
                 </div>
               </div> */}
 
-              <div className="flex gap-2">
+              <div className="flex gap-4">
                 <Button
                   onClick={isPaused ? resumeRecording : pauseRecording}
                   variant="outline"
-                  size="sm"
+                  // size="sm"
                   className="hover:bg-blue-50 border-blue-200"
                 >
                   {isPaused ? (
@@ -417,7 +375,7 @@ export default function ConsultationRecorder({
                 <Button
                   onClick={stopRecording}
                   variant="destructive"
-                  size="sm"
+                  // size="sm"
                   className="hover:bg-red-50"
                 >
                   <MicOff className="h-4 w-4" />
