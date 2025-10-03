@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sidebar";
 import { ChevronDown, PanelLeft } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useSidebar } from "@/components/ui/sidebar";
 import clsx from "clsx";
 import {
@@ -45,31 +45,45 @@ export function AppSidebar({
   label = "Admin Panel",
 }: SidebarNavigationProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const { state, toggleSidebar } = useSidebar();
 
   const isActive = (path: string) => pathname === path;
   const collapsed = state === "collapsed";
 
+  const handleNavigate = (href: string) => {
+    if (href) router.push(href);
+  };
+
   return (
     <Sidebar
       className={clsx(
-        "pt-[4.5rem] border-r border-border transition-all duration-200"
+        "pt-[4.5rem] border-r border-border bg-white shadow-sm transition-all duration-300 min-h-screen"
       )}
       collapsible="icon"
     >
-      <SidebarHeader className="flex items-center justify-between px-4 py-2"></SidebarHeader>
+      <SidebarHeader
+        className={`${
+          collapsed ? "px-2" : "px-6"
+        } py-3 mt-4 border-b border-border`}
+      >
+        <div className="flex items-center justify-between">
+          {!collapsed && (
+            <div className="text-gray-700 font-bold text-md tracking-wide">
+              {label}
+            </div>
+          )}
+          <button
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            onClick={toggleSidebar}
+            className="p-2 rounded"
+          >
+            <PanelLeft className="w-4 h-4 text-primary" />
+          </button>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <div className="flex justify-between items-center">
-            {!collapsed && <SidebarGroupLabel>{label}</SidebarGroupLabel>}
-            <button
-              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-              onClick={toggleSidebar}
-              className="p-2 rounded hover:bg-gray-200 focus:outline-none"
-            >
-              <PanelLeft className="w-4 h-4" />
-            </button>
-          </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {routes.map(({ href, name, icon: Icon, children }) => {
@@ -79,40 +93,62 @@ export function AppSidebar({
                       <SidebarMenuItem>
                         <CollapsibleTrigger
                           className={clsx(
-                            "w-full flex items-center gap-2 px-2 py-1 text-black rounded cursor-pointer group data-[state=open]/collapsible:bg-muted",
+                            "w-full flex items-center gap-2 px-3 py-2 text-primary rounded-lg cursor-pointer group transition-colors duration-200 data-[state=open]/collapsible:bg-primary-100 hover:bg-primary-200 focus:outline-none focus:ring-2 focus:ring-primary",
                             collapsed && "justify-center"
                           )}
                         >
                           <Icon className="w-5 h-5" />
-                          {!collapsed && <span>{name}</span>}
                           {!collapsed && (
-                            <ChevronDown className="ml-auto size-5" />
+                            <span className="font-medium">{name}</span>
+                          )}
+                          {!collapsed && (
+                            <ChevronDown className="ml-auto size-5 transition-transform group-data-[state=open]/collapsible:rotate-180 text-primary" />
                           )}
                         </CollapsibleTrigger>
                       </SidebarMenuItem>
 
                       <CollapsibleContent>
-                        <SidebarMenuSub>
+                        <SidebarMenuSub className="pl-2 border-l border-primary-200">
                           {children.map((child, idx) => {
                             const ChildIcon = child.icon;
                             return (
                               <SidebarMenuSubItem key={idx}>
-                                <Link
-                                  href={child.href}
+                                <button
+                                  type="button"
+                                  onClick={() => handleNavigate(child.href)}
                                   className={clsx(
                                     collapsed
-                                      ? "flex items-center justify-center py-2"
-                                      : "flex items-center text-sm pl-8 py-1.5 rounded-md transition",
+                                      ? "flex items-center justify-center py-3 w-full"
+                                      : "flex items-center text-base pl-8 py-3 rounded-xl transition-colors duration-200 w-full",
                                     isActive(child.href)
-                                      ? "bg-gray-300 font-semibold"
-                                      : "hover:bg-gray-200"
+                                      ? "bg-primary text-white font-semibold shadow"
+                                      : "hover:bg-primary-100 hover:text-primary"
                                   )}
+                                  tabIndex={0}
+                                  onMouseEnter={(e) => {
+                                    if (isActive(child.href)) {
+                                      e.currentTarget.style.background =
+                                        "rgba(59,130,246,0.5)";
+                                    }
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (isActive(child.href)) {
+                                      e.currentTarget.style.background = "";
+                                    }
+                                  }}
                                 >
                                   {ChildIcon && (
-                                    <ChildIcon className="w-4 h-4 mr-2" />
+                                    <ChildIcon
+                                      className={clsx(
+                                        "w-4 h-4 mr-2",
+                                        isActive(child.href)
+                                          ? "text-white"
+                                          : "text-primary"
+                                      )}
+                                    />
                                   )}
                                   {!collapsed && <span>{child.name}</span>}
-                                </Link>
+                                </button>
                               </SidebarMenuSubItem>
                             );
                           })}
@@ -126,22 +162,51 @@ export function AppSidebar({
                   <SidebarMenuItem key={name}>
                     <SidebarMenuButton asChild>
                       {href ? (
-                        <Link
-                          href={href}
+                        <button
+                          type="button"
+                          onClick={() => handleNavigate(href!)}
+                          // style={
+                          //   isActive(href)
+                          //     ? {
+                          //         transition: "background 0.2s",
+                          //       }
+                          //     : {}
+                          // }
                           className={clsx(
                             collapsed
-                              ? "flex items-center justify-center py-2"
-                              : "flex items-center gap-2 px-2 py-1 rounded",
+                              ? "flex items-center justify-center py-6 w-full hover:cursor-pointer"
+                              : "flex items-center gap-4 px-5 py-6 rounded-sm font-semibold text-base transition-colors duration-200 w-full hover:cursor-pointer",
                             isActive(href)
-                              ? "bg-gray-300 text-black font-semibold"
-                              : "hover:bg-gray-200"
+                              ? "bg-primary hover:bg-gray-500 text-white font-semibold shadow hover:cursor-pointer"
+                              : "hover:bg-gray-500 hover:text-primary hover:cursor-pointer"
                           )}
+                          tabIndex={0}
+                          // onMouseEnter={(e) => {
+                          //   if (isActive(href)) {
+                          //     e.currentTarget.style.background =
+                          //       "rgba(59,130,246,0.5)";
+                          //   }
+                          // }}
+                          // onMouseLeave={(e) => {
+                          //   if (isActive(href)) {
+                          //     e.currentTarget.style.background = "";
+                          //   }
+                          // }}
                         >
-                          <Icon size={20} />
+                          <Icon
+                            size={20}
+                            className={clsx(
+                              isActive(href) ? "text-white" : "text-primary"
+                            )}
+                          />
                           {!collapsed && <span>{name}</span>}
-                        </Link>
+                        </button>
                       ) : (
-                        !collapsed && <span>{name}</span>
+                        !collapsed && (
+                          <span className="font-medium text-primary">
+                            {name}
+                          </span>
+                        )
                       )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>

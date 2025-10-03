@@ -23,6 +23,7 @@ import {
   setAiSuggestedLabTests,
   setAiSuggestedMedications,
 } from "@/store/slices/doctorConsultationSlice";
+import WavesurferPlayer from "@wavesurfer/react";
 
 interface ConsultationRecorderProps {
   appointmentId?: string;
@@ -35,7 +36,7 @@ interface ConsultationRecorderProps {
 export default function ConsultationRecorder({
   // appointmentId,
   // onTranscriptionLoading,
-  // onPauseRecording,
+  onPauseRecording,
   onRecordingStart,
   onRecordingStop,
 }: ConsultationRecorderProps) {
@@ -52,11 +53,16 @@ export default function ConsultationRecorder({
   const [aiStep, setAiStep] = useState<
     "transcribing" | "analyzing" | "recommending"
   >("transcribing");
+  const [wavesurfer, setWavesurfer] = useState<any | null>(null);
 
+  const onPlayPause = () => {
+    wavesurfer && wavesurfer.playPause();
+  };
   const startRecording = async () => {
     try {
       // onTranscriptionLoading(true);
       setAiLoading(true);
+      // onPlayPause();
       setAnimationForRecord(true);
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
@@ -107,7 +113,7 @@ export default function ConsultationRecorder({
 
   const pauseRecording = () => {
     if (mediaRecorderRef.current && isRecording && !isPaused) {
-      // onPauseRecording(true);
+      onPauseRecording?.(true);
       mediaRecorderRef.current.pause();
       setIsPaused(true);
       toast.info("Recording paused");
@@ -116,7 +122,7 @@ export default function ConsultationRecorder({
 
   const resumeRecording = () => {
     if (mediaRecorderRef.current && isRecording && isPaused) {
-      // onPauseRecording(false);
+      onPauseRecording?.(false);
       mediaRecorderRef.current.resume();
       setIsPaused(false);
       toast.success("Recording resumed");
@@ -320,6 +326,7 @@ export default function ConsultationRecorder({
           animationFor={animationForRecord}
           recordingStatus={isRecording}
           pauseRecord={isPaused}
+          setWavesurfer={setWavesurfer}
         />
       )}
 

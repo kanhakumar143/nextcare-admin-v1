@@ -8,6 +8,7 @@ import loadingAnimation from "../../../../../public/animation/Shining Stars.json
 import recordingAnimation from "../../../../../public/animation/Microphone record.json";
 import RecordingWave from "@/components/common/RecordingWaveAnimation";
 import { Label } from "recharts";
+import WaveSurfer from "wavesurfer.js";
 
 interface AITranscriptionLoaderProps {
   step: "transcribing" | "analyzing" | "recommending";
@@ -15,6 +16,7 @@ interface AITranscriptionLoaderProps {
   animationFor: boolean;
   recordingStatus: boolean;
   pauseRecord: boolean;
+  setWavesurfer: (ws: any) => void;
 }
 
 const stepTexts: Record<AITranscriptionLoaderProps["step"], string> = {
@@ -29,6 +31,7 @@ export default function AITranscriptionLoader({
   animationFor,
   recordingStatus,
   pauseRecord,
+  setWavesurfer,
 }: AITranscriptionLoaderProps) {
   const [minimized, setMinimized] = useState(animationFor ? true : false);
 
@@ -168,6 +171,7 @@ export default function AITranscriptionLoader({
                   <RecordingWave
                     isRecording={recordingStatus}
                     pauseRecord={pauseRecord}
+                    // setWavesurfer={setWavesurfer}
                   />
                 </div>
               ) : (
@@ -243,6 +247,7 @@ export default function AITranscriptionLoader({
                 <RecordingWave
                   isRecording={recordingStatus}
                   pauseRecord={pauseRecord}
+                  // setWavesurfer={setWavesurfer}
                 />
               ) : (
                 <Lottie

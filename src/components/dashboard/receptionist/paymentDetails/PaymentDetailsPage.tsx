@@ -164,6 +164,7 @@ const PaymentDetailsPage: React.FC = () => {
         return { id: order.id, status: "completed" };
       });
       await updateBulkStatusPaymentRequest(payload1);
+      await handleInvoiceGenerate();
       toast.success(`${appliedRewardPoints} reward points used for payment!`);
       router.push("/dashboard/receptionist/patientcheckin");
     } catch (error) {
@@ -177,6 +178,7 @@ const PaymentDetailsPage: React.FC = () => {
     try {
       await consumeSubscriptionAllowance(featureId);
       toast.success("Subscription allowances applied successfully!");
+      await handleInvoiceGenerate();
       router.push("/dashboard/receptionist/patientcheckin");
     } catch (error) {
       toast.error(`Failed to consume subscription allowance.`);
@@ -193,15 +195,11 @@ const PaymentDetailsPage: React.FC = () => {
       const payload = paymentDetails.pending_orders.map((order) => {
         return { id: order.id, status: "completed" };
       });
-      console.log("Updating payment status", payload);
       setLoading(true);
-      await updateBulkStatusPaymentRequest(payload);
-      // router.push("/dashboard/receptionist/check-in");
-      const orderRequestIds = paymentDetails.pending_orders!.map((o) => o.id);
 
-      await submitInvoiceGenerate({
-        order_request_ids: orderRequestIds,
-      });
+      await updateBulkStatusPaymentRequest(payload);
+      await handleInvoiceGenerate();
+
       toast.success("Payment completed successfully!");
       router.push("/dashboard/receptionist/patientcheckin");
     } catch (error) {
@@ -212,6 +210,13 @@ const PaymentDetailsPage: React.FC = () => {
     }
   };
 
+  const handleInvoiceGenerate = async () => {
+    const orderRequestIds = paymentDetails?.pending_orders!.map((o) => o.id);
+
+    await submitInvoiceGenerate({
+      order_request_ids: orderRequestIds || [],
+    });
+  };
   const handlePaymentSuccess = (result: any) => {
     handleBulkStatusPaymentRequest();
     // Clear payment details from Redux
@@ -497,12 +502,106 @@ const PaymentDetailsPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            <div>
+              {appliedCoupon ? (
+                // Show confirmation when coupon is applied
+                <div className="">
+                  <div className="mb-4">
+                    {/* <h3 className="text-base sm:text-lg font-semibold text-green-700 mb-2">
+                      Subscription Coupon Applied!
+                    </h3> */}
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Your consultation is covered by your subscription. No
+                      payment required.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Consultation covered by subscription plan
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleProceedWithoutPayment}
+                    disabled={loading}
+                    className="bg-green-600 hover:bg-green-700 text-white w-full"
+                  >
+                    {loading ? "Processing..." : "Proceed"}
+                  </Button>
+
+                  {/* <div className="mt-3 text-center"></div> */}
+                </div>
+              ) : appliedRewardPoints > 0 && calculatePayableAmount() === 0 ? (
+                // Show confirmation when reward points cover full amount
+                <div className="">
+                  <div className="mb-4">
+                    {/* <h3 className="text-base sm:text-lg font-semibold text-amber-700 mb-2">
+                      Reward Points Applied!
+                    </h3> */}
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      Your consultation is fully covered by reward points. No
+                      payment required.
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Consultation covered by {appliedRewardPoints} reward
+                      points
+                    </p>
+                  </div>
+
+                  <Button
+                    onClick={handleProceedWithRewardPoints}
+                    disabled={loading}
+                    className="w-full bg-primary hover:bg-primary-dark text-white"
+                  >
+                    {loading ? "Processing..." : "Proceed"}
+                  </Button>
+
+                  {/* <div className="mt-3 text-center"></div> */}
+                </div>
+              ) : (
+                // Show payment options when no coupon is applied or partial payment needed
+                <div className="flex flex-col items-center justify-between">
+                  <div className=" mb-3 sm:mb-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 sm:mb-2">
+                      {appliedRewardPoints > 0 && calculatePayableAmount() > 0
+                        ? "Complete Remaining Payment"
+                        : "Proceed with Payment"}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-gray-600">
+                      {appliedRewardPoints > 0 && calculatePayableAmount() > 0
+                        ? `${appliedRewardPoints} reward points applied. Pay remaining ₹${calculatePayableAmount()}`
+                        : "Complete your payment to proceed with the appointment"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Secure payment powered by Razorpay
+                    </p>
+                  </div>
+
+                  <div className="w-full">
+                    <RazorpayPayment
+                      amount={calculatePayableAmount()}
+                      patientData={{
+                        name: patientDetails.patient.name || "Patient",
+                        email: patientDetails.patient.phone || "",
+                        phone: patientDetails.patient.phone || "",
+                      }}
+                      appointmentId={patientDetails.appointment.id}
+                      onSuccess={handlePaymentSuccess}
+                      onError={handlePaymentError}
+                    />
+                  </div>
+
+                  {/* <div className="mt-3 sm:mt-4 text-center">
+                    
+                  </div> */}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
         {/* Payment Action Card */}
-        <Card className="mb-4 sm:mb-6">
-          <CardContent className="pt-4 sm:pt-6">
+        {/* <div className="mb-4 sm:mb-6">
+          <div className="pt-4 sm:pt-6">
             {appliedCoupon ? (
               // Show confirmation when coupon is applied
               <div className="text-center">
@@ -594,8 +693,8 @@ const PaymentDetailsPage: React.FC = () => {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div> */}
 
         {/* Back to Scan Button */}
         <div className="mt-4 sm:mt-6 text-center pb-4 sm:pb-0">

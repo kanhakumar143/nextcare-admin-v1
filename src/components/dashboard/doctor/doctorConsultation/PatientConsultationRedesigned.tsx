@@ -61,9 +61,11 @@ import PreConsultationAnswers from "./PreConsultationAnswersRedesigned";
 import EhrModal from "../modals/ehrModal";
 import { useAuthInfo } from "@/hooks/useAuthInfo";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export default function PatientConsultation() {
   const { practitionerId } = useAuthInfo();
+  const { setOpen, toggleSidebar } = useSidebar();
   const dispatch = useDispatch();
   const { patient_name } = useParams();
   const {
@@ -100,6 +102,10 @@ export default function PatientConsultation() {
       if (interval) clearInterval(interval);
     };
   }, [isRecording, pauseRecording]);
+
+  useEffect(() => {
+    toggleSidebar();
+  }, []);
 
   // Handle recording start/stop
   const handleRecordingStart = () => {
