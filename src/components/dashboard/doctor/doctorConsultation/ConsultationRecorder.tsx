@@ -234,11 +234,11 @@ export default function ConsultationRecorder({
       },
     };
 
-    // transcribeAudio(audioBlob);
+    transcribeAudio(audioBlob);
     setAiLoading(true);
-    setAiStep("transcribing");
-    dispatch(setAiSuggestedLabTests(response.investigations || []));
-    dispatch(setAiSuggestedMedications(response.medicines || []));
+    // setAiStep("transcribing");
+    // dispatch(setAiSuggestedLabTests(response.investigations || []));
+    // dispatch(setAiSuggestedMedications(response.medicines || []));
     // setAiStep("analyzing");
   }, [audioBlob]);
 
